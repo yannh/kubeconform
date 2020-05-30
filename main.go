@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,6 +11,35 @@ import (
 	"github.com/yannh/kubeconform/pkg/resource"
 	"github.com/yannh/kubeconform/pkg/validator"
 )
+
+func validateFile(f io.Reader, regs []*registry.KubernetesRegistry, k8sVersion string) error {
+	rawResource, err := ioutil.ReadAll(f)
+	if err != nil {
+		return fmt.Errorf("failed reading file: %s", err)
+	}
+
+	sig, err := resource.SignatureFromBytes(rawResource)
+	if err != nil {
+		return fmt.Errorf("error while parsing: %s", err)
+	}
+
+	var schema []byte
+	for _, reg := range regs {
+		schema, err = reg.DownloadSchema(sig.Kind, sig.Version, k8sVersion)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		return fmt.Errorf("failed downloading schema for resource")
+	}
+
+	if err = validator.Validate(rawResource, schema); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func realMain() int {
 	const k8sVersion = "1.18.0"
@@ -21,35 +52,17 @@ func realMain() int {
 	}
 	defer f.Close()
 
-	rawResource, err := ioutil.ReadAll(f)
-	if err != nil {
-		log.Printf("failed reading file %s", filename)
-		return 1
-	}
-
-	sig, err := resource.SignatureFromBytes(rawResource)
-	if err != nil {
-		log.Printf("failed parsing %s", filename)
-		return 1
-	}
-
 	r := registry.NewKubernetesRegistry()
-	schema, err := r.DownloadSchema(sig.Kind, sig.Version, k8sVersion)
-
-	if err != nil {
-		log.Printf("error downloading Schema: %s", err)
+	if err = validateFile(f, []*registry.KubernetesRegistry{r}, k8sVersion); err != nil {
+		if _, ok := err.(validator.InvalidResourceError); ok {
+			log.Printf("invalid resource: %s", err)
+			return 1
+		}
+		log.Printf("failed validating resource: %s", err)
 		return 1
 	}
 
-	err = validator.Validate(rawResource, schema)
-	if err != nil {
-		log.Printf("failed validating: %s", err)
-		return 1
-	}
-
-
-	log.Printf("resource is valid!: %s", schema)
-
+	log.Printf("resource is valid: %s", filename)
 	return 0
 }
 

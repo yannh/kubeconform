@@ -1,7 +1,7 @@
 package resource
 
 import (
-	yaml "gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 )
 
 type Signature struct {

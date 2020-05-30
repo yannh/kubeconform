@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/fsutils"
@@ -75,10 +76,13 @@ func realMain() int {
 	var files, dirs, schemas arrayFiles
 	var skipKinds, k8sVersion, outputFormat string
 	var printSummary bool
+	var nWorkers int
+
 	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
-	flag.Var(&schemas, "schema", "file containing an additional Schema")
+	flag.Var(&schemas, "schema", "file containing an additional Schema (can be specified multiple times)")
+	flag.IntVar(&nWorkers, "workers", 4, "number of routines to run in parallel")
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
@@ -104,6 +108,16 @@ func realMain() int {
 		return false
 	}
 
+	registries := []registry.Registry{}
+	registries = append(registries, registry.NewKubernetesRegistry(false))
+	if len(schemas) > 0 {
+		localRegistry, err := registry.NewLocalSchemas(schemas)
+		if err != nil {
+			log.Fatalf("%s", err)
+		}
+		registries = append(registries, localRegistry)
+	}
+
 	fileBatches := make(chan []string)
 
 	go func() {
@@ -120,33 +134,33 @@ func realMain() int {
 		close(fileBatches)
 	}()
 
-	registries := []registry.Registry{}
-	registries = append(registries, registry.NewKubernetesRegistry(false))
-	if len(schemas) > 0 {
-		localRegistry, err := registry.NewLocalSchemas(schemas)
-		if err != nil {
-			log.Fatalf("%s", err)
-		}
-		registries = append(registries, localRegistry)
+	var wg sync.WaitGroup
+	for i:=0; i<nWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for fileBatch := range fileBatches {
+				for _, filename := range fileBatch {
+					f, err := os.Open(filename)
+					if err != nil {
+						log.Printf("failed opening %s\n", filename)
+						continue
+					}
+
+					res := validateFile(f, registries, k8sVersion, filter)
+					f.Close()
+
+
+					for _, resourceValidation := range res {
+						o.Write(filename, resourceValidation.err, resourceValidation.skipped)
+					}
+				}
+			}
+		}()
 	}
 
-	for fileBatch := range fileBatches {
-		for _, filename := range fileBatch {
-			f, err := os.Open(filename)
-			if err != nil {
-				log.Printf("failed opening %s\n", filename)
-				continue
-			}
-
-			res := validateFile(f, registries, k8sVersion, filter)
-			f.Close()
-
-
-			for _, resourceValidation := range res {
-				o.Write(filename, resourceValidation.err, resourceValidation.skipped)
-			}
-		}
-	}
+	wg.Wait()
 	o.Flush()
 
 	return 0

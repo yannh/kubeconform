@@ -1,4 +1,4 @@
 #!/usr/bin/make -f
 
 all:
-	go build
+	go build -o bin/kubeconform

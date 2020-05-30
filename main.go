@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/yannh/kubeconform/pkg/cache"
+	"github.com/yannh/kubeconform/pkg/fsutils"
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
 	"github.com/yannh/kubeconform/pkg/validator"
@@ -72,9 +73,10 @@ func (i *arrayFiles) Set(value string) error {
 
 
 func realMain() int {
-	var files arrayFiles
+	var files, dirs arrayFiles
 	var skipKinds, k8sVersion string
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
+	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
 	flag.Parse()
@@ -89,36 +91,54 @@ func realMain() int {
 		return false
 	}
 
-	for _, filename := range files {
-		f, err := os.Open(filename)
-		if err != nil {
-			log.Fatalf("failed opening %s\n", filename)
-			return 1
-		}
-		defer f.Close()
+	fileBatches := make(chan []string)
 
-		r := registry.NewKubernetesRegistry(false)
-		res := validateFile(f, []*registry.KubernetesRegistry{r}, k8sVersion, filter)
-		for _, resourceValidation := range res {
-			if resourceValidation.skipped {
-				log.Printf("skipping resource\n")
+	go func() {
+		for _, dir := range dirs {
+			if err := fsutils.FindYamlInDir(dir, fileBatches, 10); err != nil {
+				log.Printf("failed processing folder %s: %s", dir, err)
+			}
+		}
+
+		for _, filename := range files {
+			fileBatches <- []string{filename}
+		}
+
+		close(fileBatches)
+	}()
+
+	r := registry.NewKubernetesRegistry(false)
+
+	for fileBatch := range fileBatches {
+		for _, filename := range fileBatch {
+			f, err := os.Open(filename)
+			if err != nil {
+				log.Printf("failed opening %s\n", filename)
 				continue
 			}
 
-			if resourceValidation.err != nil {
-				if _, ok := resourceValidation.err.(validator.InvalidResourceError); ok {
-					log.Printf("invalid resource: %s\n", resourceValidation.err)
-				} else {
-					log.Printf("failed validating resource: %s\n", resourceValidation.err)
+			res := validateFile(f, []*registry.KubernetesRegistry{r}, k8sVersion, filter)
+			f.Close()
+			for _, resourceValidation := range res {
+				if resourceValidation.skipped {
+					log.Printf("skipping resource\n")
+					continue
 				}
-				continue
-			}
 
-			if resourceValidation.err == nil && !resourceValidation.skipped{
-				log.Printf("file %s is valid\n", filename)
+				if resourceValidation.err != nil {
+					if _, ok := resourceValidation.err.(validator.InvalidResourceError); ok {
+						log.Printf("invalid resource: %s\n", resourceValidation.err)
+					} else {
+						log.Printf("failed validating resource in file %s: %s\n", filename, resourceValidation.err)
+					}
+					continue
+				}
+
+				if resourceValidation.err == nil && !resourceValidation.skipped{
+					log.Printf("file %s is valid\n", filename)
+				}
 			}
 		}
-
 	}
 
 	return 0

@@ -18,12 +18,13 @@ func (f ValidFormat) IsFormat(input interface{}) bool {
 	return true
 }
 
-func init () {
-	gojsonschema.FormatCheckers.Add("int64", ValidFormat{})
-	gojsonschema.FormatCheckers.Add("byte", ValidFormat{})
-	gojsonschema.FormatCheckers.Add("int32", ValidFormat{})
-	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
-}
+// From kubeval - let's see if absolutely necessary
+// func init () {
+// 	gojsonschema.FormatCheckers.Add("int64", ValidFormat{})
+// 	gojsonschema.FormatCheckers.Add("byte", ValidFormat{})
+// 	gojsonschema.FormatCheckers.Add("int32", ValidFormat{})
+// 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
+// }
 
 func Validate(rawResource []byte, rawSchema []byte) error {
 	schemaLoader := gojsonschema.NewBytesLoader(rawSchema)

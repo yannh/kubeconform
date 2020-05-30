@@ -3,6 +3,7 @@ package cache
 import (
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
+	"github.com/yannh/kubeconform/pkg/registry"
 	"sync"
 )
 
@@ -24,6 +25,13 @@ func WithCache(downloadSchema func(string, string, string) (*gojsonschema.Schema
 		}
 
 		schema, err := downloadSchema(resourceKind, resourceAPIVersion, k8sVersion)
+		if err != nil {
+			// will try to download the schema later, except if the error implements Retryable
+			// and returns false on IsRetryable
+			if er, retryable := err.(registry.Retryable); !(retryable && !er.IsRetryable()) {
+				return schema, err
+			}
+		}
 
 		mu.Lock()
 		schemas[cacheKey] = schema

@@ -9,3 +9,7 @@ type Manifest struct {
 type Registry interface {
 	DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (*gojsonschema.Schema, error)
 }
+
+type Retryable interface {
+	IsRetryable() bool
+}

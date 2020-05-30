@@ -50,22 +50,22 @@ func (r KubernetesRegistry) schemaURL(resourceKind, resourceAPIVersion, k8sVersi
 	return fmt.Sprintf("%s/%s-standalone%s/%s%s.json", r.baseURL, normalisedVersion, strictSuffix, strings.ToLower(resourceKind), kindSuffix)
 }
 
-func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, error) {
+func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
 	url := r.schemaURL(resourceKind, resourceAPIVersion, k8sVersion)
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", fmt.Errorf("failed downloading schema at %s: %s", url, err)
+		return []byte{}, fmt.Errorf("failed downloading schema at %s: %s", url, err)
 	}
 	defer resp.Body.Close()
 
 	body, err :=  ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("failed downloading schema at %s: %s", url, err)
+		return []byte{}, fmt.Errorf("failed downloading schema at %s: %s", url, err)
 	}
 
 	fmt.Printf("downloaded %s\n", url)
 
-	return string(body), nil
+	return body, nil
 }
 

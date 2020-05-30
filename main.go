@@ -72,11 +72,10 @@ func (i *arrayFiles) Set(value string) error {
 
 
 func realMain() int {
-	const k8sVersion = "1.18.0"
-
 	var files arrayFiles
-	var skipKinds string
+	var skipKinds, k8sVersion string
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
+	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
 	flag.Parse()
 

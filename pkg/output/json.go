@@ -3,6 +3,7 @@ package output
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/yannh/kubeconform/pkg/validator"
 )
 
 type result struct {
@@ -26,10 +27,16 @@ func NewJSONOutput(withSummary bool) Output{
 func (o *JSONOutput) Write(filename string,err error, skipped bool) {
 	status := "VALID"
 	msg := ""
+
 	if err != nil {
-		status = "INVALID"
 		msg = err.Error()
+		if _, ok := err.(validator.InvalidResourceError); ok {
+			status = "INVALID"
+		} else {
+			status = "ERROR"
+		}
 	}
+
 	if skipped {
 		status = "SKIPPED"
 	}
@@ -47,6 +54,7 @@ func (o *JSONOutput) Flush() {
 			Summary struct {
 				Valid int `json:"valid"`
 				Invalid int `json:"invalid"`
+				Errors int `json:"errors"`
 				Skipped int `json:"skipped"`
 			} `json:"summary"`
 		} {
@@ -59,6 +67,8 @@ func (o *JSONOutput) Flush() {
 				jsonObj.Summary.Valid++
 			case r.Status == "INVALID":
 				jsonObj.Summary.Invalid++
+			case r.Status == "ERROR":
+				jsonObj.Summary.Errors++
 			case r.Status == "SKIPPED":
 				jsonObj.Summary.Skipped++
 			}

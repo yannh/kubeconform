@@ -7,11 +7,11 @@ import (
 
 type TextOutput struct {
 	withSummary                bool
-	nValid, nInvalid, nSkipped int
+	nValid, nInvalid, nErrors, nSkipped int
 }
 
 func NewTextOutput(withSummary bool) Output {
-	return &TextOutput{withSummary, 0,0,0}
+	return &TextOutput{withSummary, 0,0,0, 0}
 }
 
 func (o *TextOutput) Write(filename string,err error, skipped bool) {
@@ -22,11 +22,12 @@ func (o *TextOutput) Write(filename string,err error, skipped bool) {
 	}
 
 	if err != nil {
-		o.nInvalid++
 		if _, ok := err.(validator.InvalidResourceError); ok {
 			fmt.Printf("invalid resource: %s\n", err)
+			o.nInvalid++
 		} else {
 			fmt.Printf("failed validating resource in file %s: %s\n", filename, err)
+			o.nErrors++
 		}
 		return
 	}
@@ -39,7 +40,7 @@ func (o *TextOutput) Write(filename string,err error, skipped bool) {
 
 func (o *TextOutput) Flush() {
 	if o.withSummary {
-		fmt.Printf("Run summary - Valid: %d, Invalid: %d, Skipped: %d\n", o.nValid, o.nInvalid, o.nSkipped)
+		fmt.Printf("Run summary - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
 	}
 }
 

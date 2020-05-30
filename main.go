@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/xeipuuv/gojsonschema"
 	"github.com/yannh/kubeconform/pkg/output"
 	"io"
 	"io/ioutil"
@@ -40,7 +41,7 @@ func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, skip
 		return []validationResult{{err: nil, skipped: true}}
 	}
 
-	var schema []byte
+	var schema *gojsonschema.Schema
 	for _, reg := range regs {
 		downloadSchema := cache.WithCache(reg.DownloadSchema)
 		schema, err = downloadSchema(sig.Kind, sig.Version, k8sVersion)
@@ -70,8 +71,6 @@ func (i *arrayFiles) Set(value string) error {
 	return nil
 }
 
-
-
 func realMain() int {
 	var files, dirs, schemas arrayFiles
 	var skipKinds, k8sVersion, outputFormat string
@@ -98,14 +97,14 @@ func realMain() int {
 		log.Fatalf("-output must be text or json")
 	}
 
+	splitKinds := strings.Split(skipKinds, ",")
+	kinds := map[string]bool {}
+	for _, kind := range splitKinds {
+		kinds[kind] = true
+	}
 	filter := func(signature resource.Signature) bool {
-		kinds := strings.Split(skipKinds, ",")
-		for _, kind := range kinds {
-			if signature.Kind == kind {
-				return true
-			}
-		}
-		return false
+		 isSkipKind, ok :=  kinds[signature.Kind]
+		 return ok && isSkipKind
 	}
 
 	registries := []registry.Registry{}

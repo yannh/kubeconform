@@ -2,18 +2,19 @@ package cache
 
 import (
 	"fmt"
+	"github.com/xeipuuv/gojsonschema"
 	"sync"
 )
 
 var mu sync.Mutex
-var schemas map[string][]byte
+var schemas map[string]*gojsonschema.Schema
 
 func init () {
-	schemas = map[string][]byte {}
+	schemas = map[string]*gojsonschema.Schema{}
 }
 
-func WithCache(downloadSchema func(string, string, string) ([]byte, error)) (func (string, string, string) ([]byte, error)) {
-	return func(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
+func WithCache(downloadSchema func(string, string, string) (*gojsonschema.Schema, error)) (func (string, string, string) (*gojsonschema.Schema, error)) {
+	return func(resourceKind, resourceAPIVersion, k8sVersion string) (*gojsonschema.Schema, error) {
 		cacheKey := fmt.Sprintf("%s-%s-%s", resourceKind, resourceAPIVersion, k8sVersion)
 		mu.Lock()
 		cachedSchema, ok := schemas[cacheKey];
@@ -23,14 +24,11 @@ func WithCache(downloadSchema func(string, string, string) ([]byte, error)) (fun
 		}
 
 		schema, err := downloadSchema(resourceKind, resourceAPIVersion, k8sVersion)
-		if err != nil {
-			return schema, err
-		}
 
 		mu.Lock()
 		schemas[cacheKey] = schema
 		mu.Unlock()
 
-		return schema, nil
+		return schema, err
 	}
 }

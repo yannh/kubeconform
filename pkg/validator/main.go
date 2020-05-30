@@ -26,15 +26,13 @@ func (f ValidFormat) IsFormat(input interface{}) bool {
 // 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
 // }
 
-func Validate(rawResource []byte, rawSchema []byte) error {
-	schemaLoader := gojsonschema.NewBytesLoader(rawSchema)
-	schema, err := gojsonschema.NewSchema(schemaLoader)
-	if err != nil {
-		return err
+func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
+	if schema == nil {
+		return nil
 	}
 
 	var resource map[string]interface{}
-	if err = yaml.Unmarshal(rawResource, &resource); err != nil {
+	if err := yaml.Unmarshal(rawResource, &resource); err != nil {
 		return fmt.Errorf("error unmarshalling resource: %s", err)
 	}
 	resourceLoader := gojsonschema.NewGoLoader(resource)

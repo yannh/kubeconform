@@ -20,10 +20,10 @@ type KubernetesRegistry struct {
 	strict     bool
 }
 
-func NewKubernetesRegistry() *KubernetesRegistry {
+func NewKubernetesRegistry(strict bool) *KubernetesRegistry {
 	return &KubernetesRegistry{
 		baseURL:    "https://kubernetesjsonschema.dev",
-		strict:     false,
+		strict:     strict,
 	}
 }
 

@@ -23,6 +23,8 @@ Usage of ./bin/kubeconform:
         file containing an additional Schema (can be specified multiple times)
   -skipKinds string
         comma-separated list of kinds to ignore
+  -strict
+        activate strict mode
   -workers int
         number of routines to run in parallel (default 4)
 ```

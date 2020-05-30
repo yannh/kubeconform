@@ -74,7 +74,7 @@ func (i *arrayFiles) Set(value string) error {
 func realMain() int {
 	var files, dirs, schemas arrayFiles
 	var skipKinds, k8sVersion, outputFormat string
-	var printSummary bool
+	var printSummary, strict bool
 	var nWorkers int
 
 	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
@@ -84,6 +84,7 @@ func realMain() int {
 	flag.IntVar(&nWorkers, "workers", 4, "number of routines to run in parallel")
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
+	flag.BoolVar(&strict, "strict", false, "activate strict mode")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
 	flag.Parse()
 
@@ -108,7 +109,7 @@ func realMain() int {
 	}
 
 	registries := []registry.Registry{}
-	registries = append(registries, registry.NewKubernetesRegistry(false))
+	registries = append(registries, registry.NewKubernetesRegistry(strict))
 	if len(schemas) > 0 {
 		localRegistry, err := registry.NewLocalSchemas(schemas)
 		if err != nil {

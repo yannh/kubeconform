@@ -12,11 +12,13 @@ type result struct {
 }
 
 type JSONOutput struct {
+	withSummary bool
 	results []result
 }
 
-func NewJSONOutput() Output{
+func NewJSONOutput(withSummary bool) Output{
 	return &JSONOutput{
+		withSummary: withSummary,
 		results: []result{},
 	}
 }
@@ -25,7 +27,7 @@ func (o *JSONOutput) Write(filename string,err error, skipped bool) {
 	status := "VALID"
 	msg := ""
 	if err != nil {
-		status = "ERROR"
+		status = "INVALID"
 		msg = err.Error()
 	}
 	if skipped {
@@ -36,7 +38,43 @@ func (o *JSONOutput) Write(filename string,err error, skipped bool) {
 }
 
 func (o *JSONOutput) Flush() {
-	res, err := json.MarshalIndent(o.results,"", "  ")
+	var err error
+	var res []byte
+
+	if o.withSummary {
+		jsonObj := struct {
+			Resources []result `json:"resources"`
+			Summary struct {
+				Valid int `json:"valid"`
+				Invalid int `json:"invalid"`
+				Skipped int `json:"skipped"`
+			} `json:"summary"`
+		} {
+			Resources: o.results,
+		}
+
+		for _, r := range o.results {
+			switch {
+			case r.Status == "VALID":
+				jsonObj.Summary.Valid++
+			case r.Status == "INVALID":
+				jsonObj.Summary.Invalid++
+			case r.Status == "SKIPPED":
+				jsonObj.Summary.Skipped++
+			}
+		}
+
+		res, err = json.MarshalIndent(jsonObj,"", "  ")
+	} else {
+		jsonObj := struct {
+			Resources []result
+		} {
+			Resources: o.results,
+		}
+
+		res, err = json.MarshalIndent(jsonObj,"", "  ")
+	}
+
 	if err != nil {
 		fmt.Printf("error print results: %s", err)
 		return

@@ -58,8 +58,6 @@ func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, skip
 	return []validationResult{{err: nil}}
 }
 
-
-
 type arrayFiles []string
 
 func (i *arrayFiles) String() string {
@@ -76,6 +74,8 @@ func (i *arrayFiles) Set(value string) error {
 func realMain() int {
 	var files, dirs, schemas arrayFiles
 	var skipKinds, k8sVersion, outputFormat string
+	var printSummary bool
+	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.Var(&schemas, "schema", "file containing an additional Schema")
@@ -87,9 +87,9 @@ func realMain() int {
 	var o output.Output
 	switch {
 	case outputFormat == "text":
-		o = output.NewTextOutput()
+		o = output.NewTextOutput(printSummary)
 	case outputFormat == "json":
-		o = output.NewJSONOutput()
+		o = output.NewJSONOutput(printSummary)
 	default:
 		log.Fatalf("-output must be text or json")
 	}

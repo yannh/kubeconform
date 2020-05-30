@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/yannh/kubeconform/pkg/output"
 	"io"
 	"io/ioutil"
 	"log"
@@ -74,12 +75,23 @@ func (i *arrayFiles) Set(value string) error {
 
 func realMain() int {
 	var files, dirs arrayFiles
-	var skipKinds, k8sVersion string
+	var skipKinds, k8sVersion, outputFormat string
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
+	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
 	flag.Parse()
+
+	var o output.Output
+	switch {
+	case outputFormat == "text":
+		o = output.NewTextOutput()
+	case outputFormat == "json":
+		o = output.NewJSONOutput()
+	default:
+		log.Fatalf("-output must be text or json")
+	}
 
 	filter := func(signature resource.Signature) bool {
 		kinds := strings.Split(skipKinds, ",")
@@ -119,27 +131,14 @@ func realMain() int {
 
 			res := validateFile(f, []*registry.KubernetesRegistry{r}, k8sVersion, filter)
 			f.Close()
+
+
 			for _, resourceValidation := range res {
-				if resourceValidation.skipped {
-					log.Printf("skipping resource\n")
-					continue
-				}
-
-				if resourceValidation.err != nil {
-					if _, ok := resourceValidation.err.(validator.InvalidResourceError); ok {
-						log.Printf("invalid resource: %s\n", resourceValidation.err)
-					} else {
-						log.Printf("failed validating resource in file %s: %s\n", filename, resourceValidation.err)
-					}
-					continue
-				}
-
-				if resourceValidation.err == nil && !resourceValidation.skipped{
-					log.Printf("file %s is valid\n", filename)
-				}
+				o.Write(filename, resourceValidation.err, resourceValidation.skipped)
 			}
 		}
 	}
+	o.Flush()
 
 	return 0
 }

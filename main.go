@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
 	"github.com/yannh/kubeconform/pkg/validator"
@@ -23,9 +24,11 @@ func validateFile(f io.Reader, regs []*registry.KubernetesRegistry, k8sVersion s
 		return fmt.Errorf("error while parsing: %s", err)
 	}
 
+
 	var schema []byte
 	for _, reg := range regs {
-		schema, err = reg.DownloadSchema(sig.Kind, sig.Version, k8sVersion)
+		downloadSchema := cache.WithCache(reg.DownloadSchema)
+		schema, err = downloadSchema(sig.Kind, sig.Version, k8sVersion)
 		if err == nil {
 			break
 		}

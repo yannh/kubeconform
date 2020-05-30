@@ -13,6 +13,8 @@ Usage of ./bin/kubeconform:
         version of Kubernetes to test against (default "1.18.0")
   -output string
         output format - text, json (default "text")
+  -schema value
+        file containing an additional Schema (can be specified multiple times)
   -skipKinds string
         comma-separated list of kinds to ignore
 ```

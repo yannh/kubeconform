@@ -24,7 +24,7 @@ type validationResult struct {
 
 // filter returns true if the file should be skipped
 // Returning an array, this Reader might container multiple resources
-func validateFile(f io.Reader, regs []*registry.KubernetesRegistry, k8sVersion string, skip func(signature resource.Signature)bool) []validationResult {
+func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, skip func(signature resource.Signature)bool) []validationResult {
 	rawResource, err := ioutil.ReadAll(f)
 	if err != nil {
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
@@ -74,10 +74,11 @@ func (i *arrayFiles) Set(value string) error {
 
 
 func realMain() int {
-	var files, dirs arrayFiles
+	var files, dirs, schemas arrayFiles
 	var skipKinds, k8sVersion, outputFormat string
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
+	flag.Var(&schemas, "schema", "file containing an additional Schema")
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
@@ -119,7 +120,15 @@ func realMain() int {
 		close(fileBatches)
 	}()
 
-	r := registry.NewKubernetesRegistry(false)
+	registries := []registry.Registry{}
+	registries = append(registries, registry.NewKubernetesRegistry(false))
+	if len(schemas) > 0 {
+		localRegistry, err := registry.NewLocalSchemas(schemas)
+		if err != nil {
+			log.Fatalf("%s", err)
+		}
+		registries = append(registries, localRegistry)
+	}
 
 	for fileBatch := range fileBatches {
 		for _, filename := range fileBatch {
@@ -129,7 +138,7 @@ func realMain() int {
 				continue
 			}
 
-			res := validateFile(f, []*registry.KubernetesRegistry{r}, k8sVersion, filter)
+			res := validateFile(f, registries, k8sVersion, filter)
 			f.Close()
 
 

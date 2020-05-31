@@ -174,10 +174,17 @@ func realMain() int {
 	validationResults := make(chan []validationResult)
 	var logWG sync.WaitGroup
 	logWG.Add(1)
+
+	success := true
+
 	go func() {
 		defer logWG.Done()
 		for results := range validationResults {
 			for _, result := range results {
+				if result.err != nil {
+					success = false
+				}
+
 				o.Write(result.filename, result.kind, result.version, result.err, result.skipped)
 			}
 		}
@@ -214,6 +221,10 @@ func realMain() int {
 	close(validationResults)
 	logWG.Wait()
 	o.Flush()
+
+	if !success {
+		return 1
+	}
 
 	return 0
 }

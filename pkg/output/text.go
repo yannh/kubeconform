@@ -31,18 +31,18 @@ func (o *TextOutput) Write(filename string, err error, skipped bool) {
 	switch {
 	case s == VALID:
 		if !o.quiet {
-			fmt.Printf("file %s is valid\n", filename)
+			fmt.Printf("%s - file is valid\n", filename)
 		}
 		o.nValid++
 	case s == INVALID:
-		fmt.Printf("invalid resource: %s\n", err)
+		fmt.Printf("%s - invalid resource: %s\n",filename, err)
 		o.nInvalid++
 	case s == ERROR:
-		fmt.Printf("failed validating resource in file %s: %s\n", filename, err)
+		fmt.Printf("%s - failed validating resource: %s\n", filename, err)
 		o.nErrors++
 	case s == SKIPPED:
 		if !o.quiet {
-			fmt.Printf("skipping resource\n")
+			fmt.Printf("%s - skipping resource\n", filename)
 		}
 		o.nSkipped++
 	}

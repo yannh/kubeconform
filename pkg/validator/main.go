@@ -46,7 +46,14 @@ func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
 	}
 
 	if !results.Valid() {
-		return InvalidResourceError{err: fmt.Sprintf("resource does not conform to schema: %+v", results)}
+		msg := ""
+		for _, errMsg := range results.Errors() {
+			if msg != "" {
+				msg += " - "
+			}
+			msg	+= errMsg.Description()
+		}
+		return InvalidResourceError{err: msg}
 	}
 
 	return nil

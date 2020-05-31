@@ -1,6 +1,8 @@
 package output
 
-import "github.com/yannh/kubeconform/pkg/validator"
+import (
+	"github.com/yannh/kubeconform/pkg/validator"
+)
 
 const (
 	VALID   = iota
@@ -15,16 +17,16 @@ type Output interface {
 }
 
 func status(err error, skipped bool) int {
+	if skipped {
+		return SKIPPED
+	}
+
 	if err != nil {
 		if _, ok := err.(validator.InvalidResourceError); ok {
 			return INVALID
 		} else {
 			return ERROR
 		}
-	}
-
-	if skipped {
-		return SKIPPED
 	}
 
 	return VALID

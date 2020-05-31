@@ -26,7 +26,7 @@ type validationResult struct {
 
 // filter returns true if the file should be skipped
 // Returning an array, this Reader might container multiple resources
-func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, skip func(signature resource.Signature) bool) []validationResult {
+func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool) []validationResult {
 	rawResource, err := ioutil.ReadAll(f)
 	if err != nil {
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
@@ -42,15 +42,33 @@ func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, skip
 	}
 
 	var schema *gojsonschema.Schema
-	for _, reg := range regs {
-		downloadSchema := cache.WithCache(reg.DownloadSchema)
-		schema, err = downloadSchema(sig.Kind, sig.Version, k8sVersion)
-		if err == nil {
-			break
+	var schemaBytes []byte
+	var ok bool
+
+	cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
+	schema, ok = c.Get(cacheKey)
+	if !ok {
+		for _, reg := range regs {
+			schemaBytes, err = reg.DownloadSchema(sig.Kind, sig.Version, k8sVersion)
+			if err == nil {
+				schema, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
+				if err != nil {
+					return []validationResult{{err: err, skipped: false}} // skip if no schema found
+				}
+				break
+			}
+
+			// If we get a 404, we keep trying, but we exit if we get a real failure
+			if er, retryable := err.(registry.Retryable); !(retryable && !er.IsRetryable()) {
+				return []validationResult{{err: fmt.Errorf("error while downloading schema for resource: %s", err)}}
+			}
 		}
 	}
-	if err != nil {
-		return []validationResult{{err: fmt.Errorf("error while downloading schema for resource: %s", err)}}
+
+	c.Set(cacheKey, schema)
+
+	if err != nil { // Not found
+		return []validationResult{{err: nil, skipped: true}} // skip if no schema found
 	}
 
 	if err = validator.Validate(rawResource, schema); err != nil {
@@ -134,6 +152,7 @@ func realMain() int {
 		close(fileBatches)
 	}()
 
+	c := cache.NewSchemaCache()
 	var wg sync.WaitGroup
 	for i := 0; i < nWorkers; i++ {
 		wg.Add(1)
@@ -148,7 +167,7 @@ func realMain() int {
 						continue
 					}
 
-					res := validateFile(f, registries, k8sVersion, filter)
+					res := validateFile(f, registries, k8sVersion, c, filter)
 					f.Close()
 
 					for _, resourceValidation := range res {

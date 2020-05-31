@@ -2,7 +2,6 @@ package registry
 
 import (
 	"fmt"
-	"github.com/xeipuuv/gojsonschema"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -53,7 +52,7 @@ func (r KubernetesRegistry) schemaURL(resourceKind, resourceAPIVersion, k8sVersi
 	return fmt.Sprintf("%s/%s-standalone%s/%s%s.json", r.baseURL, normalisedVersion, strictSuffix, strings.ToLower(resourceKind), kindSuffix)
 }
 
-func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (*gojsonschema.Schema, error) {
+func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
 	url := r.schemaURL(resourceKind, resourceAPIVersion, k8sVersion)
 
 	resp, err := http.Get(url)
@@ -75,5 +74,5 @@ func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8s
 		return nil, fmt.Errorf("failed downloading schema at %s: %s", url, err)
 	}
 
-	return gojsonschema.NewSchema(gojsonschema.NewBytesLoader(body))
+	return body, nil
 }

@@ -3,40 +3,33 @@ package cache
 import (
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
-	"github.com/yannh/kubeconform/pkg/registry"
 	"sync"
 )
 
-var mu sync.Mutex
-var schemas map[string]*gojsonschema.Schema
-
-func init() {
-	schemas = map[string]*gojsonschema.Schema{}
+type SchemaCache struct {
+	sync.RWMutex
+	schemas map[string]*gojsonschema.Schema
 }
 
-func WithCache(downloadSchema func(string, string, string) (*gojsonschema.Schema, error)) func(string, string, string) (*gojsonschema.Schema, error) {
-	return func(resourceKind, resourceAPIVersion, k8sVersion string) (*gojsonschema.Schema, error) {
-		cacheKey := fmt.Sprintf("%s-%s-%s", resourceKind, resourceAPIVersion, k8sVersion)
-		mu.Lock()
-		cachedSchema, ok := schemas[cacheKey]
-		mu.Unlock()
-		if ok {
-			return cachedSchema, nil
-		}
-
-		schema, err := downloadSchema(resourceKind, resourceAPIVersion, k8sVersion)
-		if err != nil {
-			// will try to download the schema later, except if the error implements Retryable
-			// and returns false on IsRetryable
-			if er, retryable := err.(registry.Retryable); !(retryable && !er.IsRetryable()) {
-				return schema, err
-			}
-		}
-
-		mu.Lock()
-		schemas[cacheKey] = schema
-		mu.Unlock()
-
-		return schema, err
+func NewSchemaCache() *SchemaCache {
+	return &SchemaCache{
+		schemas: map[string]*gojsonschema.Schema{},
 	}
+}
+
+func Key(resourceKind, resourceAPIVersion, k8sVersion string) string {
+	return fmt.Sprintf("%s-%s-%s", resourceKind, resourceAPIVersion, k8sVersion)
+}
+
+func (c *SchemaCache) Get(key string) (*gojsonschema.Schema, bool) {
+	c.RLock()
+	defer c.RUnlock()
+	schema, ok :=  c.schemas[key]
+	return schema, ok
+}
+
+func (c *SchemaCache) Set(key string, schema *gojsonschema.Schema) {
+	c.Lock()
+	defer c.Unlock()
+	c.schemas[key] = schema
 }

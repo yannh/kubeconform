@@ -208,7 +208,7 @@ func realMain() int {
 					res := validateFile(f, registries, k8sVersion, c, filter)
 					f.Close()
 
-					for i, _ := range res {
+					for i := range res {
 						res[i].filename = filename
 					}
 					validationResults <- res

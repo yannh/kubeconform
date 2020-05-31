@@ -58,5 +58,5 @@ func (r LocalSchemas) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersio
 	defer f.Close()
 	content, err := ioutil.ReadAll(f)
 
-	return content, nil
+	return content, err
 }

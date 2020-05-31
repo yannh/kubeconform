@@ -24,9 +24,8 @@ func status(err error, skipped bool) int {
 	if err != nil {
 		if _, ok := err.(validator.InvalidResourceError); ok {
 			return INVALID
-		} else {
-			return ERROR
 		}
+		return ERROR
 	}
 
 	return VALID

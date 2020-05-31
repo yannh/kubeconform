@@ -3,7 +3,6 @@ package output
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
 )
 
 type result struct {
@@ -15,7 +14,6 @@ type result struct {
 }
 
 type JSONOutput struct {
-	sync.Mutex
 	withSummary                         bool
 	quiet                               bool
 	results                             []result
@@ -35,8 +33,6 @@ func NewJSONOutput(withSummary bool, quiet bool) Output {
 }
 
 func (o *JSONOutput) Write(filename, kind, version string, err error, skipped bool) {
-	o.Lock()
-	defer o.Unlock()
 	msg, st := "", ""
 
 	s := status(err, skipped)

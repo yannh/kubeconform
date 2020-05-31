@@ -21,9 +21,9 @@ import (
 )
 
 type validationResult struct {
-	kind, version string
-	err           error
-	skipped       bool
+	filename, kind, version string
+	err                     error
+	skipped                 bool
 }
 
 // filter returns true if the file should be skipped
@@ -171,6 +171,18 @@ func realMain() int {
 		close(fileBatches)
 	}()
 
+	validationResults := make(chan []validationResult)
+	var logWG sync.WaitGroup
+	logWG.Add(1)
+	go func() {
+		defer logWG.Done()
+		for results := range validationResults {
+			for _, result := range results {
+				o.Write(result.filename, result.kind, result.version, result.err, result.skipped)
+			}
+		}
+	}()
+
 	c := cache.NewSchemaCache()
 	var wg sync.WaitGroup
 	for i := 0; i < nWorkers; i++ {
@@ -189,9 +201,10 @@ func realMain() int {
 					res := validateFile(f, registries, k8sVersion, c, filter)
 					f.Close()
 
-					for _, resourceValidation := range res {
-						o.Write(filename, resourceValidation.kind, resourceValidation.version, resourceValidation.err, resourceValidation.skipped)
+					for i, _ := range res {
+						res[i].filename = filename
 					}
+					validationResults <- res
 				}
 			}
 		}()
@@ -199,6 +212,8 @@ func realMain() int {
 
 	wg.Wait()
 	o.Flush()
+	close(validationResults)
+	logWG.Wait()
 
 	return 0
 }

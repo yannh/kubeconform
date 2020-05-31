@@ -26,21 +26,57 @@ type validationResult struct {
 	skipped                 bool
 }
 
+func resourcesFromReader(r io.Reader) ([][]byte, error) {
+	data, err := ioutil.ReadAll(r)
+	if err != nil {
+		return [][]byte{}, err
+	}
+
+	resources := bytes.Split(data, []byte("---\n"))
+
+	return resources, nil
+}
+
+func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error) {
+	var err error
+	var schema *gojsonschema.Schema
+	var schemaBytes []byte
+
+	for _, reg := range registries {
+		schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
+
+		if err != nil {
+			// If we get a 404, we keep trying, but we exit if we get a real failure
+			if er, retryable := err.(registry.Retryable); !retryable || er.IsRetryable() {
+				return nil, err
+			}
+
+			continue // 404 from this registry, try next registry
+		}
+
+		if schema, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes)); err != nil {
+			return nil, err // Got a schema, but fail to parse it
+		}
+
+		return schema, nil
+	}
+
+	return nil, nil // No schema found - we don't consider it an error, resource willb e skipped
+}
+
 // filter returns true if the file should be skipped
 // Returning an array, this Reader might container multiple resources
-func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool) []validationResult {
-	file, err := ioutil.ReadAll(f)
+func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool) []validationResult {
+	rawResources, err := resourcesFromReader(r)
 	if err != nil {
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
 	}
 
 	validationResults := []validationResult{}
-	rawResources := bytes.Split(file, []byte("---\n"))
 
-RESOURCES:
 	for _, rawResource := range rawResources {
-		sig, err := resource.SignatureFromBytes(rawResource)
-		if err != nil {
+		var sig resource.Signature
+		if sig, err = resource.SignatureFromBytes(rawResource); err != nil {
 			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("error while parsing: %s", err)})
 			continue
 		}
@@ -50,39 +86,23 @@ RESOURCES:
 			continue
 		}
 
-		var schema *gojsonschema.Schema
-		var schemaBytes []byte
 		var ok bool
 
 		cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
-		schema, ok = c.Get(cacheKey)
+		schema, ok := c.Get(cacheKey)
 		if !ok {
-			for _, reg := range regs {
-				schemaBytes, err = reg.DownloadSchema(sig.Kind, sig.Version, k8sVersion)
-				if err == nil {
-					schema, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
-					if err != nil {
-						// Downloaded a schema but failed to parse it
-						validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err, skipped: false})
-						continue RESOURCES
-					}
-
-					// success
-					break
-				}
-
-				// If we get a 404, we keep trying, but we exit if we get a real failure
-				if er, retryable := err.(registry.Retryable); !(retryable && !er.IsRetryable()) {
-					validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("error while downloading schema for resource: %s", err)})
-				}
+			if schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion); err != nil {
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err, skipped: false})
+				continue
 			}
-		}
 
-		// Cache both found & not found
-		c.Set(cacheKey, schema)
+			if schema == nil {
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true}) // skip if no schema found
+				c.Set(cacheKey, nil)
+				continue
+			}
 
-		if err != nil { // Not found
-			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true}) // skip if no schema found
+			c.Set(cacheKey, schema)
 		}
 
 		if err = validator.Validate(rawResource, schema); err != nil {

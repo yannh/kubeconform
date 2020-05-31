@@ -104,11 +104,8 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 			}
 		}
 
-		if err = validator.Validate(rawResource, schema); err != nil {
-			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err})
-		} else {
-			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil})
-		}
+		err = validator.Validate(rawResource, schema)
+		validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err})
 	}
 
 	return validationResults

@@ -114,23 +114,52 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 	return validationResults
 }
 
-type arrayFiles []string
+type arrayParam []string
 
-func (i *arrayFiles) String() string {
-	return "my string representation"
+func (ap *arrayParam) String() string {
+	s := ""
+	for _, param := range *ap {
+		if s == "" {
+			s += param
+		} else {
+			s += " - " + param
+		}
+	}
+
+	return s
 }
 
-func (i *arrayFiles) Set(value string) error {
-	*i = append(*i, value)
+func (ap *arrayParam) Set(value string) error {
+	*ap = append(*ap, value)
 	return nil
 }
 
+func getLogger(outputFormat string, printSummary, quiet bool) (output.Output, error) {
+	switch {
+	case outputFormat == "text":
+		return output.NewTextOutput(printSummary, quiet)
+	case outputFormat == "json":
+		return output.NewJSONOutput(printSummary, quiet)
+	default:
+		return nil, fmt.Errorf("-output must be text or json")
+	}
+}
+
+func skipKindsMap(skipKindsCSV string) map[string]bool {
+	splitKinds := strings.Split(skipKindsCSV, ",")
+	skipKinds := map[string]bool{}
+	for _, kind := range splitKinds {
+		skipKinds[kind] = true
+	}
+	return skipKinds
+}
+
 func realMain() int {
-	var files, dirs, schemas arrayFiles
-	var skipKinds, k8sVersion, outputFormat string
-	var printSummary, strict bool
+	var files, dirs, schemas arrayParam
+	var skipKindsCSV, k8sVersion, outputFormat string
+	var printSummary, strict, quiet bool
 	var nWorkers int
-	var quiet bool
+	var err error
 
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
@@ -138,29 +167,22 @@ func realMain() int {
 	flag.Var(&schemas, "schema", "file containing an additional Schema (can be specified multiple times)")
 	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
 	flag.IntVar(&nWorkers, "workers", 4, "number of routines to run in parallel")
-	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
+	flag.StringVar(&skipKindsCSV, "skipKinds", "", "comma-separated list of kinds to ignore")
 	flag.BoolVar(&strict, "strict", false, "disallow additional properties not in schema")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
 	flag.BoolVar(&quiet, "quiet", false, "quiet output - only print invalid files, and errors")
 	flag.Parse()
 
 	var o output.Output
-	switch {
-	case outputFormat == "text":
-		o = output.NewTextOutput(printSummary, quiet)
-	case outputFormat == "json":
-		o = output.NewJSONOutput(printSummary, quiet)
-	default:
-		log.Fatalf("-output must be text or json")
+	if o, err = getLogger(outputFormat, printSummary, quiet); err != nil {
+		fmt.Println(err)
+		return 1
 	}
 
-	splitKinds := strings.Split(skipKinds, ",")
-	kinds := map[string]bool{}
-	for _, kind := range splitKinds {
-		kinds[kind] = true
-	}
+	skipKinds := skipKindsMap(skipKindsCSV)
+
 	filter := func(signature resource.Signature) bool {
-		isSkipKind, ok := kinds[signature.Kind]
+		isSkipKind, ok := skipKinds[signature.Kind]
 		return ok && isSkipKind
 	}
 
@@ -175,7 +197,6 @@ func realMain() int {
 	}
 
 	fileBatches := make(chan []string)
-
 	go func() {
 		for _, dir := range dirs {
 			if err := fsutils.FindYamlInDir(dir, fileBatches, 10); err != nil {

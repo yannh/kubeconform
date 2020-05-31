@@ -8,7 +8,6 @@ type Signature struct {
 	Kind, Version, Namespace string
 }
 
-// TODO: Support multi-resources yaml files
 func SignatureFromBytes(s []byte) (Signature, error) {
 	resource := struct {
 		APIVersion string `yaml:"apiVersion"`

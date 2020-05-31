@@ -66,7 +66,7 @@ func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8s
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error while downloading schema - received HTTP status %s", resp.StatusCode)
+		return nil, fmt.Errorf("error while downloading schema - received HTTP status %d", resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

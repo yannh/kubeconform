@@ -211,9 +211,9 @@ func realMain() int {
 	}
 
 	wg.Wait()
-	o.Flush()
 	close(validationResults)
 	logWG.Wait()
+	o.Flush()
 
 	return 0
 }

@@ -14,4 +14,4 @@ jobs:
 
       - name: docker-build
         run: |
-          docker build .
+          docker build -t kubeconform .

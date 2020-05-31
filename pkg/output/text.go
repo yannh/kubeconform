@@ -23,7 +23,7 @@ func NewTextOutput(withSummary, quiet bool) Output {
 	}
 }
 
-func (o *TextOutput) Write(filename string, err error, skipped bool) {
+func (o *TextOutput) Write(filename, kind, version string, err error, skipped bool) {
 	o.Lock()
 	defer o.Unlock()
 
@@ -31,18 +31,18 @@ func (o *TextOutput) Write(filename string, err error, skipped bool) {
 	switch {
 	case s == VALID:
 		if !o.quiet {
-			fmt.Printf("%s - file is valid\n", filename)
+			fmt.Printf("%s - %s is valid\n", filename, kind)
 		}
 		o.nValid++
 	case s == INVALID:
-		fmt.Printf("%s - invalid resource: %s\n", filename, err)
+		fmt.Printf("%s - %s is invalid: %s\n", filename, kind, err)
 		o.nInvalid++
 	case s == ERROR:
-		fmt.Printf("%s - failed validating resource: %s\n", filename, err)
+		fmt.Printf("%s - %s failed validation: %s\n", filename, kind, err)
 		o.nErrors++
 	case s == SKIPPED:
 		if !o.quiet {
-			fmt.Printf("%s - skipping resource\n", filename)
+			fmt.Printf("%s - %s skipped\n", filename, kind)
 		}
 		o.nSkipped++
 	}

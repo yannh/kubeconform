@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
@@ -20,63 +21,78 @@ import (
 )
 
 type validationResult struct {
-	err     error
-	skipped bool
+	kind, version string
+	err           error
+	skipped       bool
 }
 
 // filter returns true if the file should be skipped
 // Returning an array, this Reader might container multiple resources
 func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool) []validationResult {
-	rawResource, err := ioutil.ReadAll(f)
+	file, err := ioutil.ReadAll(f)
 	if err != nil {
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
 	}
 
-	sig, err := resource.SignatureFromBytes(rawResource)
-	if err != nil {
-		return []validationResult{{err: fmt.Errorf("error while parsing: %s", err)}}
-	}
+	validationResults := []validationResult{}
+	rawResources := bytes.Split(file, []byte("---\n"))
 
-	if skip(sig) {
-		return []validationResult{{err: nil, skipped: true}}
-	}
+RESOURCES:
+	for _, rawResource := range rawResources {
+		sig, err := resource.SignatureFromBytes(rawResource)
+		if err != nil {
+			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("error while parsing: %s", err)})
+			continue
+		}
 
-	var schema *gojsonschema.Schema
-	var schemaBytes []byte
-	var ok bool
+		if skip(sig) {
+			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
+			continue
+		}
 
-	cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
-	schema, ok = c.Get(cacheKey)
-	if !ok {
-		for _, reg := range regs {
-			schemaBytes, err = reg.DownloadSchema(sig.Kind, sig.Version, k8sVersion)
-			if err == nil {
-				schema, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
-				if err != nil {
-					return []validationResult{{err: err, skipped: false}} // skip if no schema found
+		var schema *gojsonschema.Schema
+		var schemaBytes []byte
+		var ok bool
+
+		cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
+		schema, ok = c.Get(cacheKey)
+		if !ok {
+			for _, reg := range regs {
+				schemaBytes, err = reg.DownloadSchema(sig.Kind, sig.Version, k8sVersion)
+				if err == nil {
+					schema, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
+					if err != nil {
+						// Downloaded a schema but failed to parse it
+						validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err, skipped: false})
+						continue RESOURCES
+					}
+
+					// success
+					break
 				}
-				break
-			}
 
-			// If we get a 404, we keep trying, but we exit if we get a real failure
-			if er, retryable := err.(registry.Retryable); !(retryable && !er.IsRetryable()) {
-				return []validationResult{{err: fmt.Errorf("error while downloading schema for resource: %s", err)}}
+				// If we get a 404, we keep trying, but we exit if we get a real failure
+				if er, retryable := err.(registry.Retryable); !(retryable && !er.IsRetryable()) {
+					validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("error while downloading schema for resource: %s", err)})
+				}
 			}
 		}
+
+		// Cache both found & not found
+		c.Set(cacheKey, schema)
+
+		if err != nil { // Not found
+			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true}) // skip if no schema found
+		}
+
+		if err = validator.Validate(rawResource, schema); err != nil {
+			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err})
+		}
+
+		validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil})
 	}
 
-	// Cache both found & not found
-	c.Set(cacheKey, schema)
-
-	if err != nil { // Not found
-		return []validationResult{{err: nil, skipped: true}} // skip if no schema found
-	}
-
-	if err = validator.Validate(rawResource, schema); err != nil {
-		return []validationResult{{err: err}}
-	}
-
-	return []validationResult{{err: nil}}
+	return validationResults
 }
 
 type arrayFiles []string
@@ -104,7 +120,7 @@ func realMain() int {
 	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
 	flag.IntVar(&nWorkers, "workers", 4, "number of routines to run in parallel")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
-	flag.BoolVar(&strict, "strict", false, "activate strict mode")
+	flag.BoolVar(&strict, "strict", false, "disallow additional properties not in schema")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
 	flag.BoolVar(&quiet, "quiet", false, "quiet output - only print invalid files, and errors")
 	flag.Parse()
@@ -174,7 +190,7 @@ func realMain() int {
 					f.Close()
 
 					for _, resourceValidation := range res {
-						o.Write(filename, resourceValidation.err, resourceValidation.skipped)
+						o.Write(filename, resourceValidation.kind, resourceValidation.version, resourceValidation.err, resourceValidation.skipped)
 					}
 				}
 			}

@@ -8,6 +8,8 @@ import (
 
 type result struct {
 	Filename string `json:"filename"`
+	Kind     string `json:"kind"`
+	Version  string `json:"version"`
 	Status   string `json:"status"`
 	Msg      string `json:"msg"`
 }
@@ -32,7 +34,7 @@ func NewJSONOutput(withSummary bool, quiet bool) Output {
 	}
 }
 
-func (o *JSONOutput) Write(filename string, err error, skipped bool) {
+func (o *JSONOutput) Write(filename, kind, version string, err error, skipped bool) {
 	o.Lock()
 	defer o.Unlock()
 	msg, st := "", ""
@@ -56,7 +58,7 @@ func (o *JSONOutput) Write(filename string, err error, skipped bool) {
 	}
 
 	if !o.quiet || (s != VALID && s != SKIPPED) {
-		o.results = append(o.results, result{Filename: filename, Status: st, Msg: msg})
+		o.results = append(o.results, result{Filename: filename, Kind: kind, Version: version, Status: st, Msg: msg})
 	}
 }
 

@@ -19,6 +19,8 @@ Usage of ./bin/kubeconform:
         output format - text, json (default "text")
   -printsummary
         print a summary at the end
+  -quiet
+        quiet output - only print invalid files, and errors
   -schema value
         file containing an additional Schema (can be specified multiple times)
   -skipKinds string

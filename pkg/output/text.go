@@ -35,7 +35,7 @@ func (o *TextOutput) Write(filename string, err error, skipped bool) {
 		}
 		o.nValid++
 	case s == INVALID:
-		fmt.Printf("%s - invalid resource: %s\n",filename, err)
+		fmt.Printf("%s - invalid resource: %s\n", filename, err)
 		o.nInvalid++
 	case s == ERROR:
 		fmt.Printf("%s - failed validating resource: %s\n", filename, err)

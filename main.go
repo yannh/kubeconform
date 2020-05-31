@@ -97,12 +97,12 @@ func realMain() int {
 	var nWorkers int
 	var quiet bool
 
-	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
+	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.Var(&schemas, "schema", "file containing an additional Schema (can be specified multiple times)")
+	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
 	flag.IntVar(&nWorkers, "workers", 4, "number of routines to run in parallel")
-	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
 	flag.BoolVar(&strict, "strict", false, "activate strict mode")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")

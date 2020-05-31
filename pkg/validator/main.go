@@ -51,7 +51,7 @@ func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
 			if msg != "" {
 				msg += " - "
 			}
-			msg	+= errMsg.Description()
+			msg += errMsg.Description()
 		}
 		return InvalidResourceError{err: msg}
 	}

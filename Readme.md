@@ -1,10 +1,15 @@
 # Kubeconform
 
-A Kubernetes manifests validation tool, inspired by & similar to [Kubeval](https://github.com/instrumenta/kubeval)
+Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes
+configuration using the schemas from the registry maintained by the
+[kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) project!
 
-Notable features:
- * high performance: will validate & download manifests over multiple routines
- * support for Kubernetes CRDs
+It is inspired by and similar to [Kubeval](https://github.com/instrumenta/kubeval), but with the
+following improvements:
+ * **high performance**: will validate & download manifests over multiple routines
+ * support for **Kubernetes CRDs**
+
+### Usage
 
 ```
 $ ./bin/kubeconform -h
@@ -26,7 +31,12 @@ Usage of ./bin/kubeconform:
   -skipKinds string
         comma-separated list of kinds to ignore
   -strict
-        activate strict mode
+        disallow additional properties not in schema
   -workers int
         number of routines to run in parallel (default 4)
 ```
+
+### Credits
+
+ * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and
+ [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) projects

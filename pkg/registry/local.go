@@ -3,16 +3,15 @@ package registry
 import (
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
-	"sigs.k8s.io/yaml"
 	"io/ioutil"
 	"os"
+	"sigs.k8s.io/yaml"
 	"strings"
 )
 
 type LocalSchemas struct {
 	schemas map[string]*gojsonschema.Schema
 }
-
 
 func NewLocalSchemas(schemaFiles []string) (*LocalSchemas, error) {
 	schemas := &LocalSchemas{
@@ -30,7 +29,7 @@ func NewLocalSchemas(schemaFiles []string) (*LocalSchemas, error) {
 			return nil, fmt.Errorf("failed to read schema %s", schemaFile)
 		}
 
-		var parsedSchema struct{
+		var parsedSchema struct {
 			Spec struct {
 				Names struct {
 					Kind string `json:"Kind"`
@@ -42,7 +41,7 @@ func NewLocalSchemas(schemaFiles []string) (*LocalSchemas, error) {
 			return nil, fmt.Errorf("failed parsing schema %s", schemaFile)
 		}
 
-		if strings.HasSuffix(schemaFile, ".yml") ||  strings.HasSuffix(schemaFile, ".yaml") {
+		if strings.HasSuffix(schemaFile, ".yml") || strings.HasSuffix(schemaFile, ".yaml") {
 			asJSON, err := yaml.YAMLToJSON(content)
 			if err != nil {
 				return nil, fmt.Errorf("error converting manifest %s to JSON: %s", schemaFile, err)

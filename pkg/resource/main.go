@@ -21,4 +21,3 @@ func SignatureFromBytes(s []byte) (Signature, error) {
 
 	return Signature{Kind: resource.Kind, Version: resource.APIVersion, Namespace: resource.Metadata.Namespace}, err
 }
-

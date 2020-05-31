@@ -26,7 +26,7 @@ type validationResult struct {
 
 // filter returns true if the file should be skipped
 // Returning an array, this Reader might container multiple resources
-func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, skip func(signature resource.Signature)bool) []validationResult {
+func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, skip func(signature resource.Signature) bool) []validationResult {
 	rawResource, err := ioutil.ReadAll(f)
 	if err != nil {
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
@@ -99,13 +99,13 @@ func realMain() int {
 	}
 
 	splitKinds := strings.Split(skipKinds, ",")
-	kinds := map[string]bool {}
+	kinds := map[string]bool{}
 	for _, kind := range splitKinds {
 		kinds[kind] = true
 	}
 	filter := func(signature resource.Signature) bool {
-		 isSkipKind, ok :=  kinds[signature.Kind]
-		 return ok && isSkipKind
+		isSkipKind, ok := kinds[signature.Kind]
+		return ok && isSkipKind
 	}
 
 	registries := []registry.Registry{}
@@ -135,7 +135,7 @@ func realMain() int {
 	}()
 
 	var wg sync.WaitGroup
-	for i:=0; i<nWorkers; i++ {
+	for i := 0; i < nWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -150,7 +150,6 @@ func realMain() int {
 
 					res := validateFile(f, registries, k8sVersion, filter)
 					f.Close()
-
 
 					for _, resourceValidation := range res {
 						o.Write(filename, resourceValidation.err, resourceValidation.skipped)

@@ -3,45 +3,44 @@ package output
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yannh/kubeconform/pkg/validator"
 )
 
 type result struct {
-	Filename string  `json:"filename"`
-	Status string `json:"status"`
-	Msg string `json:"msg"`
+	Filename string `json:"filename"`
+	Status   string `json:"status"`
+	Msg      string `json:"msg"`
 }
 
 type JSONOutput struct {
 	withSummary bool
-	results []result
+	results     []result
 }
 
-func NewJSONOutput(withSummary bool) Output{
+func NewJSONOutput(withSummary bool) Output {
 	return &JSONOutput{
 		withSummary: withSummary,
-		results: []result{},
+		results:     []result{},
 	}
 }
 
-func (o *JSONOutput) Write(filename string,err error, skipped bool) {
-	status := "VALID"
-	msg := ""
+func (o *JSONOutput) Write(filename string, err error, skipped bool) {
+	msg, st := "", ""
 
-	if err != nil {
+	s := status(err, skipped)
+	switch {
+	case s == VALID:
+		st = "VALID"
+	case s == INVALID:
+		st = "INVALID"
 		msg = err.Error()
-		if _, ok := err.(validator.InvalidResourceError); ok {
-			status = "INVALID"
-		} else {
-			status = "ERROR"
-		}
+	case s == ERROR:
+		st = "ERROR"
+		msg = err.Error()
+	case s == SKIPPED:
+		st = "SKIPPED"
 	}
 
-	if skipped {
-		status = "SKIPPED"
-	}
-
-	o.results = append(o.results, result{Filename: filename, Status: status, Msg: msg})
+	o.results = append(o.results, result{Filename: filename, Status: st, Msg: msg})
 }
 
 func (o *JSONOutput) Flush() {
@@ -51,13 +50,13 @@ func (o *JSONOutput) Flush() {
 	if o.withSummary {
 		jsonObj := struct {
 			Resources []result `json:"resources"`
-			Summary struct {
-				Valid int `json:"valid"`
+			Summary   struct {
+				Valid   int `json:"valid"`
 				Invalid int `json:"invalid"`
-				Errors int `json:"errors"`
+				Errors  int `json:"errors"`
 				Skipped int `json:"skipped"`
 			} `json:"summary"`
-		} {
+		}{
 			Resources: o.results,
 		}
 
@@ -74,15 +73,15 @@ func (o *JSONOutput) Flush() {
 			}
 		}
 
-		res, err = json.MarshalIndent(jsonObj,"", "  ")
+		res, err = json.MarshalIndent(jsonObj, "", "  ")
 	} else {
 		jsonObj := struct {
 			Resources []result
-		} {
+		}{
 			Resources: o.results,
 		}
 
-		res, err = json.MarshalIndent(jsonObj,"", "  ")
+		res, err = json.MarshalIndent(jsonObj, "", "  ")
 	}
 
 	if err != nil {

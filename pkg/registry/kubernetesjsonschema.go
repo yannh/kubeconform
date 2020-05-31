@@ -17,11 +17,12 @@ type downloadError struct {
 	err         error
 	isRetryable bool
 }
-func newDownloadError(err error, isRetryable bool) *downloadError{
+
+func newDownloadError(err error, isRetryable bool) *downloadError {
 	return &downloadError{err, isRetryable}
 }
 func (e *downloadError) IsRetryable() bool { return e.isRetryable }
-func (e *downloadError) Error() string { return e.err.Error() }
+func (e *downloadError) Error() string     { return e.err.Error() }
 
 func NewKubernetesRegistry(strict bool) *KubernetesRegistry {
 	return &KubernetesRegistry{
@@ -61,7 +62,7 @@ func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8s
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound{
+	if resp.StatusCode == http.StatusNotFound {
 		return nil, newDownloadError(fmt.Errorf("no schema found"), false)
 	}
 

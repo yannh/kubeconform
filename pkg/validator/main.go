@@ -6,14 +6,16 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-type InvalidResourceError struct { err string }
-func (r InvalidResourceError) Error() string{
+type InvalidResourceError struct{ err string }
+
+func (r InvalidResourceError) Error() string {
 	return r.err
 }
 
 // ValidFormat is a type for quickly forcing
 // new formats on the gojsonschema loader
 type ValidFormat struct{}
+
 func (f ValidFormat) IsFormat(input interface{}) bool {
 	return true
 }
@@ -40,13 +42,12 @@ func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
 	results, err := schema.Validate(resourceLoader)
 	if err != nil {
 		// This error can only happen if the Object to validate is poorly formed. There's no hope of saving this one
-		return  fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)
+		return fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)
 	}
 
 	if !results.Valid() {
-		return InvalidResourceError{err: fmt.Sprintf("resource does not conform to schema: %+v", results) }
+		return InvalidResourceError{err: fmt.Sprintf("resource does not conform to schema: %+v", results)}
 	}
 
 	return nil
 }
-

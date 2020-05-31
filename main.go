@@ -91,18 +91,17 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 		cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
 		schema, ok := c.Get(cacheKey)
 		if !ok {
-			if schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion); err != nil {
+			schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion)
+			if err != nil {
 				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err, skipped: false})
 				continue
-			}
-
-			if schema == nil {
-				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true}) // skip if no schema found
+			} else if schema == nil { // skip if no schema was found, but there was no error
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
 				c.Set(cacheKey, nil)
 				continue
+			} else {
+				c.Set(cacheKey, schema)
 			}
-
-			c.Set(cacheKey, schema)
 		}
 
 		if err = validator.Validate(rawResource, schema); err != nil {

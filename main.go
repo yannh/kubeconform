@@ -65,6 +65,7 @@ func validateFile(f io.Reader, regs []registry.Registry, k8sVersion string, c *c
 		}
 	}
 
+	// Cache both found & not found
 	c.Set(cacheKey, schema)
 
 	if err != nil { // Not found
@@ -94,6 +95,7 @@ func realMain() int {
 	var skipKinds, k8sVersion, outputFormat string
 	var printSummary, strict bool
 	var nWorkers int
+	var quiet bool
 
 	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
@@ -104,14 +106,15 @@ func realMain() int {
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
 	flag.BoolVar(&strict, "strict", false, "activate strict mode")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
+	flag.BoolVar(&quiet, "quiet", false, "quiet output - only print invalid files, and errors")
 	flag.Parse()
 
 	var o output.Output
 	switch {
 	case outputFormat == "text":
-		o = output.NewTextOutput(printSummary)
+		o = output.NewTextOutput(printSummary, quiet)
 	case outputFormat == "json":
-		o = output.NewJSONOutput(printSummary)
+		o = output.NewJSONOutput(printSummary, quiet)
 	default:
 		log.Fatalf("-output must be text or json")
 	}

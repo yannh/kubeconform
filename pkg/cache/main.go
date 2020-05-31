@@ -24,7 +24,7 @@ func Key(resourceKind, resourceAPIVersion, k8sVersion string) string {
 func (c *SchemaCache) Get(key string) (*gojsonschema.Schema, bool) {
 	c.RLock()
 	defer c.RUnlock()
-	schema, ok :=  c.schemas[key]
+	schema, ok := c.schemas[key]
 	return schema, ok
 }
 

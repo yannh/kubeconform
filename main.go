@@ -137,9 +137,9 @@ func (ap *arrayParam) Set(value string) error {
 func getLogger(outputFormat string, printSummary, quiet bool) (output.Output, error) {
 	switch {
 	case outputFormat == "text":
-		return output.NewTextOutput(printSummary, quiet)
+		return output.NewTextOutput(printSummary, quiet), nil
 	case outputFormat == "json":
-		return output.NewJSONOutput(printSummary, quiet)
+		return output.NewJSONOutput(printSummary, quiet), nil
 	default:
 		return nil, fmt.Errorf("-output must be text or json")
 	}
@@ -216,7 +216,6 @@ func realMain() int {
 	logWG.Add(1)
 
 	success := true
-
 	go func() {
 		defer logWG.Done()
 		for results := range validationResults {

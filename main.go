@@ -104,7 +104,7 @@ func realMain() int {
 	flag.IntVar(&nWorkers, "workers", 4, "number of routines to run in parallel")
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
 	flag.StringVar(&skipKinds, "skipKinds", "", "comma-separated list of kinds to ignore")
-	flag.BoolVar(&strict, "strict", true, "activate strict mode")
+	flag.BoolVar(&strict, "strict", false, "activate strict mode")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
 	flag.BoolVar(&quiet, "quiet", false, "quiet output - only print invalid files, and errors")
 	flag.Parse()

@@ -66,7 +66,7 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 
 // filter returns true if the file should be skipped
 // Returning an array, this Reader might container multiple resources
-func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool) []validationResult {
+func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool) []validationResult {
 	rawResources, err := resourcesFromReader(r)
 	if err != nil {
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
@@ -90,10 +90,14 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 			continue
 		}
 
-		var ok bool
+		ok := false
+		var schema *gojsonschema.Schema
+		cacheKey := ""
 
-		cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
-		schema, ok := c.Get(cacheKey)
+		if c != nil {
+			cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
+			schema, ok = c.Get(cacheKey)
+		}
 		if !ok {
 			schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion)
 			if err != nil {
@@ -101,9 +105,11 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 				continue
 			} else if schema == nil { // skip if no schema was found, but there was no error
 				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
-				c.Set(cacheKey, nil)
+				if c != nil {
+					c.Set(cacheKey, nil)
+				}
 				continue
-			} else {
+			} else if c != nil {
 				c.Set(cacheKey, schema)
 			}
 		}
@@ -242,7 +248,7 @@ func realMain() int {
 						continue
 					}
 
-					res := validateFile(f, registries, k8sVersion, c, filter)
+					res := ValidateStream(f, registries, k8sVersion, c, filter)
 					f.Close()
 
 					for i := range res {

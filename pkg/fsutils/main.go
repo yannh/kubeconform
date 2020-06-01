@@ -18,7 +18,7 @@ func FindYamlInDir(dir string, fileBatches chan<- []string, batchSize int) error
 			files = append(files, path)
 			if len(files) > batchSize {
 				fileBatches <- files
-				files = nil
+				files = []string{}
 			}
 		}
 		return nil

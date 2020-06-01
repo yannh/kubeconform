@@ -81,6 +81,10 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 			continue
 		}
 
+		if sig.Kind == "" {
+			continue // We skip resoures that don't have a Kind defined
+		}
+
 		if skip(sig) {
 			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
 			continue

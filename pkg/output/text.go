@@ -8,14 +8,14 @@ import (
 type text struct {
 	sync.Mutex
 	withSummary                         bool
-	quiet                               bool
+	verbose                             bool
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
-func Text(withSummary, quiet bool) Output {
+func Text(withSummary, verbose bool) Output {
 	return &text{
 		withSummary: withSummary,
-		quiet:       quiet,
+		verbose:     verbose,
 		nValid:      0,
 		nInvalid:    0,
 		nErrors:     0,
@@ -29,7 +29,7 @@ func (o *text) Write(filename, kind, version string, err error, skipped bool) {
 
 	switch status(err, skipped) {
 	case VALID:
-		if !o.quiet {
+		if !o.verbose {
 			fmt.Printf("%s - %s is valid\n", filename, kind)
 		}
 		o.nValid++
@@ -40,7 +40,7 @@ func (o *text) Write(filename, kind, version string, err error, skipped bool) {
 		fmt.Printf("%s - %s failed validation: %s\n", filename, kind, err)
 		o.nErrors++
 	case SKIPPED:
-		if !o.quiet {
+		if o.verbose {
 			fmt.Printf("%s - %s skipped\n", filename, kind)
 		}
 		o.nSkipped++

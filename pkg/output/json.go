@@ -15,7 +15,7 @@ type result struct {
 
 type jsono struct {
 	withSummary                         bool
-	quiet                               bool
+	verbose                             bool
 	results                             []result
 	nValid, nInvalid, nErrors, nSkipped int
 }
@@ -23,7 +23,7 @@ type jsono struct {
 func JSON(withSummary bool, quiet bool) Output {
 	return &jsono{
 		withSummary: withSummary,
-		quiet:       quiet,
+		verbose:     quiet,
 		results:     []result{},
 		nValid:      0,
 		nInvalid:    0,
@@ -54,7 +54,7 @@ func (o *jsono) Write(filename, kind, version string, err error, skipped bool) {
 		o.nSkipped++
 	}
 
-	if !o.quiet || (s != VALID && s != SKIPPED) {
+	if o.verbose || s == VALID || s == SKIPPED {
 		o.results = append(o.results, result{Filename: filename, Kind: kind, Version: version, Status: st, Msg: msg})
 	}
 }

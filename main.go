@@ -118,16 +118,7 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 type arrayParam []string
 
 func (ap *arrayParam) String() string {
-	s := ""
-	for _, param := range *ap {
-		if s == "" {
-			s += param
-		} else {
-			s += " - " + param
-		}
-	}
-
-	return s
+	return strings.Join(*ap, " - ")
 }
 
 func (ap *arrayParam) Set(value string) error {
@@ -135,12 +126,12 @@ func (ap *arrayParam) Set(value string) error {
 	return nil
 }
 
-func getLogger(outputFormat string, printSummary, quiet bool) (output.Output, error) {
+func getLogger(outputFormat string, printSummary, verbose bool) (output.Output, error) {
 	switch {
 	case outputFormat == "text":
-		return output.Text(printSummary, quiet), nil
+		return output.Text(printSummary, verbose), nil
 	case outputFormat == "json":
-		return output.JSON(printSummary, quiet), nil
+		return output.JSON(printSummary, verbose), nil
 	default:
 		return nil, fmt.Errorf("-output must be text or json")
 	}
@@ -158,7 +149,7 @@ func skipKindsMap(skipKindsCSV string) map[string]bool {
 func realMain() int {
 	var files, dirs, schemas arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
-	var printSummary, strict, quiet bool
+	var summary, strict, verbose bool
 	var nWorkers int
 	var err error
 
@@ -166,16 +157,16 @@ func realMain() int {
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.Var(&schemas, "schema", "file containing an additional Schema (can be specified multiple times)")
-	flag.BoolVar(&printSummary, "printsummary", false, "print a summary at the end")
-	flag.IntVar(&nWorkers, "workers", 4, "number of routines to run in parallel")
-	flag.StringVar(&skipKindsCSV, "skipKinds", "", "comma-separated list of kinds to ignore")
+	flag.BoolVar(&summary, "summary", false, "print a summary at the end")
+	flag.IntVar(&nWorkers, "n", 4, "number of routines to run in parallel")
+	flag.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
 	flag.BoolVar(&strict, "strict", false, "disallow additional properties not in schema")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
-	flag.BoolVar(&quiet, "quiet", false, "quiet output - only print invalid files, and errors")
+	flag.BoolVar(&verbose, "verbose", false, "print results for all resources")
 	flag.Parse()
 
 	var o output.Output
-	if o, err = getLogger(outputFormat, printSummary, quiet); err != nil {
+	if o, err = getLogger(outputFormat, summary, verbose); err != nil {
 		fmt.Println(err)
 		return 1
 	}

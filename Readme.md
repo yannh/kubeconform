@@ -22,20 +22,20 @@ Usage of ./bin/kubeconform:
         file to validate (can be specified multiple times)
   -k8sversion string
         version of Kubernetes to test against (default "1.18.0")
+  -n int
+        number of routines to run in parallel (default 4)
   -output string
         output format - text, json (default "text")
-  -printsummary
-        print a summary at the end
-  -quiet
-        quiet output - only print invalid files, and errors
   -schema value
         file containing an additional Schema (can be specified multiple times)
-  -skipKinds string
+  -skip string
         comma-separated list of kinds to ignore
   -strict
         disallow additional properties not in schema
-  -workers int
-        number of routines to run in parallel (default 4)
+  -summary
+        print a summary at the end
+  -verbose
+        print results for all resources
 ```
 
 ### Credits

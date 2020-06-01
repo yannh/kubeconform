@@ -57,7 +57,7 @@ func (o *jsono) Write(filename, kind, version string, err error, skipped bool) {
 		o.nSkipped++
 	}
 
-	if o.verbose || s == VALID || s == SKIPPED {
+	if o.verbose || (s != VALID && s != SKIPPED) {
 		o.results = append(o.results, result{Filename: filename, Kind: kind, Version: version, Status: st, Msg: msg})
 	}
 }

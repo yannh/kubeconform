@@ -6,7 +6,6 @@ import (
 )
 
 func TestJSONWrite(t *testing.T) {
-
 	type result struct {
 		fileName, kind, version  string
 		err error
@@ -22,7 +21,7 @@ func TestJSONWrite(t *testing.T) {
 		expect string
 	} {
 		{
-			"a single deployment, no summary",
+			"a single deployment, no summary, no verbose",
 			false,
 			false,
 			[]result{
@@ -35,22 +34,38 @@ func TestJSONWrite(t *testing.T) {
 				},
 			},
 			`{
-  "resources": [
-    {
-      "filename": "deployment.yml",
-      "kind": "Deployment",
-      "version": "apps/v1",
-      "status": "VALID",
-      "msg": ""
-    }
-  ]
+  "resources": []
 }
 `,
 		},
 		{
-			"a single deployment, with summary",
+			"a single deployment, summary, no verbose",
 			true,
 			false,
+			[]result{
+				{
+					"deployment.yml",
+					"Deployment",
+					"apps/v1",
+					nil,
+					false,
+				},
+			},
+			`{
+  "resources": [],
+  "summary": {
+    "valid": 1,
+    "invalid": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}
+`,
+		},
+		{
+			"a single deployment, verbose, with summary",
+			true,
+			true,
 			[]result{
 				{
 					"deployment.yml",

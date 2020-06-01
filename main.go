@@ -95,7 +95,7 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 		cacheKey := ""
 
 		if c != nil {
-			cacheKey := cache.Key(sig.Kind, sig.Version, k8sVersion)
+			cacheKey = cache.Key(sig.Kind, sig.Version, k8sVersion)
 			schema, ok = c.Get(cacheKey)
 		}
 		if !ok {
@@ -156,6 +156,23 @@ func skipKindsMap(skipKindsCSV string) map[string]bool {
 	return skipKinds
 }
 
+func processResults(o output.Output, validationResults chan []validationResult, result chan<- bool ) {
+	success := true
+	for results := range validationResults {
+		for _, result := range results {
+			if result.err != nil {
+				success = false
+			}
+
+			if err := o.Write(result.filename, result.kind, result.version, result.err, result.skipped); err != nil {
+				fmt.Fprint(os.Stderr, "failed writing log\n")
+			}
+		}
+	}
+
+	result <- success
+}
+
 func realMain() int {
 	var files, dirs, schemas arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
@@ -174,12 +191,6 @@ func realMain() int {
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
 	flag.BoolVar(&verbose, "verbose", false, "print results for all resources")
 	flag.Parse()
-
-	var o output.Output
-	if o, err = getLogger(outputFormat, summary, verbose); err != nil {
-		fmt.Println(err)
-		return 1
-	}
 
 	skipKinds := skipKindsMap(skipKindsCSV)
 
@@ -213,25 +224,16 @@ func realMain() int {
 		close(fileBatches)
 	}()
 
+
+	var o output.Output
+	if o, err = getLogger(outputFormat, summary, verbose); err != nil {
+		fmt.Println(err)
+		return 1
+	}
+
+	res := make (chan bool)
 	validationResults := make(chan []validationResult)
-	var logWG sync.WaitGroup
-	logWG.Add(1)
-
-	success := true
-	go func() {
-		defer logWG.Done()
-		for results := range validationResults {
-			for _, result := range results {
-				if result.err != nil {
-					success = false
-				}
-
-				if err = o.Write(result.filename, result.kind, result.version, result.err, result.skipped); err != nil {
-					fmt.Fprint(os.Stderr, "failed writing log\n")
-				}
-			}
-		}
-	}()
+	go processResults(o, validationResults, res)
 
 	c := cache.New()
 	var wg sync.WaitGroup
@@ -262,7 +264,7 @@ func realMain() int {
 
 	wg.Wait()
 	close(validationResults)
-	logWG.Wait()
+	success := <-res
 	if err = o.Flush(); err != nil {
 		fmt.Fprint(os.Stderr, "failed flushing output")
 	}

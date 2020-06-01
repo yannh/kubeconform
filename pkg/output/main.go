@@ -13,8 +13,8 @@ const (
 )
 
 type Output interface {
-	Write(filename, kind, version string, err error, skipped bool)
-	Flush()
+	Write(filename, kind, version string, err error, skipped bool) error
+	Flush() error
 }
 
 func status(err error, skipped bool) int {

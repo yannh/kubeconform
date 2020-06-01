@@ -7,19 +7,19 @@ import (
 
 func TestTextWrite(t *testing.T) {
 	type result struct {
-		fileName, kind, version  string
-		err error
-		skipped bool
+		fileName, kind, version string
+		err                     error
+		skipped                 bool
 	}
 
 	for _, testCase := range []struct {
-		name string
+		name        string
 		withSummary bool
-		verbose bool
+		verbose     bool
 
-		res  []result
+		res    []result
 		expect string
-	} {
+	}{
 		{
 			"a single deployment, no summary, no verbose",
 			false,

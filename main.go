@@ -220,7 +220,9 @@ func realMain() int {
 					success = false
 				}
 
-				o.Write(result.filename, result.kind, result.version, result.err, result.skipped)
+				if err = o.Write(result.filename, result.kind, result.version, result.err, result.skipped); err != nil {
+					fmt.Fprint(os.Stderr, "failed writing log\n")
+				}
 			}
 		}
 	}()
@@ -255,7 +257,9 @@ func realMain() int {
 	wg.Wait()
 	close(validationResults)
 	logWG.Wait()
-	o.Flush()
+	if err = o.Flush(); err != nil {
+		fmt.Fprint(os.Stderr, "failed flushing output")
+	}
 
 	if !success {
 		return 1

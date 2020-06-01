@@ -35,7 +35,7 @@ func JSON(w io.Writer, withSummary bool, verbose bool) Output {
 	}
 }
 
-func (o *jsono) Write(filename, kind, version string, err error, skipped bool) {
+func (o *jsono) Write(filename, kind, version string, err error, skipped bool) error {
 	msg, st := "", ""
 
 	s := status(err, skipped)
@@ -60,9 +60,11 @@ func (o *jsono) Write(filename, kind, version string, err error, skipped bool) {
 	if o.verbose || (s != VALID && s != SKIPPED) {
 		o.results = append(o.results, result{Filename: filename, Kind: kind, Version: version, Status: st, Msg: msg})
 	}
+
+	return nil
 }
 
-func (o *jsono) Flush() {
+func (o *jsono) Flush() error {
 	var err error
 	var res []byte
 
@@ -102,8 +104,10 @@ func (o *jsono) Flush() {
 	}
 
 	if err != nil {
-		fmt.Fprintf(o.w, "error print results: %s", err)
-		return
+		return err
 	}
+
 	fmt.Fprintf(o.w, "%s\n", res)
+
+	return nil
 }

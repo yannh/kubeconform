@@ -26,32 +26,39 @@ func Text(w io.Writer, withSummary, verbose bool) Output {
 	}
 }
 
-func (o *text) Write(filename, kind, version string, err error, skipped bool) {
+func (o *text) Write(filename, kind, version string, reserr error, skipped bool) error {
 	o.Lock()
 	defer o.Unlock()
 
-	switch status(err, skipped) {
+	var err error
+
+	switch status(reserr, skipped) {
 	case VALID:
 		if o.verbose {
-			fmt.Fprintf(o.w, "%s - %s is valid\n", filename, kind)
+			_, err = fmt.Fprintf(o.w, "%s - %s is valid\n", filename, kind)
 		}
 		o.nValid++
 	case INVALID:
-		fmt.Fprintf(o.w, "%s - %s is invalid: %s\n", filename, kind, err)
+		_, err = fmt.Fprintf(o.w, "%s - %s is invalid: %s\n", filename, kind, reserr)
 		o.nInvalid++
 	case ERROR:
-		fmt.Fprintf(o.w, "%s - %s failed validation: %s\n", filename, kind, err)
+		_, err = fmt.Fprintf(o.w, "%s - %s failed validation: %s\n", filename, kind, reserr)
 		o.nErrors++
 	case SKIPPED:
 		if o.verbose {
-			fmt.Fprintf(o.w, "%s - %s skipped\n", filename, kind)
+			_, err = fmt.Fprintf(o.w, "%s - %s skipped\n", filename, kind)
 		}
 		o.nSkipped++
 	}
+
+	return err
 }
 
-func (o *text) Flush() {
+func (o *text) Flush() error {
+	var err error
 	if o.withSummary {
-		fmt.Fprintf(o.w, "Run summary - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+		_, err = fmt.Fprintf(o.w, "Run summary - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
 	}
+
+	return err
 }

@@ -32,7 +32,7 @@ func (o *text) Write(filename, kind, version string, err error, skipped bool) {
 
 	switch status(err, skipped) {
 	case VALID:
-		if !o.verbose {
+		if o.verbose {
 			fmt.Fprintf(o.w, "%s - %s is valid\n", filename, kind)
 		}
 		o.nValid++

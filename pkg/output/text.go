@@ -2,18 +2,21 @@ package output
 
 import (
 	"fmt"
+	"io"
 	"sync"
 )
 
 type text struct {
 	sync.Mutex
+	w                                   io.Writer
 	withSummary                         bool
 	verbose                             bool
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
-func Text(withSummary, verbose bool) Output {
+func Text(w io.Writer, withSummary, verbose bool) Output {
 	return &text{
+		w:           w,
 		withSummary: withSummary,
 		verbose:     verbose,
 		nValid:      0,
@@ -30,18 +33,18 @@ func (o *text) Write(filename, kind, version string, err error, skipped bool) {
 	switch status(err, skipped) {
 	case VALID:
 		if !o.verbose {
-			fmt.Printf("%s - %s is valid\n", filename, kind)
+			fmt.Fprintf(o.w, "%s - %s is valid\n", filename, kind)
 		}
 		o.nValid++
 	case INVALID:
-		fmt.Printf("%s - %s is invalid: %s\n", filename, kind, err)
+		fmt.Fprintf(o.w, "%s - %s is invalid: %s\n", filename, kind, err)
 		o.nInvalid++
 	case ERROR:
-		fmt.Printf("%s - %s failed validation: %s\n", filename, kind, err)
+		fmt.Fprintf(o.w, "%s - %s failed validation: %s\n", filename, kind, err)
 		o.nErrors++
 	case SKIPPED:
 		if o.verbose {
-			fmt.Printf("%s - %s skipped\n", filename, kind)
+			fmt.Fprintf(o.w, "%s - %s skipped\n", filename, kind)
 		}
 		o.nSkipped++
 	}
@@ -49,6 +52,6 @@ func (o *text) Write(filename, kind, version string, err error, skipped bool) {
 
 func (o *text) Flush() {
 	if o.withSummary {
-		fmt.Printf("Run summary - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+		fmt.Fprintf(o.w, "Run summary - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
 	}
 }

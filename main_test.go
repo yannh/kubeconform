@@ -7,28 +7,28 @@ import (
 
 func TestSkipKindMaps(t *testing.T) {
 	for _, testCase := range []struct {
-		name string
+		name         string
 		csvSkipKinds string
-		expect map[string]bool
-	} {
+		expect       map[string]bool
+	}{
 		{
 			"nothing to skip",
 			"",
-			map[string]bool {},
+			map[string]bool{},
 		},
 		{
 			"a single kind to skip",
 			"somekind",
-			map[string]bool {
+			map[string]bool{
 				"somekind": true,
 			},
 		},
 		{
 			"multiple kinds to skip",
 			"somekind,anotherkind,yetsomeotherkind",
-			map[string]bool {
-				"somekind": true,
-				"anotherkind": true,
+			map[string]bool{
+				"somekind":         true,
+				"anotherkind":      true,
 				"yetsomeotherkind": true,
 			},
 		},

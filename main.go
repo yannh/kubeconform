@@ -127,11 +127,13 @@ func (ap *arrayParam) Set(value string) error {
 }
 
 func getLogger(outputFormat string, printSummary, verbose bool) (output.Output, error) {
+	w := os.Stdout
+
 	switch {
 	case outputFormat == "text":
-		return output.Text(printSummary, verbose), nil
+		return output.Text(w, printSummary, verbose), nil
 	case outputFormat == "json":
-		return output.JSON(printSummary, verbose), nil
+		return output.JSON(w, printSummary, verbose), nil
 	default:
 		return nil, fmt.Errorf("-output must be text or json")
 	}

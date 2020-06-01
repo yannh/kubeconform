@@ -3,6 +3,7 @@ package output
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 )
 
 type result struct {
@@ -14,14 +15,16 @@ type result struct {
 }
 
 type jsono struct {
+	w                                   io.Writer
 	withSummary                         bool
 	verbose                             bool
 	results                             []result
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
-func JSON(withSummary bool, quiet bool) Output {
+func JSON(w io.Writer, withSummary bool, quiet bool) Output {
 	return &jsono{
+		w:           w,
 		withSummary: withSummary,
 		verbose:     quiet,
 		results:     []result{},
@@ -99,8 +102,8 @@ func (o *jsono) Flush() {
 	}
 
 	if err != nil {
-		fmt.Printf("error print results: %s", err)
+		fmt.Fprintf(o.w, "error print results: %s", err)
 		return
 	}
-	fmt.Printf("%s\n", res)
+	fmt.Fprintf(o.w, "%s\n", res)
 }

@@ -10,8 +10,8 @@ func TestSignatureFromBytes(t *testing.T) {
 		name string
 		have []byte
 		want resource.Signature
-		err error
-	} {
+		err  error
+	}{
 		{
 			name: "valid deployment",
 			have: []byte(`
@@ -24,10 +24,10 @@ metadata:
     app: myService
 spec:
 `),
-			want: resource.Signature {
-					Kind: "Deployment",
-					Version: "apps/v1",
-					Namespace: "default",
+			want: resource.Signature{
+				Kind:      "Deployment",
+				Version:   "apps/v1",
+				Namespace: "default",
 			},
 			err: nil,
 		},

@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	VALID   = iota
-	INVALID = iota
-	ERROR   = iota
-	SKIPPED = iota
+	VALID = iota
+	INVALID
+	ERROR
+	SKIPPED
 )
 
 type Output interface {

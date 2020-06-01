@@ -45,16 +45,16 @@ func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
 		return fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)
 	}
 
-	if !results.Valid() {
-		msg := ""
-		for _, errMsg := range results.Errors() {
-			if msg != "" {
-				msg += " - "
-			}
-			msg += errMsg.Description()
-		}
-		return InvalidResourceError{err: msg}
+	if results.Valid() {
+		return nil
 	}
 
-	return nil
+	msg := ""
+	for _, errMsg := range results.Errors() {
+		if msg != "" {
+			msg += " - "
+		}
+		msg += errMsg.Description()
+	}
+	return InvalidResourceError{err: msg}
 }

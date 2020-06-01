@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+.PHONY: test-build test build build-static docker-test docker-build-static
+
 test-build: test build
 
 test:

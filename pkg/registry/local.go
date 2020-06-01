@@ -56,7 +56,5 @@ func (r LocalSchemas) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersio
 		return nil, fmt.Errorf("failed to open schema %s", schemaFile)
 	}
 	defer f.Close()
-	content, err := ioutil.ReadAll(f)
-
-	return content, err
+	return ioutil.ReadAll(f)
 }

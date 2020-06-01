@@ -5,15 +5,15 @@ import (
 	"sync"
 )
 
-type TextOutput struct {
+type text struct {
 	sync.Mutex
 	withSummary                         bool
 	quiet                               bool
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
-func NewTextOutput(withSummary, quiet bool) Output {
-	return &TextOutput{
+func Text(withSummary, quiet bool) Output {
+	return &text{
 		withSummary: withSummary,
 		quiet:       quiet,
 		nValid:      0,
@@ -23,7 +23,7 @@ func NewTextOutput(withSummary, quiet bool) Output {
 	}
 }
 
-func (o *TextOutput) Write(filename, kind, version string, err error, skipped bool) {
+func (o *text) Write(filename, kind, version string, err error, skipped bool) {
 	o.Lock()
 	defer o.Unlock()
 
@@ -47,7 +47,7 @@ func (o *TextOutput) Write(filename, kind, version string, err error, skipped bo
 	}
 }
 
-func (o *TextOutput) Flush() {
+func (o *text) Flush() {
 	if o.withSummary {
 		fmt.Printf("Run summary - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
 	}

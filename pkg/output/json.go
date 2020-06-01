@@ -13,15 +13,15 @@ type result struct {
 	Msg      string `json:"msg"`
 }
 
-type JSONOutput struct {
+type jsono struct {
 	withSummary                         bool
 	quiet                               bool
 	results                             []result
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
-func NewJSONOutput(withSummary bool, quiet bool) Output {
-	return &JSONOutput{
+func JSON(withSummary bool, quiet bool) Output {
+	return &jsono{
 		withSummary: withSummary,
 		quiet:       quiet,
 		results:     []result{},
@@ -32,7 +32,7 @@ func NewJSONOutput(withSummary bool, quiet bool) Output {
 	}
 }
 
-func (o *JSONOutput) Write(filename, kind, version string, err error, skipped bool) {
+func (o *jsono) Write(filename, kind, version string, err error, skipped bool) {
 	msg, st := "", ""
 
 	s := status(err, skipped)
@@ -59,7 +59,7 @@ func (o *JSONOutput) Write(filename, kind, version string, err error, skipped bo
 	}
 }
 
-func (o *JSONOutput) Flush() {
+func (o *jsono) Flush() {
 	var err error
 	var res []byte
 

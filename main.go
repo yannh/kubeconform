@@ -138,9 +138,9 @@ func (ap *arrayParam) Set(value string) error {
 func getLogger(outputFormat string, printSummary, quiet bool) (output.Output, error) {
 	switch {
 	case outputFormat == "text":
-		return output.NewTextOutput(printSummary, quiet), nil
+		return output.Text(printSummary, quiet), nil
 	case outputFormat == "json":
-		return output.NewJSONOutput(printSummary, quiet), nil
+		return output.JSON(printSummary, quiet), nil
 	default:
 		return nil, fmt.Errorf("-output must be text or json")
 	}
@@ -230,7 +230,7 @@ func realMain() int {
 		}
 	}()
 
-	c := cache.NewSchemaCache()
+	c := cache.New()
 	var wg sync.WaitGroup
 	for i := 0; i < nWorkers; i++ {
 		wg.Add(1)

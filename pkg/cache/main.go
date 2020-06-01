@@ -11,7 +11,7 @@ type SchemaCache struct {
 	schemas map[string]*gojsonschema.Schema
 }
 
-func NewSchemaCache() *SchemaCache {
+func New() *SchemaCache {
 	return &SchemaCache{
 		schemas: map[string]*gojsonschema.Schema{},
 	}

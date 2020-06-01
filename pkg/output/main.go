@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	VALID = iota
+	_ = iota
+	VALID
 	INVALID
 	ERROR
 	SKIPPED

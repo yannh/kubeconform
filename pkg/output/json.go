@@ -22,11 +22,11 @@ type jsono struct {
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
-func JSON(w io.Writer, withSummary bool, quiet bool) Output {
+func JSON(w io.Writer, withSummary bool, verbose bool) Output {
 	return &jsono{
 		w:           w,
 		withSummary: withSummary,
-		verbose:     quiet,
+		verbose:     verbose,
 		results:     []result{},
 		nValid:      0,
 		nInvalid:    0,

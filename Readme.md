@@ -1,6 +1,6 @@
 # Kubeconform
 
-![Build status](https://github.com/yannh/kubeconform/workflows/build/badge.svg?branch=master)
+[![Build status](https://github.com/yannh/kubeconform/workflows/build/badge.svg?branch=master)](https://github.com/yannh/kubeconform/actions?query=branch%3Amaster)
 
 Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes
 configuration using the schemas from the registry maintained by the

@@ -141,7 +141,9 @@ func skipKindsMap(skipKindsCSV string) map[string]bool {
 	splitKinds := strings.Split(skipKindsCSV, ",")
 	skipKinds := map[string]bool{}
 	for _, kind := range splitKinds {
-		skipKinds[kind] = true
+		if len(kind) > 0 {
+			skipKinds[kind] = true
+		}
 	}
 	return skipKinds
 }

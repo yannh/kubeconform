@@ -81,6 +81,10 @@ func validateFile(r io.Reader, regs []registry.Registry, k8sVersion string, c *c
 			continue
 		}
 
+		if sig.Kind == "" {
+			continue // We skip resoures that don't have a Kind defined
+		}
+
 		if skip(sig) {
 			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
 			continue
@@ -148,8 +152,6 @@ func skipKindsMap(skipKindsCSV string) map[string]bool {
 	for _, kind := range splitKinds {
 		skipKinds[kind] = true
 	}
-	skipKinds[""] = true // Always skip resources that have no Kind defined
-
 	return skipKinds
 }
 

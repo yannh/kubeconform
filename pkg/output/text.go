@@ -27,20 +27,19 @@ func (o *TextOutput) Write(filename, kind, version string, err error, skipped bo
 	o.Lock()
 	defer o.Unlock()
 
-	s := status(err, skipped)
-	switch {
-	case s == VALID:
+	switch status(err, skipped) {
+	case VALID:
 		if !o.quiet {
 			fmt.Printf("%s - %s is valid\n", filename, kind)
 		}
 		o.nValid++
-	case s == INVALID:
+	case INVALID:
 		fmt.Printf("%s - %s is invalid: %s\n", filename, kind, err)
 		o.nInvalid++
-	case s == ERROR:
+	case ERROR:
 		fmt.Printf("%s - %s failed validation: %s\n", filename, kind, err)
 		o.nErrors++
-	case s == SKIPPED:
+	case SKIPPED:
 		if !o.quiet {
 			fmt.Printf("%s - %s skipped\n", filename, kind)
 		}

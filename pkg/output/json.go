@@ -36,19 +36,20 @@ func (o *JSONOutput) Write(filename, kind, version string, err error, skipped bo
 	msg, st := "", ""
 
 	s := status(err, skipped)
-	switch {
-	case s == VALID:
+
+	switch s {
+	case VALID:
 		st = "VALID"
 		o.nValid++
-	case s == INVALID:
+	case INVALID:
 		st = "INVALID"
 		msg = err.Error()
 		o.nInvalid++
-	case s == ERROR:
+	case ERROR:
 		st = "ERROR"
 		msg = err.Error()
 		o.nErrors++
-	case s == SKIPPED:
+	case SKIPPED:
 		st = "SKIPPED"
 		o.nSkipped++
 	}

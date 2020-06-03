@@ -1,0 +1,18 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: test-secret
+  namespace: test-namespace
+spec:
+  encryptedData:
+    SOME_ENCRYPTED_DATA: c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: test-secret-clone
+  namespace: test-namespace
+spec:
+  encryptedData:
+    SOME_ENCRYPTED_DATA: c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2

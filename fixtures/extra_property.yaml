@@ -1,0 +1,12 @@
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: nginx-ds
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - image: nginx
+        name: nginx

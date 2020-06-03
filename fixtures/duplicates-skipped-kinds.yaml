@@ -1,0 +1,41 @@
+# Two objects with same name in same namespace, but of a kind configured to be skipped
+
+apiVersion: v1
+kind: SkipThisKind
+metadata:
+  name: "identical"
+spec:
+  replicas: 2
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: SkipThisKind
+metadata:
+  name: "identical"
+spec:
+  replicas: 2
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80

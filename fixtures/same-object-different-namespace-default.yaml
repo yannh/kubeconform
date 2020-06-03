@@ -1,0 +1,43 @@
+# Two objects with same name in different namespace, one of them being the configured default namespace
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: "bob"
+  namespace: a
+spec:
+  replicas: 2
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: "bob"
+  namespace: the-default-namespace
+spec:
+  replicas: 2
+  selector:
+    app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80

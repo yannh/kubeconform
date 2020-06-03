@@ -156,7 +156,7 @@ func skipKindsMap(skipKindsCSV string) map[string]bool {
 	return skipKinds
 }
 
-func processResults(o output.Output, validationResults chan []validationResult, result chan<- bool ) {
+func processResults(o output.Output, validationResults chan []validationResult, result chan<- bool) {
 	success := true
 	for results := range validationResults {
 		for _, result := range results {
@@ -224,14 +224,13 @@ func realMain() int {
 		close(fileBatches)
 	}()
 
-
 	var o output.Output
 	if o, err = getLogger(outputFormat, summary, verbose); err != nil {
 		fmt.Println(err)
 		return 1
 	}
 
-	res := make (chan bool)
+	res := make(chan bool)
 	validationResults := make(chan []validationResult)
 	go processResults(o, validationResults, res)
 
@@ -246,7 +245,12 @@ func realMain() int {
 				for _, filename := range fileBatch {
 					f, err := os.Open(filename)
 					if err != nil {
-						log.Printf("failed opening %s\n", filename)
+						fmt.Printf("failed opening %s\n", filename)
+						validationResults <- []validationResult{{
+							filename: filename,
+							err:      err,
+							skipped:  true,
+						}}
 						continue
 					}
 

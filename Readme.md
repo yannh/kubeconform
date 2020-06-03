@@ -39,6 +39,39 @@ Usage of ./bin/kubeconform:
         print results for all resources
 ```
 
+### Usage examples
+
+* Validating a single, valid file
+```
+$ ./bin/kubeconform -file fixtures/valid.yaml
+$ echo $?
+0
+```
+
+* Validating a single invalid file, setting output to json, and printing a summary
+```
+$ ./bin/kubeconform -file fixtures/invalid.yaml -summary -output json
+{
+  "resources": [
+    {
+      "filename": "fixtures/invalid.yaml",
+      "kind": "ReplicationController",
+      "version": "v1",
+      "status": "INVALID",
+      "msg": "Additional property templates is not allowed - Invalid type. Expected: [integer,null], given: string"
+    }
+  ],
+  "summary": {
+    "valid": 0,
+    "invalid": 1,
+    "errors": 0,
+    "skipped": 0
+  }
+}
+$ echo $?
+1
+```
+
 ### Credits
 
  * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and

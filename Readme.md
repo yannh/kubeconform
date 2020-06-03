@@ -72,6 +72,14 @@ $ echo $?
 1
 ```
 
+* Validating a folder, increasing the number of parallel workers
+```
+$ ./bin/kubeconform -dir fixtures -summary -n 16
+fixtures/multi_invalid.yaml - Service is invalid: Invalid type. Expected: integer, given: string
+fixtures/invalid.yaml - ReplicationController is invalid: Invalid type. Expected: [integer,null], given: string
+Run summary - Valid: 40, Invalid: 2, Errors: 0 Skipped: 6
+```
+
 ### Credits
 
  * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and

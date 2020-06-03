@@ -6,6 +6,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// InvalidResourceError is returned when a resource does not conform to
+// the associated schema
 type InvalidResourceError struct{ err string }
 
 func (r InvalidResourceError) Error() string {
@@ -16,6 +18,8 @@ func (r InvalidResourceError) Error() string {
 // new formats on the gojsonschema loader
 type ValidFormat struct{}
 
+// ValidFormat is a type for quickly forcing
+// new formats on the gojsonschema loader
 func (f ValidFormat) IsFormat(input interface{}) bool {
 	return true
 }
@@ -28,6 +32,7 @@ func (f ValidFormat) IsFormat(input interface{}) bool {
 // 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
 // }
 
+// Validates a single Kubernetes resource against a Json Schema
 func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
 	if schema == nil {
 		return nil

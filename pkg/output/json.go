@@ -22,6 +22,7 @@ type jsono struct {
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
+// JSON will output the results of the validation as a JSON
 func JSON(w io.Writer, withSummary bool, verbose bool) Output {
 	return &jsono{
 		w:           w,

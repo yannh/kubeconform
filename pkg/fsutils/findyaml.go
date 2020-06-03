@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// FindYamlInDir will find yaml files in folder dir, and send their filenames in batches
+// of size batchSize to channel fileBatches
 func FindYamlInDir(dir string, fileBatches chan<- []string, batchSize int) error {
 	files := []string{}
 

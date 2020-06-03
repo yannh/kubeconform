@@ -14,6 +14,7 @@ type text struct {
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
+// Text will output the results of the validation as a text
 func Text(w io.Writer, withSummary, verbose bool) Output {
 	return &text{
 		w:           w,

@@ -39,3 +39,8 @@
   [ "$status" -eq 1 ]
   [ $(expr "$output" : "^failed opening fixtures/not-here") -ne 0 ]
 }
+
+@test "Fail when parsing a config with additional properties and strict set" {
+  run bin/kubeconform -strict -k8sversion 1.16.0 -file fixtures/extra_property.yaml
+  [ "$status" -eq 1 ]
+}

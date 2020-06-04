@@ -1,18 +1,81 @@
----
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
+apiVersion: sagemaker.aws.amazon.com/v1
+kind: TrainingJob
 metadata:
-  name: test-secret
-  namespace: test-namespace
+  name: xgboost-mnist-debugger
 spec:
-  encryptedData:
-    SOME_ENCRYPTED_DATA: c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2
----
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
-metadata:
-  name: test-secret-clone
-  namespace: test-namespace
-spec:
-  encryptedData:
-    SOME_ENCRYPTED_DATA: c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2
+  hyperParameters:
+    - name: max_depth
+      value: "5"
+    - name: eta
+      value: "0.2"
+    - name: gamma
+      value: "4"
+    - name: min_child_weight
+      value: "6"
+    - name: silent
+      value: "0"
+    - name: objective
+      value: reg:squarederror
+    - name: subsample
+      value: "0.7"
+    - name: num_round
+      value: "51"
+  algorithmSpecification:
+    trainingImage: 246618743249.dkr.ecr.us-west-2.amazonaws.com/sagemaker-xgboost:0.90-2-cpu-py3
+    trainingInputMode: File
+  roleArn: arn:aws:iam::123456789012:role/service-role/AmazonSageMaker-ExecutionRole
+  region: us-west-2
+  outputDataConfig:
+    s3OutputPath: s3://my-bucket/xgboost-debugger/output
+  resourceConfig:
+    instanceCount: 1
+    instanceType: ml.m4.xlarge
+    volumeSizeInGB: 5
+  stoppingCondition:
+    maxRuntimeInSeconds: 86400
+  inputDataConfig:
+    - channelName: train
+      dataSource:
+        s3DataSource:
+          s3DataType: S3Prefix
+          s3Uri: s3://my-bucket/xgboost-debugger/train
+          s3DataDistributionType: FullyReplicated
+      contentType: libsvm
+      compressionType: None
+    - channelName: validation
+      dataSource:
+        s3DataSource:
+          s3DataType: S3Prefix
+          s3Uri: s3://my-bucket/xgboost-debugger/validation
+          s3DataDistributionType: FullyReplicated
+      contentType: libsvm
+      compressionType: None
+  debugHookConfig:
+    s3OutputPath: s3://my-bucket/xgboost-debugger/hookconfig
+    collectionConfigurations:
+      - collectionName: feature_importance
+        collectionParameters:
+          - name: save_interval
+            value: "5"
+      - collectionName: losses
+        collectionParameters:
+          - name: save_interval"
+            value: "500"
+      - collectionName: average_shap
+        collectionParameters:
+          - name: save_interval
+            value: "5"
+      - collectionName: metrics
+        collectionParameters:
+          - name: save_interval
+            value: "5"
+  debugRuleConfigurations:
+    - ruleConfigurationName: LossNotDecreasing
+      ruleEvaluatorImage: 895741380848.dkr.ecr.us-west-2.amazonaws.com/sagemaker-debugger-rules:latest
+      ruleParameters:
+        - name: collection_names
+          value: metrics
+        - name: num_steps
+          value: "10"
+        - name: rule_to_invoke
+          value: LossNotDecreasing

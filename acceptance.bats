@@ -54,3 +54,8 @@
   run bin/kubeconform -file fixtures/test_crd.yaml -ignore-missing-schemas
   [ "$status" -eq 0 ]
 }
+
+@test "Succeed parsing a CRD when additional schema passed" {
+  run bin/kubeconform -file fixtures/test_crd.yaml -schema fixtures/crd_schema.yaml
+  [ "$status" -eq 0 ]
+}

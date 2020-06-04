@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sigs.k8s.io/yaml"
+	"strings"
 )
 
 type LocalSchemas struct {
@@ -56,5 +57,17 @@ func (r LocalSchemas) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersio
 		return nil, fmt.Errorf("failed to open schema %s", schemaFile)
 	}
 	defer f.Close()
-	return ioutil.ReadAll(f)
+	content, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	asJSON := content
+	if strings.HasSuffix(schemaFile, ".yml") || strings.HasSuffix(schemaFile, ".yaml") {
+		asJSON, err = yaml.YAMLToJSON(content)
+		if err != nil {
+			return nil, fmt.Errorf("error converting manifest %s to JSON: %s", schemaFile, err)
+		}
+	}
+	return asJSON, nil
 }

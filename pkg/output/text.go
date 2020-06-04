@@ -11,6 +11,7 @@ type text struct {
 	w                                   io.Writer
 	withSummary                         bool
 	verbose                             bool
+	files                               map[string]bool
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
@@ -20,6 +21,7 @@ func Text(w io.Writer, withSummary, verbose bool) Output {
 		w:           w,
 		withSummary: withSummary,
 		verbose:     verbose,
+		files:       map[string]bool{},
 		nValid:      0,
 		nInvalid:    0,
 		nErrors:     0,
@@ -33,6 +35,7 @@ func (o *text) Write(filename, kind, version string, reserr error, skipped bool)
 
 	var err error
 
+	o.files[filename] = true
 	switch status(reserr, skipped) {
 	case VALID:
 		if o.verbose {
@@ -58,7 +61,17 @@ func (o *text) Write(filename, kind, version string, reserr error, skipped bool)
 func (o *text) Flush() error {
 	var err error
 	if o.withSummary {
-		_, err = fmt.Fprintf(o.w, "Run summary - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+		nFiles := len(o.files)
+		nResources := o.nValid + o.nInvalid + o.nErrors + o.nSkipped
+		resourcesPlural := ""
+		if nResources > 1 {
+			resourcesPlural = "s"
+		}
+		filesPlural := ""
+		if nFiles > 1 {
+			filesPlural = "s"
+		}
+		_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found in %d file%s - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", nResources, resourcesPlural, nFiles, filesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
 	}
 
 	return err

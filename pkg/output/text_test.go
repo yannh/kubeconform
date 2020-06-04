@@ -48,7 +48,7 @@ func TestTextWrite(t *testing.T) {
 					false,
 				},
 			},
-			"Run summary - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0\n",
+			"Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0\n",
 		},
 		{
 			"a single deployment, verbose, with summary",
@@ -64,7 +64,7 @@ func TestTextWrite(t *testing.T) {
 				},
 			},
 			`deployment.yml - Deployment is valid
-Run summary - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 `,
 		},
 	} {

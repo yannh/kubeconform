@@ -274,9 +274,7 @@ func realMain() int {
 	wg.Wait()
 	close(validationResults)
 	success := <-res
-	if err = o.Flush(); err != nil {
-		fmt.Fprint(os.Stderr, "failed flushing output")
-	}
+	o.Flush()
 
 	if !success {
 		return 1

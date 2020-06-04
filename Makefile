@@ -20,4 +20,5 @@ docker-build-static:
 	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.14 make build-static
 
 acceptance:
-	bats acceptance.bats
+	docker build -t bats -f Dockerfile.bats .
+	docker run -t bats acceptance.bats

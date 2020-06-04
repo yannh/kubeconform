@@ -10,8 +10,12 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
 
-    - name: test
+    - name: tests
       run: make docker-test
 
     - name: build
       run: make docker-build-static
+
+    - name: acceptance-tests
+      run:
+        docker build -t bats -f Dockerfile.bats .

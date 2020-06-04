@@ -44,3 +44,13 @@
   run bin/kubeconform -strict -k8sversion 1.16.0 -file fixtures/extra_property.yaml
   [ "$status" -eq 1 ]
 }
+
+@test "Fail when parsing a config with CRD" {
+  run bin/kubeconform -file fixtures/test_crd.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Pass when parsing a config with CRD and ignoring missing schemas" {
+  run bin/kubeconform -file fixtures/test_crd.yaml -ignore-missing-schemas
+  [ "$status" -eq 0 ]
+}

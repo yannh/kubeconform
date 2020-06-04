@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-.PHONY: test-build test build build-static docker-test docker-build-static acceptance
+.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance
 
 test-build: test build
 
@@ -19,6 +19,8 @@ docker-test:
 docker-build-static:
 	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.14 make build-static
 
-docker-acceptance:
+build-bats:
 	docker build -t bats -f Dockerfile.bats .
+
+docker-acceptance: build-bats
 	docker run -t bats acceptance.bats

@@ -66,7 +66,7 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 
 // filter returns true if the file should be skipped
 // Returning an array, this Reader might container multiple resources
-func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool) []validationResult {
+func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool, ignoreMissingSchemas bool) []validationResult {
 	rawResources, err := resourcesFromReader(r)
 	if err != nil {
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
@@ -103,8 +103,12 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 			if err != nil {
 				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err, skipped: false})
 				continue
-			} else if schema == nil { // skip if no schema was found, but there was no error
-				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
+			} else if schema == nil { // skip if no schema was found, but there was no error TODO: Fail by default, provide a -skip-missing-schema
+				if ignoreMissingSchemas {
+					validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
+				} else {
+					validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("could not find schema for %s", sig.Kind), skipped: false})
+				}
 				if c != nil {
 					c.Set(cacheKey, nil)
 				}
@@ -176,7 +180,7 @@ func processResults(o output.Output, validationResults chan []validationResult, 
 func realMain() int {
 	var files, dirs, schemas arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
-	var summary, strict, verbose bool
+	var summary, strict, verbose, ignoreMissingSchemas bool
 	var nWorkers int
 	var err error
 
@@ -184,6 +188,7 @@ func realMain() int {
 	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.Var(&schemas, "schema", "file containing an additional Schema (can be specified multiple times)")
+	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flag.BoolVar(&summary, "summary", false, "print a summary at the end")
 	flag.IntVar(&nWorkers, "n", 4, "number of routines to run in parallel")
 	flag.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
@@ -254,7 +259,7 @@ func realMain() int {
 						continue
 					}
 
-					res := ValidateStream(f, registries, k8sVersion, c, filter)
+					res := ValidateStream(f, registries, k8sVersion, c, filter, ignoreMissingSchemas)
 					f.Close()
 
 					for i := range res {

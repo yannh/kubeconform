@@ -19,8 +19,8 @@ $ ./bin/kubeconform -h
 Usage of ./bin/kubeconform:
   -dir value
         directory to validate (can be specified multiple times)
-  -file value
-        file to validate (can be specified multiple times)
+  -ignore-missing-schemas
+        skip files with missing schemas instead of failing
   -k8sversion string
         version of Kubernetes to test against (default "1.18.0")
   -n int
@@ -78,6 +78,13 @@ $ ./bin/kubeconform -dir fixtures -summary -n 16
 fixtures/multi_invalid.yaml - Service is invalid: Invalid type. Expected: integer, given: string
 fixtures/invalid.yaml - ReplicationController is invalid: Invalid type. Expected: [integer,null], given: string
 Run summary - Valid: 40, Invalid: 2, Errors: 0 Skipped: 6
+```
+
+* Validating a custom resources, using a local schema
+
+```
+$ bin/kubeconform -file fixtures/test_crd.yaml -schema fixtures/crd_schema.yaml -verbose
+fixtures/test_crd.yaml - TrainingJob is valid
 ```
 
 ### Credits

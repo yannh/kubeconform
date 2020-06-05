@@ -178,14 +178,14 @@ func processResults(o output.Output, validationResults chan []validationResult, 
 }
 
 func realMain() int {
-	var files, dirs, schemas arrayParam
+	var dirs, schemas arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
 	var summary, strict, verbose, ignoreMissingSchemas bool
 	var nWorkers int
 	var err error
+	var files []string
 
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
-	flag.Var(&files, "file", "file to validate (can be specified multiple times)")
 	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.Var(&schemas, "schema", "file containing an additional Schema (can be specified multiple times)")
 	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
@@ -198,6 +198,10 @@ func realMain() int {
 	flag.Parse()
 
 	skipKinds := skipKindsMap(skipKindsCSV)
+
+	for _, file := range flag.Args() {
+		files = append(files, file)
+	}
 
 	filter := func(signature resource.Signature) bool {
 		isSkipKind, ok := skipKinds[signature.Kind]

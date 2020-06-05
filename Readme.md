@@ -43,14 +43,14 @@ Usage of ./bin/kubeconform:
 
 * Validating a single, valid file
 ```
-$ ./bin/kubeconform -file fixtures/valid.yaml
+$ ./bin/kubeconform fixtures/valid.yaml
 $ echo $?
 0
 ```
 
 * Validating a single invalid file, setting output to json, and printing a summary
 ```
-$ ./bin/kubeconform -file fixtures/invalid.yaml -summary -output json
+$ ./bin/kubeconform -summary -output json fixtures/invalid.yaml
 {
   "resources": [
     {
@@ -83,7 +83,7 @@ Run summary - Valid: 40, Invalid: 2, Errors: 0 Skipped: 6
 * Validating a custom resources, using a local schema
 
 ```
-$ bin/kubeconform -file fixtures/test_crd.yaml -schema fixtures/crd_schema.yaml -verbose
+$ bin/kubeconform -schema fixtures/crd_schema.yaml -verbose fixtures/test_crd.yaml
 fixtures/test_crd.yaml - TrainingJob is valid
 ```
 

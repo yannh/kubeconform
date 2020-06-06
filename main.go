@@ -227,19 +227,19 @@ func realMain() int {
 				validationResults <- []validationResult{{
 					filename: filename,
 					err:      err,
-					skipped:  true,
+					skipped:  false,
 				}}
 				continue
 			}
 			defer file.Close()
 
-			fi, err := file.Stat();
+			fi, err := file.Stat()
 			switch {
 			case err != nil:
 				validationResults <- []validationResult{{
 					filename: filename,
 					err:      err,
-					skipped:  true,
+					skipped:  false,
 				}}
 
 			case fi.IsDir():
@@ -247,7 +247,7 @@ func realMain() int {
 					validationResults <- []validationResult{{
 						filename: filename,
 						err:      err,
-						skipped:  true,
+						skipped:  false,
 					}}
 				}
 

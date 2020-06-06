@@ -37,7 +37,7 @@
 @test "Return relevant error for non-existent file" {
   run bin/kubeconform fixtures/not-here
   [ "$status" -eq 1 ]
-  [ $(expr "$output" : "^failed opening fixtures/not-here") -ne 0 ]
+  [ "$output" = "fixtures/not-here -  failed validation: open fixtures/not-here: no such file or directory" ]
 }
 
 @test "Fail when parsing a config with additional properties and strict set" {

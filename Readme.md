@@ -74,10 +74,12 @@ $ echo $?
 
 * Validating a folder, increasing the number of parallel workers
 ```
-$ ./bin/kubeconform -dir fixtures -summary -n 16
+$ ./bin/kubeconform -summary -n 16 fixtures
 fixtures/multi_invalid.yaml - Service is invalid: Invalid type. Expected: integer, given: string
 fixtures/invalid.yaml - ReplicationController is invalid: Invalid type. Expected: [integer,null], given: string
-Run summary - Valid: 40, Invalid: 2, Errors: 0 Skipped: 6
+[...]
+Summary: 48 resources found in 25 files - Valid: 39, Invalid: 2, Errors: 7 Skipped: 0
+
 ```
 
 * Validating a custom resources, using a local schema

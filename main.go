@@ -178,7 +178,7 @@ func processResults(o output.Output, validationResults chan []validationResult, 
 }
 
 func realMain() int {
-	var dirs, schemas arrayParam
+	var schemas arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
 	var summary, strict, verbose, ignoreMissingSchemas bool
 	var nWorkers int
@@ -186,7 +186,6 @@ func realMain() int {
 	var files []string
 
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
-	flag.Var(&dirs, "dir", "directory to validate (can be specified multiple times)")
 	flag.Var(&schemas, "schema", "file containing an additional Schema (can be specified multiple times)")
 	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flag.BoolVar(&summary, "summary", false, "print a summary at the end")
@@ -218,16 +217,43 @@ func realMain() int {
 		registries = append(registries, localRegistry)
 	}
 
+	validationResults := make(chan []validationResult)
+
 	fileBatches := make(chan []string)
 	go func() {
-		for _, dir := range dirs {
-			if err := fsutils.FindYamlInDir(dir, fileBatches, 10); err != nil {
-				log.Printf("failed processing folder %s: %s", dir, err)
-			}
-		}
-
 		for _, filename := range files {
-			fileBatches <- []string{filename}
+			file, err := os.Open(filename)
+			if err != nil {
+				validationResults <- []validationResult{{
+					filename: filename,
+					err:      err,
+					skipped:  true,
+				}}
+				continue
+			}
+			defer file.Close()
+
+			fi, err := file.Stat();
+			switch {
+			case err != nil:
+				validationResults <- []validationResult{{
+					filename: filename,
+					err:      err,
+					skipped:  true,
+				}}
+
+			case fi.IsDir():
+				if err := fsutils.FindYamlInDir(filename, fileBatches, 10); err != nil {
+					validationResults <- []validationResult{{
+						filename: filename,
+						err:      err,
+						skipped:  true,
+					}}
+				}
+
+			default:
+				fileBatches <- []string{filename}
+			}
 		}
 
 		close(fileBatches)
@@ -240,7 +266,6 @@ func realMain() int {
 	}
 
 	res := make(chan bool)
-	validationResults := make(chan []validationResult)
 	go processResults(o, validationResults, res)
 
 	c := cache.New()
@@ -254,7 +279,6 @@ func realMain() int {
 				for _, filename := range fileBatch {
 					f, err := os.Open(filename)
 					if err != nil {
-						fmt.Printf("failed opening %s\n", filename)
 						validationResults <- []validationResult{{
 							filename: filename,
 							err:      err,

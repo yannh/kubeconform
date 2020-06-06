@@ -6,6 +6,12 @@
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
+@test "Pass when parsing a folder containing valid YAML files" {
+  run bin/kubeconform -summary fixtures/folder
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 7 resources found in 2 files - Valid: 7, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
 @test "Pass when parsing a Kubernetes file with string and integer quantities" {
   run bin/kubeconform -verbose fixtures/quantity.yaml
   [ "$status" -eq 0 ]

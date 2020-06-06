@@ -12,6 +12,7 @@ type LocalSchemas struct {
 	schemas map[string]string
 }
 
+// NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
 func NewLocalSchemas(schemaFiles []string) (*LocalSchemas, error) {
 	schemas := &LocalSchemas{
 		schemas: map[string]string{},
@@ -46,6 +47,7 @@ func NewLocalSchemas(schemaFiles []string) (*LocalSchemas, error) {
 	return schemas, nil
 }
 
+// DownloadSchema retrieves the schema from a file for the resource
 func (r LocalSchemas) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
 	schemaFile, ok := r.schemas[resourceKind]
 	if !ok {

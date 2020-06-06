@@ -36,6 +36,7 @@ func JSON(w io.Writer, withSummary bool, verbose bool) Output {
 	}
 }
 
+// JSON.Write will only write when JSON.Flush has been called
 func (o *jsono) Write(filename, kind, version string, err error, skipped bool) error {
 	msg, st := "", ""
 
@@ -65,6 +66,7 @@ func (o *jsono) Write(filename, kind, version string, err error, skipped bool) e
 	return nil
 }
 
+// Flush outputs the results as JSON
 func (o *jsono) Flush() error {
 	var err error
 	var res []byte

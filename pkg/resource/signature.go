@@ -8,7 +8,8 @@ type Signature struct {
 	Kind, Version, Namespace string
 }
 
-func SignatureFromBytes(s []byte) (Signature, error) {
+// SignatureFromBytes returns key identifying elements from a []byte representing the resource
+func SignatureFromBytes(res []byte) (Signature, error) {
 	resource := struct {
 		APIVersion string `yaml:"apiVersion"`
 		Kind       string `yaml:"kind"`
@@ -16,7 +17,7 @@ func SignatureFromBytes(s []byte) (Signature, error) {
 			Namespace string `yaml:"Namespace"`
 		} `yaml:"Metadata"`
 	}{}
-	err := yaml.Unmarshal(s, &resource)
+	err := yaml.Unmarshal(res, &resource)
 
 	return Signature{Kind: resource.Kind, Version: resource.APIVersion, Namespace: resource.Metadata.Namespace}, err
 }

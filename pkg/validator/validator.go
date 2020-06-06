@@ -32,7 +32,7 @@ func (f ValidFormat) IsFormat(input interface{}) bool {
 // 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
 // }
 
-// Validates a single Kubernetes resource against a Json Schema
+// Validate validates a single Kubernetes resource against a Json Schema
 func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
 	if schema == nil {
 		return nil

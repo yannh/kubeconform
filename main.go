@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
+	"github.com/yannh/kubeconform/pkg/fsutils"
 	"github.com/yannh/kubeconform/pkg/output"
 	"io"
 	"io/ioutil"
@@ -14,7 +15,6 @@ import (
 	"sync"
 
 	"github.com/yannh/kubeconform/pkg/cache"
-	"github.com/yannh/kubeconform/pkg/fsutils"
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
 	"github.com/yannh/kubeconform/pkg/validator"
@@ -177,6 +177,43 @@ func processResults(o output.Output, validationResults chan []validationResult, 
 	result <- success
 }
 
+func getFiles(files []string, fileBatches chan []string, validationResults chan []validationResult) {
+	for _, filename := range files {
+		file, err := os.Open(filename)
+		if err != nil {
+			validationResults <- []validationResult{{
+				filename: filename,
+				err:      err,
+				skipped:  false,
+			}}
+			continue
+		}
+		defer file.Close()
+
+		fi, err := file.Stat()
+		switch {
+		case err != nil:
+			validationResults <- []validationResult{{
+				filename: filename,
+				err:      err,
+				skipped:  false,
+			}}
+
+		case fi.IsDir():
+			if err := fsutils.FindYamlInDir(filename, fileBatches, 10); err != nil {
+				validationResults <- []validationResult{{
+					filename: filename,
+					err:      err,
+					skipped:  false,
+				}}
+			}
+
+		default:
+			fileBatches <- []string{filename}
+		}
+	}
+}
+
 func realMain() int {
 	var schemas arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
@@ -221,41 +258,7 @@ func realMain() int {
 
 	fileBatches := make(chan []string)
 	go func() {
-		for _, filename := range files {
-			file, err := os.Open(filename)
-			if err != nil {
-				validationResults <- []validationResult{{
-					filename: filename,
-					err:      err,
-					skipped:  false,
-				}}
-				continue
-			}
-			defer file.Close()
-
-			fi, err := file.Stat()
-			switch {
-			case err != nil:
-				validationResults <- []validationResult{{
-					filename: filename,
-					err:      err,
-					skipped:  false,
-				}}
-
-			case fi.IsDir():
-				if err := fsutils.FindYamlInDir(filename, fileBatches, 10); err != nil {
-					validationResults <- []validationResult{{
-						filename: filename,
-						err:      err,
-						skipped:  false,
-					}}
-				}
-
-			default:
-				fileBatches <- []string{filename}
-			}
-		}
-
+		getFiles(files, fileBatches, validationResults)
 		close(fileBatches)
 	}()
 

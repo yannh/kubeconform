@@ -12,12 +12,11 @@ archives:
         format: zip
     name_template: "{{ .ProjectName  }}-{{ .Os  }}-{{ .Arch  }}"
 checksum:
-  name_template: 'checksums.txt'
+  name_template: 'CHECKSUMS'
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
       - '^test:'

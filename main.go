@@ -39,29 +39,23 @@ func resourcesFromReader(r io.Reader) ([][]byte, error) {
 
 func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error) {
 	var err error
-	var schema *gojsonschema.Schema
 	var schemaBytes []byte
 
 	for _, reg := range registries {
 		schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
-
-		if err != nil {
-			// If we get a 404, we keep trying, but we exit if we get a real failure
-			if er, retryable := err.(registry.Retryable); !retryable || er.IsRetryable() {
-				return nil, err
-			}
-
-			continue // 404 from this registry, try next registry
+		if err == nil {
+			return gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
 		}
 
-		if schema, err = gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes)); err != nil {
-			return nil, err // Got a schema, but fail to parse it
+		// If we get a 404, we try the next registry, but we exit if we get a real failure
+		if er, retryable := err.(registry.Retryable); retryable && !er.IsRetryable() {
+			continue
 		}
 
-		return schema, nil
+		return nil, err
 	}
 
-	return nil, nil // No schema found - we don't consider it an error, resource willb e skipped
+	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
 }
 
 // filter returns true if the file should be skipped

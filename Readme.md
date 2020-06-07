@@ -10,7 +10,7 @@ configuration using the schemas from the registry maintained by the
 It is inspired by and similar to [Kubeval](https://github.com/instrumenta/kubeval), but with the
 following improvements:
  * **high performance**: will validate & download manifests over multiple routines
- * support for **Kubernetes CRDs**
+ * support for **Kubernetes CRDs** (in progress)
 
 ### Usage
 
@@ -79,14 +79,6 @@ fixtures/multi_invalid.yaml - Service is invalid: Invalid type. Expected: intege
 fixtures/invalid.yaml - ReplicationController is invalid: Invalid type. Expected: [integer,null], given: string
 [...]
 Summary: 48 resources found in 25 files - Valid: 39, Invalid: 2, Errors: 7 Skipped: 0
-
-```
-
-* Validating a custom resources, using a local schema
-
-```
-$ bin/kubeconform -schema fixtures/crd_schema.yaml -verbose fixtures/test_crd.yaml
-fixtures/test_crd.yaml - TrainingJob is valid
 ```
 
 ### Credits

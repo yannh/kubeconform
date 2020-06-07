@@ -24,3 +24,6 @@ build-bats:
 
 docker-acceptance: build-bats
 	docker run -t bats acceptance.bats
+
+release:
+	goreleaser --rm-dist

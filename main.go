@@ -98,23 +98,24 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 			cacheKey = cache.Key(sig.Kind, sig.Version, k8sVersion)
 			schema, ok = c.Get(cacheKey)
 		}
+
 		if !ok {
 			schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion)
 			if err != nil {
 				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err, skipped: false})
 				continue
-			} else if schema == nil { // skip if no schema was found, but there was no error TODO: Fail by default, provide a -skip-missing-schema
-				if ignoreMissingSchemas {
-					validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
-				} else {
-					validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("could not find schema for %s", sig.Kind), skipped: false})
-				}
-				if c != nil {
-					c.Set(cacheKey, nil)
-				}
-				continue
-			} else if c != nil {
+			}
+
+			if c != nil {
 				c.Set(cacheKey, schema)
+			}
+		}
+
+		if schema == nil {
+			if ignoreMissingSchemas {
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
+			} else {
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("could not find schema for %s", sig.Kind), skipped: false})
 			}
 		}
 

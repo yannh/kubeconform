@@ -61,7 +61,3 @@
   [ "$status" -eq 0 ]
 }
 
-@test "Succeed parsing a CRD when additional schema passed" {
-  run bin/kubeconform -schema fixtures/crd_schema.yaml fixtures/test_crd.yaml
-  [ "$status" -eq 0 ]
-}

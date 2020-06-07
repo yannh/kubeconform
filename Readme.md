@@ -12,6 +12,22 @@ following improvements:
  * **high performance**: will validate & download manifests over multiple routines
  * support for **Kubernetes CRDs** (in progress)
 
+### A small overview of Kubernetes manifest validation
+
+Kubernetes's API is described using the [OpenAPI (formerly swagger) specification](https://www.openapis.org),
+in a [file](https://github.com/kubernetes/kubernetes/blob/master/api/openapi-spec/swagger.json) checked into
+the main Kubernetes repository.
+
+Because of the state of the tooling to perform validation against OpenAPI schemas, projects usually convert
+the OpenAPI schemas to [JSON schemas](https://json-schema.org/) first. Kubeval relies on 
+[instrumenta/OpenApi2JsonSchema](https://github.com/instrumenta/openapi2jsonschema) to convert Kubernetes' Swagger file
+and break it down into multiple JSON schemas, stored in github at
+[instrumenta/kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) and published on
+[kubernetesjsonschema.dev](https://kubernetesjsonschema.dev/).
+
+Kubeconform relies on the same JSON schemas from kubernetesjsonschema.dev, and will download required
+schemas at runtime as required.
+
 ### Usage
 
 ```

@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance
+.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image
 
 test-build: test build
 
@@ -9,6 +9,9 @@ test:
 
 build:
 	go build -o bin/kubeconform
+
+docker-image:
+	docker build -t kubeconform .
 
 build-static:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o bin/kubeconform

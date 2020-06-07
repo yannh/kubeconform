@@ -33,18 +33,16 @@ schemas at runtime as required.
 ```
 $ ./bin/kubeconform -h
 Usage of ./bin/kubeconform:
-  -dir value
-        directory to validate (can be specified multiple times)
   -ignore-missing-schemas
         skip files with missing schemas instead of failing
   -k8sversion string
         version of Kubernetes to test against (default "1.18.0")
+  -local-registry value
+        folder containing additional schemas (can be specified multiple times)
   -n int
         number of routines to run in parallel (default 4)
   -output string
         output format - text, json (default "text")
-  -schema value
-        file containing an additional Schema (can be specified multiple times)
   -skip string
         comma-separated list of kinds to ignore
   -strict

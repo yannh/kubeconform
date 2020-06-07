@@ -10,7 +10,7 @@ configuration using the schemas from the registry maintained by the
 It is inspired by and similar to [Kubeval](https://github.com/instrumenta/kubeval), but with the
 following improvements:
  * **high performance**: will validate & download manifests over multiple routines
- * support for **Kubernetes CRDs** (in progress)
+ * support for **Kubernetes CRDs**
 
 ### A small overview of Kubernetes manifest validation
 

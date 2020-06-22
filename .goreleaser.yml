@@ -1,10 +1,18 @@
 builds:
   - env:
       - CGO_ENABLED=0
+      - GOFLAGS = -mod=vendor
+      - GO111MODULE = on
     goos:
       - windows
       - linux
       - darwin
+    flags:
+      - -trimpath
+      - -tags=netgo
+      - -a
+    ldflags:
+      - -extldflags "-static"
 archives:
   - format: tar.gz
     format_overrides:

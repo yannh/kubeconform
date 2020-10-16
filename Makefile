@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image
+.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image release
 
 test-build: test build
 
@@ -8,13 +8,13 @@ test:
 	go test ./...
 
 build:
-	go build -o bin/kubeconform
+	go build -o bin/ ./...
 
 docker-image:
 	docker build -t kubeconform .
 
 build-static:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o bin/kubeconform
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o bin/ ./...
 
 docker-test:
 	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.14 make test

@@ -8,7 +8,7 @@ test:
 	go test ./...
 
 build:
-	go build -o bin/kubeconform
+	go build -o bin ./...
 
 docker-image:
 	docker build -t kubeconform .

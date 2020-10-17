@@ -217,7 +217,7 @@ func realMain() int {
 	var files []string
 
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
-	flag.Var(&regs, "registry", "filepath template for registry")
+	flag.Var(&regs, "registry", "override schemas registry path (can be specified multiple times)")
 	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flag.BoolVar(&summary, "summary", false, "print a summary at the end")
 	flag.IntVar(&nWorkers, "n", 4, "number of routines to run in parallel")
@@ -240,8 +240,7 @@ func realMain() int {
 
 	registries := []registry.Registry{}
 	if len(regs) == 0 {
-		fmt.Println("At least one registry needs to be set - add -registry kubernetesjsonschema.dev ?")
-		return 1
+		regs = append(regs, "kubernetesjsonschema.dev") // if not specified, default behaviour is to use kubernetesjson-schema.dev as registry
 	}
 
 	for _, reg := range regs {

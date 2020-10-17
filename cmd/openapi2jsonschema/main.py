@@ -2,6 +2,7 @@
 
 import yaml
 import json
+import sys
 
 def iteritems(d):
     if hasattr(dict, "iteritems"):
@@ -83,9 +84,15 @@ def append_no_duplicates(obj, key, value):
     if value not in obj[key]:
         obj[key].append(value)
 
-with open(r'synced_secrets.yaml') as f:
+
+if len(sys.argv) == 0:
+    print("missing file")
+    exit(1)
+
+with open(sys.argv[1]) as f:
     y = yaml.load(f, Loader=yaml.SafeLoader)
     schema = y["spec"]["validation"]["openAPIV3Schema"]
     schema = additional_properties(schema)
     schema = replace_int_or_string(schema)
     print(json.dumps(schema))
+    exit(0)

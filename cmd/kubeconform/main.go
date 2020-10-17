@@ -263,7 +263,7 @@ func realMain() int {
 
 	var o output.Output
 	if o, err = getLogger(outputFormat, summary, verbose); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
 

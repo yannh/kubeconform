@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# Derived from https://github.com/instrumenta/openapi2jsonschema
 import yaml
 import json
 import sys

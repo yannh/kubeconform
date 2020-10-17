@@ -37,12 +37,12 @@ Usage of ./bin/kubeconform:
         skip files with missing schemas instead of failing
   -k8sversion string
         version of Kubernetes to test against (default "1.18.0")
-  -local-registry value
-        folder containing additional schemas (can be specified multiple times)
   -n int
         number of routines to run in parallel (default 4)
   -output string
         output format - text, json (default "text")
+  -registry value
+        filepath template for registry
   -skip string
         comma-separated list of kinds to ignore
   -strict
@@ -57,14 +57,14 @@ Usage of ./bin/kubeconform:
 
 * Validating a single, valid file
 ```
-$ ./bin/kubeconform fixtures/valid.yaml
+$ ./bin/kubeconform -registry kubernetesjsonschema.dev fixtures/valid.yaml
 $ echo $?
 0
 ```
 
 * Validating a single invalid file, setting output to json, and printing a summary
 ```
-$ ./bin/kubeconform -summary -output json fixtures/invalid.yaml
+$ ./bin/kubeconform -registry kubernetesjsonschema.dev -summary -output json fixtures/invalid.yaml
 {
   "resources": [
     {
@@ -88,7 +88,7 @@ $ echo $?
 
 * Validating a folder, increasing the number of parallel workers
 ```
-$ ./bin/kubeconform -summary -n 16 fixtures
+$ ./bin/kubeconform -summary -registry kubernetesjsonschema.dev -n 16 fixtures
 fixtures/multi_invalid.yaml - Service is invalid: Invalid type. Expected: integer, given: string
 fixtures/invalid.yaml - ReplicationController is invalid: Invalid type. Expected: [integer,null], given: string
 [...]

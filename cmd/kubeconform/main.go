@@ -239,6 +239,11 @@ func realMain() int {
 	}
 
 	registries := []registry.Registry{}
+	if len(regs) == 0 {
+		fmt.Println("At least one registry needs to be set - add -registry kubernetesjsonschema.dev ?")
+		return 1
+	}
+
 	for _, reg := range regs {
 		if reg == "kubernetesjsonschema.dev" {
 			registries = append(registries, registry.NewHTTPRegistry("https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json", strict))

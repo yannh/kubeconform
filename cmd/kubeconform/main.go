@@ -9,7 +9,6 @@ import (
 	"github.com/yannh/kubeconform/pkg/output"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -210,7 +209,7 @@ func getFiles(files []string, fileBatches chan []string, validationResults chan 
 }
 
 func realMain() int {
-	var localRegistryFolders arrayParam
+	var regs arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
 	var summary, strict, verbose, ignoreMissingSchemas bool
 	var nWorkers int
@@ -218,7 +217,7 @@ func realMain() int {
 	var files []string
 
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
-	flag.Var(&localRegistryFolders, "local-registry", "folder containing additional schemas (can be specified multiple times)")
+	flag.Var(&regs, "registry", "override schemas registry path (can be specified multiple times)")
 	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flag.BoolVar(&summary, "summary", false, "print a summary at the end")
 	flag.IntVar(&nWorkers, "n", 4, "number of routines to run in parallel")
@@ -240,14 +239,17 @@ func realMain() int {
 	}
 
 	registries := []registry.Registry{}
-	registries = append(registries, registry.NewKubernetesRegistry(strict))
-	if len(localRegistryFolders) > 0 {
-		for _, localRegistryFolder := range localRegistryFolders {
-			localRegistry, err := registry.NewLocalRegistry(localRegistryFolder, strict)
-			if err != nil {
-				log.Fatalf("%s", err)
-			}
-			registries = append(registries, localRegistry)
+	if len(regs) == 0 {
+		regs = append(regs, "kubernetesjsonschema.dev") // if not specified, default behaviour is to use kubernetesjson-schema.dev as registry
+	}
+
+	for _, reg := range regs {
+		if reg == "kubernetesjsonschema.dev" {
+			registries = append(registries, registry.NewHTTPRegistry("https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json", strict))
+		} else if strings.HasPrefix(reg, "http") {
+			registries = append(registries, registry.NewHTTPRegistry(reg, strict))
+		} else {
+			registries = append(registries, registry.NewLocalRegistry(reg, strict))
 		}
 	}
 

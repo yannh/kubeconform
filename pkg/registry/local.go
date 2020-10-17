@@ -4,30 +4,47 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 )
 
 type LocalRegistry struct {
-	folder string
-	strict bool
+	pathTemplate string
+	strict       bool
 }
 
+type fileNotFoundError struct {
+	err         error
+	isRetryable bool
+}
+
+func newFileNotFoundError(err error, isRetryable bool) *fileNotFoundError {
+	return &fileNotFoundError{err, isRetryable}
+}
+func (e *fileNotFoundError) IsRetryable() bool { return e.isRetryable }
+func (e *fileNotFoundError) Error() string     { return e.err.Error() }
+
 // NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
-func NewLocalRegistry(folder string, strict bool) (*LocalRegistry, error) {
+func NewLocalRegistry(pathTemplate string, strict bool) *LocalRegistry {
 	return &LocalRegistry{
-		folder,
+		pathTemplate,
 		strict,
-	}, nil
+	}
 }
 
 // DownloadSchema retrieves the schema from a file for the resource
 func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
-	schemaFile := path.Join(r.folder, schemaPath(resourceKind, resourceAPIVersion, k8sVersion, r.strict))
+	schemaFile, err := schemaPath(r.pathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
+	if err != nil {
+		return []byte{}, nil
+	}
 
 	f, err := os.Open(schemaFile)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, newFileNotFoundError(fmt.Errorf("no schema found"), false)
+		}
 		return nil, fmt.Errorf("failed to open schema %s", schemaFile)
 	}
+
 	defer f.Close()
 	content, err := ioutil.ReadAll(f)
 	if err != nil {

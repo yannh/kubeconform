@@ -1,8 +1,9 @@
 package registry
 
 import (
-	"fmt"
+	"bytes"
 	"strings"
+	"text/template"
 )
 
 type Manifest struct {
@@ -19,7 +20,7 @@ type Retryable interface {
 	IsRetryable() bool
 }
 
-func schemaPath(resourceKind, resourceAPIVersion, k8sVersion string, strict bool) string {
+func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool) (string, error) {
 	normalisedVersion := k8sVersion
 	if normalisedVersion != "master" {
 		normalisedVersion = "v" + normalisedVersion
@@ -38,5 +39,28 @@ func schemaPath(resourceKind, resourceAPIVersion, k8sVersion string, strict bool
 		kindSuffix += "-" + strings.ToLower(groupParts[1])
 	}
 
-	return fmt.Sprintf("%s-standalone%s/%s%s.json", normalisedVersion, strictSuffix, strings.ToLower(resourceKind), kindSuffix)
+	tmpl, err := template.New("tpl").Parse(tpl)
+	if err != nil {
+		return "", err
+	}
+
+	tplData := struct {
+		NormalizedVersion string
+		StrictSuffix      string
+		ResourceKind      string
+		KindSuffix        string
+	}{
+		normalisedVersion,
+		strictSuffix,
+		strings.ToLower(resourceKind),
+		kindSuffix,
+	}
+
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, tplData)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

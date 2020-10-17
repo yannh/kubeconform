@@ -37,12 +37,12 @@ Usage of ./bin/kubeconform:
         skip files with missing schemas instead of failing
   -k8sversion string
         version of Kubernetes to test against (default "1.18.0")
-  -local-registry value
-        folder containing additional schemas (can be specified multiple times)
   -n int
         number of routines to run in parallel (default 4)
   -output string
         output format - text, json (default "text")
+  -registry value
+        override schemas registry path (can be specified multiple times)
   -skip string
         comma-separated list of kinds to ignore
   -strict
@@ -93,6 +93,28 @@ fixtures/multi_invalid.yaml - Service is invalid: Invalid type. Expected: intege
 fixtures/invalid.yaml - ReplicationController is invalid: Invalid type. Expected: [integer,null], given: string
 [...]
 Summary: 48 resources found in 25 files - Valid: 39, Invalid: 2, Errors: 7 Skipped: 0
+```
+
+### Overriding schemas registries lookup order - CRD support
+
+When the `-registry` file is not used, kubeconform will default to downloading schemas from
+`kubernetesjsonschema.dev`. Kubeconform however supports the use of one, or multiple, custom schemas
+registries - with access over HTTP or local filesystem. Kubeconform will lookup for schema definitions
+in each of them, in order, stopping as soon as a matching file is found.
+
+All 3 following command lines are equivalent:
+```
+$ ./bin/kubeconform fixtures/valid.yaml
+$ ./bin/kubeconform -registry kubernetesjsonschema.dev fixtures/valid.yaml
+$ ./bin/kubeconform -registry 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+```
+
+To support validating CRDs, we need to convert OpenAPI files to JSON schema, storing the JSON schemas
+in a local folder - for example schemas. Then we specify this folder as an additional registry to lookup:
+
+```
+# If the resource Kind is not found in kubernetesjsonschema.dev, also lookup in the schemas/ folder for a matching file
+$ ./bin/kubeconform -registry kubernetesjsonschema.dev -registry 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
 
 ### Credits

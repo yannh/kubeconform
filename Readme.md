@@ -9,8 +9,9 @@ configuration using the schemas from the registry maintained by the
 
 It is inspired by and similar to [Kubeval](https://github.com/instrumenta/kubeval), but with the
 following improvements:
- * **high performance**: will validate & download manifests over multiple routines
- * support for **Kubernetes CRDs**
+ * **high performance**: will validate & download manifests over multiple routines, caching
+   downloaded files in memory
+ * configurable list of schemas registries, enabling validating Kubernetes custom resources (CRDs)
 
 ### A small overview of Kubernetes manifest validation
 
@@ -115,6 +116,16 @@ in a local folder - for example schemas. Then we specify this folder as an addit
 ```
 # If the resource Kind is not found in kubernetesjsonschema.dev, also lookup in the schemas/ folder for a matching file
 $ ./bin/kubeconform -registry kubernetesjsonschema.dev -registry 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
+```
+
+### Generating a JSON schema from an OpenAPI file
+
+Kubeconform uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition
+first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions 
+to JSON schema. Here is an example how to use it:
+
+```
+$ ./cmd/openapi2jsonschema/main.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml > fixtures/registry/trainingjob-sagemaker-v1.json
 ```
 
 ### Credits

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+# Derived from https://github.com/instrumenta/openapi2jsonschema
 import yaml
 import json
+import sys
+import urllib.request
 
 def iteritems(d):
     if hasattr(dict, "iteritems"):
@@ -83,9 +86,19 @@ def append_no_duplicates(obj, key, value):
     if value not in obj[key]:
         obj[key].append(value)
 
-with open(r'synced_secrets.yaml') as f:
+
+if len(sys.argv) == 0:
+    print("missing file")
+    exit(1)
+
+if sys.argv[1].startswith("http"):
+  f = urllib.request.urlopen(sys.argv[1])
+else:
+  f = open(sys.argv[1])
+with f:
     y = yaml.load(f, Loader=yaml.SafeLoader)
     schema = y["spec"]["validation"]["openAPIV3Schema"]
     schema = additional_properties(schema)
     schema = replace_int_or_string(schema)
     print(json.dumps(schema))
+    exit(0)

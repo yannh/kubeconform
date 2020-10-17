@@ -56,8 +56,12 @@
   [ "$status" -eq 1 ]
 }
 
-@test "Pass when parsing a config with CRD and ignoring missing schemas" {
+@test "Pass when parsing a config with Custom Resource and ignoring missing schemas" {
   run bin/kubeconform -ignore-missing-schemas fixtures/test_crd.yaml
   [ "$status" -eq 0 ]
 }
 
+@test "Pass when parsing a Custom Resource and using a local schema registry with appropriate CRD" {
+  run bin/kubeconform -registry './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
+  [ "$status" -eq 0 ]
+}

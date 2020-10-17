@@ -1,0 +1,555 @@
+{
+  "description": "TrainingJob is the Schema for the trainingjobs API",
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+      "type": "string"
+    },
+    "kind": {
+      "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "spec": {
+      "description": "TrainingJobSpec defines the desired state of TrainingJob",
+      "properties": {
+        "algorithmSpecification": {
+          "properties": {
+            "algorithmName": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "metricDefinitions": {
+              "items": {
+                "properties": {
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "regex": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "regex"
+                ],
+                "type": "object",
+                "additionalProperties": false
+              },
+              "type": "array"
+            },
+            "trainingImage": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "trainingInputMode": {
+              "enum": [
+                "File",
+                "Pipe"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "trainingInputMode"
+          ],
+          "type": "object",
+          "additionalProperties": false
+        },
+        "checkpointConfig": {
+          "properties": {
+            "localPath": {
+              "type": "string"
+            },
+            "s3Uri": {
+              "pattern": "^(https|s3)://([^/]+)/?(.*)$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "s3Uri"
+          ],
+          "type": "object",
+          "additionalProperties": false
+        },
+        "debugHookConfig": {
+          "description": "DebugHookConfig https://docs.aws.amazon.com/sagemaker/latest/dg/API_DebugHookConfig.html",
+          "properties": {
+            "collectionConfigurations": {
+              "items": {
+                "description": "CollectionConfiguration https://docs.aws.amazon.com/sagemaker/latest/dg/API_CollectionConfiguration.html",
+                "properties": {
+                  "collectionName": {
+                    "type": "string"
+                  },
+                  "collectionParameters": {
+                    "items": {
+                      "description": "Used in describing maps in Kubernetes.",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object",
+                      "additionalProperties": false
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object",
+                "additionalProperties": false
+              },
+              "type": "array"
+            },
+            "localPath": {
+              "type": "string"
+            },
+            "ruleParameters": {
+              "items": {
+                "description": "Used in describing maps in Kubernetes.",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "type": "object",
+                "additionalProperties": false
+              },
+              "type": "array"
+            },
+            "s3OutputPath": {
+              "pattern": "^(https|s3)://([^/]+)/?(.*)$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "s3OutputPath"
+          ],
+          "type": "object",
+          "additionalProperties": false
+        },
+        "debugRuleConfigurations": {
+          "items": {
+            "description": "DebugRuleConfiguration https://docs.aws.amazon.com/sagemaker/latest/dg/API_DebugRuleConfiguration.html",
+            "properties": {
+              "instanceType": {
+                "type": "string"
+              },
+              "localPath": {
+                "type": "string"
+              },
+              "ruleConfigurationName": {
+                "type": "string"
+              },
+              "ruleEvaluatorImage": {
+                "type": "string"
+              },
+              "ruleParameters": {
+                "items": {
+                  "description": "Used in describing maps in Kubernetes.",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object",
+                  "additionalProperties": false
+                },
+                "type": "array"
+              },
+              "s3OutputPath": {
+                "pattern": "^(https|s3)://([^/]+)/?(.*)$",
+                "type": "string"
+              },
+              "volumeSizeInGB": {
+                "format": "int64",
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "ruleConfigurationName",
+              "ruleEvaluatorImage"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "type": "array"
+        },
+        "enableInterContainerTrafficEncryption": {
+          "type": "boolean"
+        },
+        "enableManagedSpotTraining": {
+          "type": "boolean"
+        },
+        "enableNetworkIsolation": {
+          "type": "boolean"
+        },
+        "hyperParameters": {
+          "items": {
+            "description": "Used in describing maps in Kubernetes.",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "type": "object",
+            "additionalProperties": false
+          },
+          "type": "array"
+        },
+        "inputDataConfig": {
+          "items": {
+            "properties": {
+              "channelName": {
+                "minLength": 1,
+                "pattern": "[A-Za-z0-9\\.\\-_]+",
+                "type": "string"
+              },
+              "compressionType": {
+                "enum": [
+                  "None",
+                  "Gzip"
+                ],
+                "type": "string"
+              },
+              "contentType": {
+                "type": "string"
+              },
+              "dataSource": {
+                "properties": {
+                  "fileSystemDataSource": {
+                    "properties": {
+                      "directoryPath": {
+                        "type": "string"
+                      },
+                      "fileSystemAccessMode": {
+                        "type": "string"
+                      },
+                      "fileSystemId": {
+                        "type": "string"
+                      },
+                      "fileSystemType": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "directoryPath",
+                      "fileSystemAccessMode",
+                      "fileSystemId",
+                      "fileSystemType"
+                    ],
+                    "type": "object",
+                    "additionalProperties": false
+                  },
+                  "s3DataSource": {
+                    "properties": {
+                      "attributeNames": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "s3DataDistributionType": {
+                        "enum": [
+                          "FullyReplicated",
+                          "ShardedByS3Key"
+                        ],
+                        "type": "string"
+                      },
+                      "s3DataType": {
+                        "enum": [
+                          "S3Prefix",
+                          "ManifestFile",
+                          "AugmentedManifestFile"
+                        ],
+                        "type": "string"
+                      },
+                      "s3Uri": {
+                        "pattern": "^(https|s3)://([^/]+)/?(.*)$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "s3DataType",
+                      "s3Uri"
+                    ],
+                    "type": "object",
+                    "additionalProperties": false
+                  }
+                },
+                "type": "object",
+                "additionalProperties": false
+              },
+              "inputMode": {
+                "enum": [
+                  "Pipe",
+                  "File"
+                ],
+                "type": "string"
+              },
+              "recordWrapperType": {
+                "type": "string"
+              },
+              "shuffleConfig": {
+                "properties": {
+                  "seed": {
+                    "format": "int64",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "seed"
+                ],
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "channelName",
+              "dataSource"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "outputDataConfig": {
+          "properties": {
+            "kmsKeyId": {
+              "type": "string"
+            },
+            "s3OutputPath": {
+              "pattern": "^(https|s3)://([^/]+)/?(.*)$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "s3OutputPath"
+          ],
+          "type": "object",
+          "additionalProperties": false
+        },
+        "region": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "resourceConfig": {
+          "properties": {
+            "instanceCount": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "instanceType": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "volumeKmsKeyId": {
+              "type": "string"
+            },
+            "volumeSizeInGB": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "instanceCount",
+            "instanceType",
+            "volumeSizeInGB"
+          ],
+          "type": "object",
+          "additionalProperties": false
+        },
+        "roleArn": {
+          "minLength": 20,
+          "type": "string"
+        },
+        "sageMakerEndpoint": {
+          "description": "A custom SageMaker endpoint to use when communicating with SageMaker.",
+          "pattern": "^(https|http)://.*$",
+          "type": "string"
+        },
+        "stoppingCondition": {
+          "properties": {
+            "maxRuntimeInSeconds": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "maxWaitTimeInSeconds": {
+              "format": "int64",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object",
+          "additionalProperties": false
+        },
+        "tags": {
+          "items": {
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object",
+            "additionalProperties": false
+          },
+          "type": "array"
+        },
+        "tensorBoardOutputConfig": {
+          "description": "TensorBoardOutputConfig https://docs.aws.amazon.com/sagemaker/latest/dg/API_TensorBoardOutputConfig.html",
+          "properties": {
+            "localPath": {
+              "type": "string"
+            },
+            "s3OutputPath": {
+              "pattern": "^(https|s3)://([^/]+)/?(.*)$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "s3OutputPath"
+          ],
+          "type": "object",
+          "additionalProperties": false
+        },
+        "trainingJobName": {
+          "description": "The SageMaker training job name. This is optional for the SageMaker K8s operator. If it is empty, the operator will populate it with a generated name.",
+          "maxLength": 63,
+          "type": "string"
+        },
+        "vpcConfig": {
+          "properties": {
+            "securityGroupIds": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 5,
+              "minItems": 1,
+              "type": "array"
+            },
+            "subnets": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "type": "array"
+            }
+          },
+          "required": [
+            "securityGroupIds",
+            "subnets"
+          ],
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "algorithmSpecification",
+        "outputDataConfig",
+        "region",
+        "resourceConfig",
+        "roleArn",
+        "stoppingCondition"
+      ],
+      "type": "object",
+      "additionalProperties": false
+    },
+    "status": {
+      "description": "TrainingJobStatus defines the observed state of TrainingJob",
+      "properties": {
+        "additional": {
+          "description": "Field to store additional information, for example if we are unable to check the status we update this.",
+          "type": "string"
+        },
+        "cloudWatchLogUrl": {
+          "description": "Cloud Watch url for training log",
+          "type": "string"
+        },
+        "debugRuleEvaluationStatuses": {
+          "description": "Status of rule evaluation jobs, obtained from DebugRuleEvaluationStatuses. https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeTrainingJob.html#sagemaker-DescribeTrainingJob-response-DebugRuleEvaluationStatuses",
+          "items": {
+            "description": "DebugRuleEvaluationStatus https://docs.aws.amazon.com/sagemaker/latest/dg/API_DebugRuleEvaluationStatus.html",
+            "properties": {
+              "lastModifiedTime": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "ruleConfigurationName": {
+                "type": "string"
+              },
+              "ruleEvaluationJobArn": {
+                "type": "string"
+              },
+              "ruleEvaluationStatus": {
+                "type": "string"
+              },
+              "statusDetail": {
+                "type": "string"
+              }
+            },
+            "type": "object",
+            "additionalProperties": false
+          },
+          "type": "array"
+        },
+        "lastCheckTime": {
+          "description": "The last time that we checked the status of the SageMaker job.",
+          "format": "date-time",
+          "type": "string"
+        },
+        "modelPath": {
+          "description": "Full path to the training artifact (model)",
+          "type": "string"
+        },
+        "sageMakerTrainingJobName": {
+          "description": "SageMaker training job name",
+          "type": "string"
+        },
+        "secondaryStatus": {
+          "description": "The secondary, more granular status of the training job. https://docs.aws.amazon.com/sagemaker/latest/dg/API_DescribeTrainingJob.html#SageMaker-DescribeTrainingJob-response-SecondaryStatus",
+          "type": "string"
+        },
+        "trainingJobStatus": {
+          "description": "The status of the training job. https://docs.aws.amazon.com/sagemaker/latest/dg/API_DescribeTrainingJob.html#SageMaker-DescribeTrainingJob-response-TrainingJobStatus",
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "spec"
+  ],
+  "type": "object"
+}

@@ -4,6 +4,7 @@
 import yaml
 import json
 import sys
+import urllib.request
 
 def iteritems(d):
     if hasattr(dict, "iteritems"):
@@ -90,7 +91,11 @@ if len(sys.argv) == 0:
     print("missing file")
     exit(1)
 
-with open(sys.argv[1]) as f:
+if sys.argv[1].startswith("http"):
+  f = urllib.request.urlopen(sys.argv[1])
+else:
+  f = open(sys.argv[1])
+with f:
     y = yaml.load(f, Loader=yaml.SafeLoader)
     schema = y["spec"]["validation"]["openAPIV3Schema"]
     schema = additional_properties(schema)

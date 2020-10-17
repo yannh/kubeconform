@@ -7,8 +7,8 @@ import (
 )
 
 type KubernetesRegistry struct {
-	baseURL string
-	strict  bool
+	schemaPathTemplate string
+	strict             bool
 }
 
 type downloadError struct {
@@ -22,15 +22,18 @@ func newDownloadError(err error, isRetryable bool) *downloadError {
 func (e *downloadError) IsRetryable() bool { return e.isRetryable }
 func (e *downloadError) Error() string     { return e.err.Error() }
 
-func NewKubernetesRegistry(strict bool) *KubernetesRegistry {
+func NewHTTPRegistry(schemaPathTemplate string, strict bool) *KubernetesRegistry {
 	return &KubernetesRegistry{
-		baseURL: "https://kubernetesjsonschema.dev",
-		strict:  strict,
+		schemaPathTemplate: schemaPathTemplate,
+		strict:             strict,
 	}
 }
 
 func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
-	url := r.baseURL + "/" + schemaPath(resourceKind, resourceAPIVersion, k8sVersion, r.strict)
+	url, err := schemaPath(r.schemaPathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := http.Get(url)
 	if err != nil {

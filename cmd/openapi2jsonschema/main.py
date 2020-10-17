@@ -65,10 +65,7 @@ def allow_null_optional_fields(data, parent=None, grand_parent=None, key=None):
             elif isinstance(v, str):
                 is_non_null_type = k == "type" and v != "null"
                 has_required_fields = grand_parent and "required" in grand_parent
-                is_required_field = (
-                    has_required_fields and key in grand_parent["required"]
-                )
-                if is_non_null_type and not is_required_field:
+                if is_non_null_type and not has_required_field:
                     new_v = [v, "null"]
             new[k] = new_v
         return new
@@ -91,5 +88,4 @@ with open(r'synced_secrets.yaml') as f:
     schema = y["spec"]["validation"]["openAPIV3Schema"]
     schema = additional_properties(schema)
     schema = replace_int_or_string(schema)
-    schema = allow_null_optional_fields(schema)
     print(json.dumps(schema))

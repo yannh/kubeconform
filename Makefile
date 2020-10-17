@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image
+.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image release
 
 test-build: test build
 

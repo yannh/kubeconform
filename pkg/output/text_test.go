@@ -7,9 +7,9 @@ import (
 
 func TestTextWrite(t *testing.T) {
 	type result struct {
-		fileName, kind, version string
-		err                     error
-		skipped                 bool
+		fileName, kind, name, version string
+		err                           error
+		skipped                       bool
 	}
 
 	for _, testCase := range []struct {
@@ -28,6 +28,7 @@ func TestTextWrite(t *testing.T) {
 				{
 					"deployment.yml",
 					"Deployment",
+					"my-app",
 					"apps/v1",
 					nil,
 					false,
@@ -43,6 +44,7 @@ func TestTextWrite(t *testing.T) {
 				{
 					"deployment.yml",
 					"Deployment",
+					"my-app",
 					"apps/v1",
 					nil,
 					false,
@@ -58,12 +60,13 @@ func TestTextWrite(t *testing.T) {
 				{
 					"deployment.yml",
 					"Deployment",
+					"my-app",
 					"apps/v1",
 					nil,
 					false,
 				},
 			},
-			`deployment.yml - Deployment is valid
+			`deployment.yml - Deployment my-app is valid
 Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 `,
 		},
@@ -72,7 +75,7 @@ Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 		o := Text(w, testCase.withSummary, testCase.verbose)
 
 		for _, res := range testCase.res {
-			o.Write(res.fileName, res.kind, res.version, res.err, res.skipped)
+			o.Write(res.fileName, res.kind, res.name, res.version, res.err, res.skipped)
 		}
 		o.Flush()
 

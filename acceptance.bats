@@ -12,16 +12,28 @@
   [ "$output" = "Summary: 7 resources found in 2 files - Valid: 7, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
+@test "Pass when parsing a valid Kubernetes config file with int_to_string vars" {
+  run bin/kubeconform -verbose fixtures/int_or_string.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/int_or_string.yaml - Service heapster is valid" ]
+}
+
+@test "Pass when parsing a valid Kubernetes config YAML file with generate name" {
+  run bin/kubeconform -verbose fixtures/generate_name.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/generate_name.yaml - Job pi-{{ generateName }} is valid" ]
+}
+
 @test "Pass when parsing a Kubernetes file with string and integer quantities" {
   run bin/kubeconform -verbose fixtures/quantity.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "fixtures/quantity.yaml - LimitRange is valid" ]
+  [ "$output" = "fixtures/quantity.yaml - LimitRange mem-limit-range is valid" ]
 }
 
 @test "Pass when parsing a valid Kubernetes config file with null arrays" {
   run bin/kubeconform -verbose fixtures/null_string.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "fixtures/null_string.yaml - Service is valid" ]
+  [ "$output" = "fixtures/null_string.yaml - Service frontend is valid" ]
 }
 
 @test "Pass when parsing a multi-document config file" {
@@ -43,7 +55,19 @@
 @test "Return relevant error for non-existent file" {
   run bin/kubeconform fixtures/not-here
   [ "$status" -eq 1 ]
-  [ "$output" = "fixtures/not-here -  failed validation: open fixtures/not-here: no such file or directory" ]
+  [ "$output" = "fixtures/not-here - failed validation: open fixtures/not-here: no such file or directory" ]
+}
+
+@test "Pass when parsing a blank config file" {
+   run bin/kubeconform -summary fixtures/blank.yaml
+   [ "$status" -eq 0 ]
+   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
+@test "Pass when parsing a blank config file with a comment" {
+   run bin/kubeconform -summary fixtures/comment.yaml
+   [ "$status" -eq 0 ]
+   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
 @test "Fail when parsing a config with additional properties and strict set" {
@@ -64,4 +88,30 @@
 @test "Pass when parsing a Custom Resource and using a local schema registry with appropriate CRD" {
   run bin/kubeconform -registry './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
   [ "$status" -eq 0 ]
+}
+
+@test "Pass when parsing a config with additional properties" {
+  run bin/kubeconform -summary fixtures/extra_property.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
+@test "Pass when using a valid, preset --registry" {
+  run bin/kubeconform --registry kubernetesjsonschema.dev fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Pass when using a valid HTTP --registry" {
+  run bin/kubeconform --registry 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Fail when using an invalid HTTP --registry" {
+  run bin/kubeconform --registry 'http://foo' fixtures/valid.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when using an invalid non-HTTP --registry" {
+  run bin/kubeconform --registry 'foo' fixtures/valid.yaml
+  [ "$status" -eq 1 ]
 }

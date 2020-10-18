@@ -10,14 +10,19 @@ const (
 	INVALID
 	ERROR
 	SKIPPED
+	EMPTY
 )
 
 type Output interface {
-	Write(filename, kind, version string, err error, skipped bool) error
+	Write(filename, kind, name, version string, err error, skipped bool) error
 	Flush() error
 }
 
-func status(err error, skipped bool) int {
+func status(kind, name string, err error, skipped bool) int {
+	if name == "" && kind == "" && err == nil && skipped == false {
+		return EMPTY
+	}
+
 	if skipped {
 		return SKIPPED
 	}

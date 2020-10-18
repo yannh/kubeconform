@@ -9,6 +9,7 @@ import (
 type result struct {
 	Filename string `json:"filename"`
 	Kind     string `json:"kind"`
+	Name     string `json:"name"`
 	Version  string `json:"version"`
 	Status   string `json:"status"`
 	Msg      string `json:"msg"`
@@ -37,10 +38,10 @@ func JSON(w io.Writer, withSummary bool, verbose bool) Output {
 }
 
 // JSON.Write will only write when JSON.Flush has been called
-func (o *jsono) Write(filename, kind, version string, err error, skipped bool) error {
+func (o *jsono) Write(filename, kind, name, version string, err error, skipped bool) error {
 	msg, st := "", ""
 
-	s := status(err, skipped)
+	s := status(kind, name, err, skipped)
 
 	switch s {
 	case VALID:
@@ -57,10 +58,11 @@ func (o *jsono) Write(filename, kind, version string, err error, skipped bool) e
 	case SKIPPED:
 		st = "SKIPPED"
 		o.nSkipped++
+	case EMPTY:
 	}
 
-	if o.verbose || (s != VALID && s != SKIPPED) {
-		o.results = append(o.results, result{Filename: filename, Kind: kind, Version: version, Status: st, Msg: msg})
+	if o.verbose || (s != VALID && s != SKIPPED && s != EMPTY ) {
+		o.results = append(o.results, result{Filename: filename, Kind: kind, Name: name, Version: version, Status: st, Msg: msg})
 	}
 
 	return nil

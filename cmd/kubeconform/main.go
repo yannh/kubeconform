@@ -20,9 +20,9 @@ import (
 )
 
 type validationResult struct {
-	filename, kind, version string
-	err                     error
-	skipped                 bool
+	filename, kind, version, Name string
+	err                           error
+	skipped                       bool
 }
 
 func resourcesFromReader(r io.Reader) ([][]byte, error) {
@@ -70,7 +70,7 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 	for _, rawResource := range rawResources {
 		var sig resource.Signature
 		if sig, err = resource.SignatureFromBytes(rawResource); err != nil {
-			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("error while parsing: %s", err)})
+			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, Name: sig.Name, err: fmt.Errorf("error while parsing: %s", err)})
 			continue
 		}
 
@@ -79,7 +79,7 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 		}
 
 		if skip(sig) {
-			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
+			validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, Name: sig.Name, err: nil, skipped: true})
 			continue
 		}
 
@@ -95,7 +95,7 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 		if !ok {
 			schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion)
 			if err != nil {
-				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err, skipped: false})
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, Name: sig.Name, err: err, skipped: false})
 				continue
 			}
 
@@ -106,14 +106,14 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 
 		if schema == nil {
 			if ignoreMissingSchemas {
-				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: nil, skipped: true})
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, Name: sig.Name, err: nil, skipped: true})
 			} else {
-				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: fmt.Errorf("could not find schema for %s", sig.Kind), skipped: false})
+				validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, Name: sig.Name, err: fmt.Errorf("could not find schema for %s", sig.Kind), skipped: false})
 			}
 		}
 
 		err = validator.Validate(rawResource, schema)
-		validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, err: err})
+		validationResults = append(validationResults, validationResult{kind: sig.Kind, version: sig.Version, Name: sig.Name, err: err})
 	}
 
 	return validationResults
@@ -162,7 +162,7 @@ func processResults(o output.Output, validationResults chan []validationResult, 
 				success = false
 			}
 
-			if err := o.Write(result.filename, result.kind, result.version, result.err, result.skipped); err != nil {
+			if err := o.Write(result.filename, result.kind, result.Name, result.version, result.err, result.skipped); err != nil {
 				fmt.Fprint(os.Stderr, "failed writing log\n")
 			}
 		}

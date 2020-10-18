@@ -15,13 +15,13 @@
 @test "Pass when parsing a Kubernetes file with string and integer quantities" {
   run bin/kubeconform -verbose fixtures/quantity.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "fixtures/quantity.yaml - LimitRange is valid" ]
+  [ "$output" = "fixtures/quantity.yaml - LimitRange mem-limit-range is valid" ]
 }
 
 @test "Pass when parsing a valid Kubernetes config file with null arrays" {
   run bin/kubeconform -verbose fixtures/null_string.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "fixtures/null_string.yaml - Service is valid" ]
+  [ "$output" = "fixtures/null_string.yaml - Service frontend is valid" ]
 }
 
 @test "Pass when parsing a multi-document config file" {
@@ -43,7 +43,7 @@
 @test "Return relevant error for non-existent file" {
   run bin/kubeconform fixtures/not-here
   [ "$status" -eq 1 ]
-  [ "$output" = "fixtures/not-here -  failed validation: open fixtures/not-here: no such file or directory" ]
+  [ "$output" = "fixtures/not-here -   failed validation: open fixtures/not-here: no such file or directory" ]
 }
 
 @test "Fail when parsing a config with additional properties and strict set" {

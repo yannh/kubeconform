@@ -13,7 +13,7 @@ const (
 )
 
 type Output interface {
-	Write(filename, kind, version string, err error, skipped bool) error
+	Write(filename, kind, name, version string, err error, skipped bool) error
 	Flush() error
 }
 

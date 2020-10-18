@@ -7,9 +7,9 @@ import (
 
 func TestJSONWrite(t *testing.T) {
 	type result struct {
-		fileName, kind, version string
-		err                     error
-		skipped                 bool
+		fileName, kind, name, version string
+		err                           error
+		skipped                       bool
 	}
 
 	for _, testCase := range []struct {
@@ -28,6 +28,7 @@ func TestJSONWrite(t *testing.T) {
 				{
 					"deployment.yml",
 					"Deployment",
+					"my-app",
 					"apps/v1",
 					nil,
 					false,
@@ -46,6 +47,7 @@ func TestJSONWrite(t *testing.T) {
 				{
 					"deployment.yml",
 					"Deployment",
+					"my-app",
 					"apps/v1",
 					nil,
 					false,
@@ -70,6 +72,7 @@ func TestJSONWrite(t *testing.T) {
 				{
 					"deployment.yml",
 					"Deployment",
+					"my-app",
 					"apps/v1",
 					nil,
 					false,
@@ -80,6 +83,7 @@ func TestJSONWrite(t *testing.T) {
     {
       "filename": "deployment.yml",
       "kind": "Deployment",
+      "name": "my-app",
       "version": "apps/v1",
       "status": "VALID",
       "msg": ""
@@ -99,7 +103,7 @@ func TestJSONWrite(t *testing.T) {
 		o := JSON(w, testCase.withSummary, testCase.verbose)
 
 		for _, res := range testCase.res {
-			o.Write(res.fileName, res.kind, res.version, res.err, res.skipped)
+			o.Write(res.fileName, res.kind, res.name, res.version, res.err, res.skipped)
 		}
 		o.Flush()
 

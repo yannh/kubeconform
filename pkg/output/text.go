@@ -29,7 +29,7 @@ func Text(w io.Writer, withSummary, verbose bool) Output {
 	}
 }
 
-func (o *text) Write(filename, kind, version string, reserr error, skipped bool) error {
+func (o *text) Write(filename, kind, name, version string, reserr error, skipped bool) error {
 	o.Lock()
 	defer o.Unlock()
 
@@ -39,18 +39,18 @@ func (o *text) Write(filename, kind, version string, reserr error, skipped bool)
 	switch status(reserr, skipped) {
 	case VALID:
 		if o.verbose {
-			_, err = fmt.Fprintf(o.w, "%s - %s is valid\n", filename, kind)
+			_, err = fmt.Fprintf(o.w, "%s - %s %s is valid\n", filename, kind, name)
 		}
 		o.nValid++
 	case INVALID:
-		_, err = fmt.Fprintf(o.w, "%s - %s is invalid: %s\n", filename, kind, reserr)
+		_, err = fmt.Fprintf(o.w, "%s - %s %s is invalid: %s\n", filename, kind, name, reserr)
 		o.nInvalid++
 	case ERROR:
-		_, err = fmt.Fprintf(o.w, "%s - %s failed validation: %s\n", filename, kind, reserr)
+		_, err = fmt.Fprintf(o.w, "%s - %s %s failed validation: %s\n", filename, kind, name, reserr)
 		o.nErrors++
 	case SKIPPED:
 		if o.verbose {
-			_, err = fmt.Fprintf(o.w, "%s - %s skipped\n", filename, kind)
+			_, err = fmt.Fprintf(o.w, "%s - %s %s skipped\n", filename, name, kind)
 		}
 		o.nSkipped++
 	}

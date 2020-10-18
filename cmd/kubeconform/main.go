@@ -217,7 +217,7 @@ func getFiles(files []string, fileBatches chan []string, validationResults chan 
 func realMain() int {
 	var schemaLocationsParam arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
-	var summary, strict, verbose, ignoreMissingSchemas bool
+	var summary, strict, verbose, ignoreMissingSchemas, help bool
 	var nWorkers int
 	var err error
 	var files []string
@@ -231,7 +231,18 @@ func realMain() int {
 	flag.BoolVar(&strict, "strict", false, "disallow additional properties not in schema")
 	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
 	flag.BoolVar(&verbose, "verbose", false, "print results for all resources")
+	flag.BoolVar(&help, "h", false, "show help information")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+
 	flag.Parse()
+
+	if help {
+		flag.Usage()
+		return 1
+	}
 
 	skipKinds := skipKindsMap(skipKindsCSV)
 

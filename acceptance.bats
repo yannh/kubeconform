@@ -86,7 +86,7 @@
 }
 
 @test "Pass when parsing a Custom Resource and using a local schema registry with appropriate CRD" {
-  run bin/kubeconform -registry './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
+  run bin/kubeconform -schema-location './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
   [ "$status" -eq 0 ]
 }
 
@@ -96,22 +96,22 @@
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
-@test "Pass when using a valid, preset --registry" {
-  run bin/kubeconform --registry kubernetesjsonschema.dev fixtures/valid.yaml
+@test "Pass when using a valid, preset -schema-location" {
+  run bin/kubeconform -schema-location https://kubernetesjsonschema.dev fixtures/valid.yaml
   [ "$status" -eq 0 ]
 }
 
-@test "Pass when using a valid HTTP --registry" {
-  run bin/kubeconform --registry 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+@test "Pass when using a valid HTTP -schema-location" {
+  run bin/kubeconform -schema-location 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
   [ "$status" -eq 0 ]
 }
 
-@test "Fail when using an invalid HTTP --registry" {
-  run bin/kubeconform --registry 'http://foo' fixtures/valid.yaml
+@test "Fail when using an invalid HTTP -schema-location" {
+  run bin/kubeconform -schema-location 'http://foo' fixtures/valid.yaml
   [ "$status" -eq 1 ]
 }
 
-@test "Fail when using an invalid non-HTTP --registry" {
-  run bin/kubeconform --registry 'foo' fixtures/valid.yaml
+@test "Fail when using an invalid non-HTTP -schema-location" {
+  run bin/kubeconform -schema-location 'foo' fixtures/valid.yaml
   [ "$status" -eq 1 ]
 }

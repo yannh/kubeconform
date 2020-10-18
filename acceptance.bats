@@ -12,6 +12,18 @@
   [ "$output" = "Summary: 7 resources found in 2 files - Valid: 7, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
+@test "Pass when parsing a valid Kubernetes config file with int_to_string vars" {
+  run bin/kubeconform -verbose fixtures/int_or_string.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/int_or_string.yaml - Service heapster is valid" ]
+}
+
+@test "Pass when parsing a valid Kubernetes config YAML file with generate name" {
+  run bin/kubeconform fixtures/generate_name.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/generate_name.yaml - Job pi-{{ generateName }} is valid" ]
+}
+
 @test "Pass when parsing a Kubernetes file with string and integer quantities" {
   run bin/kubeconform -verbose fixtures/quantity.yaml
   [ "$status" -eq 0 ]

@@ -98,10 +98,15 @@ Summary: 65 resources found in 34 files - Valid: 55, Invalid: 2, Errors: 8 Skipp
 
 ### Overriding schemas location - CRD support
 
-When the `-schema-location` file is not used, kubeconform will default to downloading schemas from
-`https://kubernetesjsonschema.dev`. Kubeconform however supports the use of one, or multiple, custom schemas
-registries - with access over HTTP or local filesystem. Kubeconform will lookup for schema definitions
+When the `-schema-location` parameter is not used, kubeconform will default to downloading schemas from
+`https://kubernetesjsonschema.dev`. Kubeconform however supports passing one, or multiple, schemas
+locations - HTTP URLs, or local filesystem paths, in which case it will lookup for schema definitions
 in each of them, in order, stopping as soon as a matching file is found.
+
+ * If the -schema-location value does not end with '.json', Kubeconform will assume filenames / a file
+ structure identical to that of kubernetesjsonschema.dev
+ * if the -schema-location value ends with '.json' - Kubeconform assumes the value is a Go templated
+ string that indicates how to search for JSON schemas.
 
 All 3 following command lines are equivalent:
 ```

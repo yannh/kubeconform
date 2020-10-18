@@ -36,8 +36,8 @@ $ ./bin/kubeconform -h
 Usage of ./bin/kubeconform:
   -ignore-missing-schemas
         skip files with missing schemas instead of failing
-  -k8sversion string
-        version of Kubernetes to test against (default "1.18.0")
+  -kubernetes-sversion string
+        version of Kubernetes to validate against (default "1.18.0")
   -n int
         number of routines to run in parallel (default 4)
   -output string

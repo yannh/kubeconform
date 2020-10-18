@@ -71,7 +71,7 @@
 }
 
 @test "Fail when parsing a config with additional properties and strict set" {
-  run bin/kubeconform -strict -k8sversion 1.16.0 fixtures/extra_property.yaml
+  run bin/kubeconform -strict -kubernetes-version 1.16.0 fixtures/extra_property.yaml
   [ "$status" -eq 1 ]
 }
 

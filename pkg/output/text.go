@@ -46,7 +46,11 @@ func (o *text) Write(filename, kind, name, version string, reserr error, skipped
 		_, err = fmt.Fprintf(o.w, "%s - %s %s is invalid: %s\n", filename, kind, name, reserr)
 		o.nInvalid++
 	case ERROR:
-		_, err = fmt.Fprintf(o.w, "%s - %s %s failed validation: %s\n", filename, kind, name, reserr)
+		if kind != "" && name != "" {
+			_, err = fmt.Fprintf(o.w, "%s - %s %s failed validation: %s\n", filename, kind, name, reserr)
+		} else {
+			_, err = fmt.Fprintf(o.w, "%s - failed validation: %s\n", filename, reserr)
+		}
 		o.nErrors++
 	case SKIPPED:
 		if o.verbose {

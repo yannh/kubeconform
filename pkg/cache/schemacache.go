@@ -2,8 +2,9 @@ package cache
 
 import (
 	"fmt"
-	"github.com/xeipuuv/gojsonschema"
 	"sync"
+
+	"github.com/xeipuuv/gojsonschema"
 )
 
 type SchemaCache struct {

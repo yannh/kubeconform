@@ -2,8 +2,9 @@ package validator
 
 import (
 	"fmt"
-	"github.com/xeipuuv/gojsonschema"
 	"testing"
+
+	"github.com/xeipuuv/gojsonschema"
 )
 
 func TestValidate(t *testing.T) {

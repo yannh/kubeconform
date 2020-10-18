@@ -7,11 +7,11 @@ Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to 
 configuration using the schemas from the registry maintained by the
 [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) project!
 
-It is inspired by and similar to [Kubeval](https://github.com/instrumenta/kubeval), but with the
-following improvements:
+It is inspired by, contains code from and is designed to stay close to
+[Kubeval](https://github.com/instrumenta/kubeval), but with the following improvements:
  * **high performance**: will validate & download manifests over multiple routines, caching
    downloaded files in memory
- * configurable list of schemas registries, enabling validating Kubernetes custom resources (CRDs)
+ * configurable list of schemas locations, enabling validating Kubernetes custom resources (CRDs)
 
 ### A small overview of Kubernetes manifest validation
 
@@ -131,4 +131,4 @@ $ ./cmd/openapi2jsonschema/main.py https://raw.githubusercontent.com/aws/amazon-
 ### Credits
 
  * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and
- [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) projects
+ [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) projects ❤️

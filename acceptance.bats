@@ -105,3 +105,13 @@
   run bin/kubeconform --registry 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
   [ "$status" -eq 0 ]
 }
+
+@test "Fail when using an invalid HTTP --registry" {
+  run bin/kubeconform --registry 'http://foo' fixtures/valid.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when using an invalid non-HTTP --registry" {
+  run bin/kubeconform --registry 'foo' fixtures/valid.yaml
+  [ "$status" -eq 1 ]
+}

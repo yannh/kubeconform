@@ -251,7 +251,7 @@ func realMain() int {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocationsParam {
-		if strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of kubernetesjsonschema.dev
+		if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of kubernetesjsonschema.dev
 			schemaLocation += "/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 		}
 

@@ -1,8 +1,9 @@
 package resource_test
 
 import (
-	"github.com/yannh/kubeconform/pkg/resource"
 	"testing"
+
+	"github.com/yannh/kubeconform/pkg/resource"
 )
 
 func TestSignatureFromBytes(t *testing.T) {

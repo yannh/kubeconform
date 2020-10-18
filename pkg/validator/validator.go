@@ -2,6 +2,7 @@ package validator
 
 import (
 	"fmt"
+
 	"github.com/xeipuuv/gojsonschema"
 	"sigs.k8s.io/yaml"
 )

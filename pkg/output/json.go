@@ -41,7 +41,7 @@ func JSON(w io.Writer, withSummary bool, verbose bool) Output {
 func (o *jsono) Write(filename, kind, name, version string, err error, skipped bool) error {
 	msg, st := "", ""
 
-	s := status(err, skipped)
+	s := status(kind, name, err, skipped)
 
 	switch s {
 	case VALID:
@@ -58,9 +58,10 @@ func (o *jsono) Write(filename, kind, name, version string, err error, skipped b
 	case SKIPPED:
 		st = "SKIPPED"
 		o.nSkipped++
+	case EMPTY:
 	}
 
-	if o.verbose || (s != VALID && s != SKIPPED) {
+	if o.verbose || (s != VALID && s != SKIPPED && s != EMPTY ) {
 		o.results = append(o.results, result{Filename: filename, Kind: kind, Name: name, Version: version, Status: st, Msg: msg})
 	}
 

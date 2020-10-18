@@ -36,7 +36,7 @@ func (o *text) Write(filename, kind, name, version string, reserr error, skipped
 	var err error
 
 	o.files[filename] = true
-	switch status(reserr, skipped) {
+	switch status(kind, name, reserr, skipped) {
 	case VALID:
 		if o.verbose {
 			_, err = fmt.Fprintf(o.w, "%s - %s %s is valid\n", filename, kind, name)
@@ -57,6 +57,7 @@ func (o *text) Write(filename, kind, name, version string, reserr error, skipped
 			_, err = fmt.Fprintf(o.w, "%s - %s %s skipped\n", filename, name, kind)
 		}
 		o.nSkipped++
+	case EMPTY:
 	}
 
 	return err

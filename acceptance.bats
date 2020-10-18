@@ -19,7 +19,7 @@
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file with generate name" {
-  run bin/kubeconform fixtures/generate_name.yaml
+  run bin/kubeconform -verbose fixtures/generate_name.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "fixtures/generate_name.yaml - Job pi-{{ generateName }} is valid" ]
 }
@@ -56,6 +56,12 @@
   run bin/kubeconform fixtures/not-here
   [ "$status" -eq 1 ]
   [ "$output" = "fixtures/not-here - failed validation: open fixtures/not-here: no such file or directory" ]
+}
+
+@test "Pass when parsing a blank config file" {
+   run bin/kubeconform -summary fixtures/blank.yaml
+   [ "$status" -eq 0 ]
+   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
 @test "Fail when parsing a config with additional properties and strict set" {

@@ -10,6 +10,7 @@ const (
 	INVALID
 	ERROR
 	SKIPPED
+	EMPTY
 )
 
 type Output interface {
@@ -17,7 +18,11 @@ type Output interface {
 	Flush() error
 }
 
-func status(err error, skipped bool) int {
+func status(kind, name string, err error, skipped bool) int {
+	if name == "" && kind == "" && err == nil && skipped == false {
+		return EMPTY
+	}
+
 	if skipped {
 		return SKIPPED
 	}

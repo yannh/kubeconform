@@ -223,7 +223,7 @@ func realMain() int {
 	var err error
 	var files []string
 
-	flag.StringVar(&k8sVersion, "kubernetes-version", "1.18.0", "version of Kubernetes to test against")
+	flag.StringVar(&k8sVersion, "kubernetes-version", "1.18.0", "version of Kubernetes to validate against")
 	flag.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flag.BoolVar(&summary, "summary", false, "print a summary at the end")

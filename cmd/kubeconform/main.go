@@ -215,7 +215,7 @@ func getFiles(files []string, fileBatches chan []string, validationResults chan 
 }
 
 func realMain() int {
-	var regs arrayParam
+	var schemaLocationsParam arrayParam
 	var skipKindsCSV, k8sVersion, outputFormat string
 	var summary, strict, verbose, ignoreMissingSchemas bool
 	var nWorkers int
@@ -223,7 +223,7 @@ func realMain() int {
 	var files []string
 
 	flag.StringVar(&k8sVersion, "k8sversion", "1.18.0", "version of Kubernetes to test against")
-	flag.Var(&regs, "registry", "override schemas registry path (can be specified multiple times)")
+	flag.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flag.BoolVar(&summary, "summary", false, "print a summary at the end")
 	flag.IntVar(&nWorkers, "n", 4, "number of routines to run in parallel")
@@ -244,18 +244,20 @@ func realMain() int {
 		return ok && isSkipKind
 	}
 
-	registries := []registry.Registry{}
-	if len(regs) == 0 {
-		regs = append(regs, "kubernetesjsonschema.dev") // if not specified, default behaviour is to use kubernetesjson-schema.dev as registry
+	if len(schemaLocationsParam) == 0 {
+		schemaLocationsParam = append(schemaLocationsParam, "https://kubernetesjsonschema.dev") // if not specified, default behaviour is to use kubernetesjson-schema.dev as registry
 	}
 
-	for _, reg := range regs {
-		if reg == "kubernetesjsonschema.dev" {
-			registries = append(registries, registry.NewHTTPRegistry("https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json", strict))
-		} else if strings.HasPrefix(reg, "http") {
-			registries = append(registries, registry.NewHTTPRegistry(reg, strict))
+	registries := []registry.Registry{}
+	for _, schemaLocation := range schemaLocationsParam {
+		if strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of kubernetesjsonschema.dev
+			schemaLocation += "/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
+		}
+
+		if strings.HasPrefix(schemaLocation, "http") {
+			registries = append(registries, registry.NewHTTPRegistry(schemaLocation, strict))
 		} else {
-			registries = append(registries, registry.NewLocalRegistry(reg, strict))
+			registries = append(registries, registry.NewLocalRegistry(schemaLocation, strict))
 		}
 	}
 

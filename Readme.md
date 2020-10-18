@@ -42,8 +42,8 @@ Usage of ./bin/kubeconform:
         number of routines to run in parallel (default 4)
   -output string
         output format - text, json (default "text")
-  -registry value
-        override schemas registry path (can be specified multiple times)
+  -schema-location value
+        override schemas location search path (can be specified multiple times)
   -skip string
         comma-separated list of kinds to ignore
   -strict
@@ -90,24 +90,24 @@ $ echo $?
 * Validating a folder, increasing the number of parallel workers
 ```
 $ ./bin/kubeconform -summary -n 16 fixtures
-fixtures/multi_invalid.yaml - Service is invalid: Invalid type. Expected: integer, given: string
-fixtures/invalid.yaml - ReplicationController is invalid: Invalid type. Expected: [integer,null], given: string
+fixtures/crd_schema.yaml - CustomResourceDefinition trainingjobs.sagemaker.aws.amazon.com failed validation: could not find schema for CustomResourceDefinition
+fixtures/invalid.yaml - ReplicationController bob is invalid: Invalid type. Expected: [integer,null], given: string
 [...]
-Summary: 48 resources found in 25 files - Valid: 39, Invalid: 2, Errors: 7 Skipped: 0
+Summary: 65 resources found in 34 files - Valid: 55, Invalid: 2, Errors: 8 Skipped: 0
 ```
 
-### Overriding schemas registries lookup order - CRD support
+### Overriding schemas location - CRD support
 
-When the `-registry` file is not used, kubeconform will default to downloading schemas from
-`kubernetesjsonschema.dev`. Kubeconform however supports the use of one, or multiple, custom schemas
+When the `-schema-location` file is not used, kubeconform will default to downloading schemas from
+`https://kubernetesjsonschema.dev`. Kubeconform however supports the use of one, or multiple, custom schemas
 registries - with access over HTTP or local filesystem. Kubeconform will lookup for schema definitions
 in each of them, in order, stopping as soon as a matching file is found.
 
 All 3 following command lines are equivalent:
 ```
 $ ./bin/kubeconform fixtures/valid.yaml
-$ ./bin/kubeconform -registry kubernetesjsonschema.dev fixtures/valid.yaml
-$ ./bin/kubeconform -registry 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+$ ./bin/kubeconform -schema-location https://kubernetesjsonschema.dev fixtures/valid.yaml
+$ ./bin/kubeconform -schema-location 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
 ```
 
 To support validating CRDs, we need to convert OpenAPI files to JSON schema, storing the JSON schemas
@@ -115,7 +115,7 @@ in a local folder - for example schemas. Then we specify this folder as an addit
 
 ```
 # If the resource Kind is not found in kubernetesjsonschema.dev, also lookup in the schemas/ folder for a matching file
-$ ./bin/kubeconform -registry kubernetesjsonschema.dev -registry 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
+$ ./bin/kubeconform -registry kubernetesjsonschema.dev -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
 
 ### Generating a JSON schema from an OpenAPI file

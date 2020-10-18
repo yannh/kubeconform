@@ -123,7 +123,7 @@ in a local folder - for example schemas. Then we specify this folder as an addit
 $ ./bin/kubeconform -registry kubernetesjsonschema.dev -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
 
-### Generating a JSON schema from an OpenAPI file
+### Converting an OpenAPI file to a JSON Schema
 
 Kubeconform uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition
 first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions 

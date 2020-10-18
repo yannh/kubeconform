@@ -1,5 +1,6 @@
 builds:
-  - env:
+  - main: ./cmd/kubeconform/main.go
+    env:
       - CGO_ENABLED=0
       - GOFLAGS = -mod=vendor
       - GO111MODULE = on

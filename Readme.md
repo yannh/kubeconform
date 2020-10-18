@@ -11,7 +11,8 @@ It is inspired by, contains code from and is designed to stay close to
 [Kubeval](https://github.com/instrumenta/kubeval), but with the following improvements:
  * **high performance**: will validate & download manifests over multiple routines, caching
    downloaded files in memory
- * configurable list of schemas locations, enabling validating Kubernetes custom resources (CRDs)
+ * configurable list of **remote, or local schemas locations**, enabling validating Kubernetes
+   custom resources (CRDs)
 
 ### A small overview of Kubernetes manifest validation
 
@@ -120,7 +121,7 @@ in a local folder - for example schemas. Then we specify this folder as an addit
 
 ```
 # If the resource Kind is not found in kubernetesjsonschema.dev, also lookup in the schemas/ folder for a matching file
-$ ./bin/kubeconform -registry kubernetesjsonschema.dev -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
+$ ./bin/kubeconform -registry https://kubernetesjsonschema.dev -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
 
 ### Converting an OpenAPI file to a JSON Schema

@@ -66,7 +66,6 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 		return []validationResult{{err: fmt.Errorf("failed reading file: %s", err)}}
 	}
 
-
 	validationResults := []validationResult{}
 	if len(rawResources) == 0 {
 		// In case a file has no resources, we want to capture that the file was parsed - and therefore send a message with an empty resource and no error

@@ -57,7 +57,7 @@ func (o *text) Write(filename, kind, name, version string, reserr error, skipped
 			_, err = fmt.Fprintf(o.w, "%s - %s %s skipped\n", filename, name, kind)
 		}
 		o.nSkipped++
-	case EMPTY:
+	case EMPTY: // sent to ensure we count the filename as parsed
 	}
 
 	return err

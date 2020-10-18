@@ -64,6 +64,12 @@
    [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
+@test "Pass when parsing a blank config file with a comment" {
+   run bin/kubeconform -summary fixtures/comment.yaml
+   [ "$status" -eq 0 ]
+   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
 @test "Fail when parsing a config with additional properties and strict set" {
   run bin/kubeconform -strict -k8sversion 1.16.0 fixtures/extra_property.yaml
   [ "$status" -eq 1 ]
@@ -81,5 +87,21 @@
 
 @test "Pass when parsing a Custom Resource and using a local schema registry with appropriate CRD" {
   run bin/kubeconform -registry './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Pass when parsing a config with additional properties" {
+  run bin/kubeconform -summary fixtures/extra_property.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
+@test "Pass when using a valid, preset --registry" {
+  run bin/kubeconform --registry kubernetesjsonschema.dev fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Pass when using a valid HTTP --registry" {
+  run bin/kubeconform --registry 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
   [ "$status" -eq 0 ]
 }

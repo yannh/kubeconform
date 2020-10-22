@@ -1,16 +1,19 @@
 package output
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
 const (
 	_ = iota
-	VALID
-	INVALID
-	ERROR
-	SKIPPED
-	EMPTY
+	statusValid
+	statusInvalid
+	statusError
+	statusSkipped
+	statusEmpty
 )
 
 type Output interface {
@@ -33,19 +36,19 @@ func New(outputFormat string, printSummary, verbose bool) (Output, error) {
 
 func status(kind, name string, err error, skipped bool) int {
 	if name == "" && kind == "" && err == nil && skipped == false {
-		return EMPTY
+		return statusEmpty
 	}
 
 	if skipped {
-		return SKIPPED
+		return statusSkipped
 	}
 
 	if err != nil {
 		if _, ok := err.(validator.InvalidResourceError); ok {
-			return INVALID
+			return statusInvalid
 		}
-		return ERROR
+		return statusError
 	}
 
-	return VALID
+	return statusValid
 }

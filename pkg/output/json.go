@@ -44,24 +44,24 @@ func (o *jsono) Write(filename, kind, name, version string, err error, skipped b
 	s := status(kind, name, err, skipped)
 
 	switch s {
-	case VALID:
+	case statusValid:
 		st = "VALID"
 		o.nValid++
-	case INVALID:
+	case statusInvalid:
 		st = "INVALID"
 		msg = err.Error()
 		o.nInvalid++
-	case ERROR:
+	case statusError:
 		st = "ERROR"
 		msg = err.Error()
 		o.nErrors++
-	case SKIPPED:
+	case statusSkipped:
 		st = "SKIPPED"
 		o.nSkipped++
-	case EMPTY:
+	case statusEmpty:
 	}
 
-	if o.verbose || (s != VALID && s != SKIPPED && s != EMPTY) {
+	if o.verbose || (s != statusValid && s != statusSkipped && s != statusEmpty) {
 		o.results = append(o.results, result{Filename: filename, Kind: kind, Name: name, Version: version, Status: st, Msg: msg})
 	}
 

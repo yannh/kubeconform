@@ -18,6 +18,19 @@ type Output interface {
 	Flush() error
 }
 
+func New(outputFormat string, printSummary, verbose bool) (Output, error) {
+	w := os.Stdout
+
+	switch {
+	case outputFormat == "text":
+		return Text(w, printSummary, verbose), nil
+	case outputFormat == "json":
+		return JSON(w, printSummary, verbose), nil
+	default:
+		return nil, fmt.Errorf("`outputFormat` must be 'text' or 'json'")
+	}
+}
+
 func status(kind, name string, err error, skipped bool) int {
 	if name == "" && kind == "" && err == nil && skipped == false {
 		return EMPTY

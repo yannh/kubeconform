@@ -137,6 +137,16 @@ in a local folder - for example schemas. Then we specify this folder as an addit
 $ ./bin/kubeconform -registry https://kubernetesjsonschema.dev -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
 
+### Openshift support
+
+You can validate Openshift manifests using a custom schema location. Set the OpenShift version to validate
+against using -kubernetes-version.
+
+```
+bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
+Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+```
+
 ### Converting an OpenAPI file to a JSON Schema
 
 Kubeconform uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition

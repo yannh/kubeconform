@@ -116,7 +116,7 @@ fixtures/invalid.yaml - ReplicationController bob is invalid: Invalid type. Expe
 Summary: 65 resources found in 34 files - Valid: 55, Invalid: 2, Errors: 8 Skipped: 0
 ```
 
-### Overriding schemas location - CRD support
+### Overriding schemas location - CRD and Openshift support
 
 When the `-schema-location` parameter is not used, kubeconform will default to downloading schemas from
 `https://kubernetesjsonschema.dev`. Kubeconform however supports passing one, or multiple, schemas
@@ -142,8 +142,6 @@ in a local folder - for example schemas. Then we specify this folder as an addit
 # If the resource Kind is not found in kubernetesjsonschema.dev, also lookup in the schemas/ folder for a matching file
 $ ./bin/kubeconform -registry https://kubernetesjsonschema.dev -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
-
-### Openshift support
 
 You can validate Openshift manifests using a custom schema location. Set the OpenShift version to validate
 against using -kubernetes-version.

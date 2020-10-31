@@ -115,3 +115,13 @@
   run bin/kubeconform -schema-location 'foo' fixtures/valid.yaml
   [ "$status" -eq 1 ]
 }
+
+@test "Pass with a valid input when validating against openshift manifests" {
+  run bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Fail with an invalid input when validating against openshift manifests" {
+  run bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/invalid.yaml
+  [ "$status" -eq 1 ]
+}

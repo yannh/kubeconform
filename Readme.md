@@ -103,7 +103,7 @@ $ echo $?
 
 * Passing manifests via Stdin
 ```
-cat fixtures/valid.yaml  | ./bin/kubeconform -summary -
+cat fixtures/valid.yaml  | ./bin/kubeconform -summary
 Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 ```
 

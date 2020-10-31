@@ -30,6 +30,19 @@ and break it down into multiple JSON schemas, stored in github at
 Kubeconform relies on the same JSON schemas from kubernetesjsonschema.dev, and will download required
 schemas at runtime as required.
 
+### Limits of Kubeconform validation
+
+Kubeconform, similarly to kubeval, only validates manifests using the OpenAPI specifications. In some
+cases, the Kubernetes controllers might perform additional validation - so that manifests passing kubeval
+validation would still error when being deployed. See for example these bugs against kubeval:
+[#253](https://github.com/instrumenta/kubeval/issues/253)
+[#256](https://github.com/instrumenta/kubeval/issues/256)
+[#257](https://github.com/instrumenta/kubeval/issues/257)
+[#259](https://github.com/instrumenta/kubeval/issues/259). The validation logic mentioned in these
+bug reports is not part of Kubernetes' OpenAPI spec, and therefore kubeconform/kubeval will not detect the
+configuration errors.
+
+
 ### Usage
 
 ```

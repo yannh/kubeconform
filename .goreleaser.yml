@@ -1,5 +1,5 @@
 builds:
-  - main: ./cmd/kubeconform/main.go
+  - main: ./cmd/kubeconform/...
     env:
       - CGO_ENABLED=0
       - GOFLAGS = -mod=vendor

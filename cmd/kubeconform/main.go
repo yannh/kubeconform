@@ -125,28 +125,6 @@ func ValidateStream(r io.Reader, regs []registry.Registry, k8sVersion string, c 
 	return validationResults
 }
 
-type arrayParam []string
-
-func (ap *arrayParam) String() string {
-	return strings.Join(*ap, " - ")
-}
-
-func (ap *arrayParam) Set(value string) error {
-	*ap = append(*ap, value)
-	return nil
-}
-
-func skipKindsMap(skipKindsCSV string) map[string]bool {
-	splitKinds := strings.Split(skipKindsCSV, ",")
-	skipKinds := map[string]bool{}
-	for _, kind := range splitKinds {
-		if len(kind) > 0 {
-			skipKinds[kind] = true
-		}
-	}
-	return skipKinds
-}
-
 func processResults(o output.Output, validationResults chan []validationResult, result chan<- bool) {
 	success := true
 	for results := range validationResults {

@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type text struct {
+type texto struct {
 	sync.Mutex
 	w                                   io.Writer
 	withSummary                         bool
@@ -16,9 +16,9 @@ type text struct {
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
-// Text will output the results of the validation as a text
-func Text(w io.Writer, withSummary, isStdin, verbose bool) Output {
-	return &text{
+// Text will output the results of the validation as a texto
+func textOutput(w io.Writer, withSummary, isStdin, verbose bool) Output {
+	return &texto{
 		w:           w,
 		withSummary: withSummary,
 		isStdin:     isStdin,
@@ -31,7 +31,7 @@ func Text(w io.Writer, withSummary, isStdin, verbose bool) Output {
 	}
 }
 
-func (o *text) Write(filename, kind, name, version string, reserr error, skipped bool) error {
+func (o *texto) Write(filename, kind, name, version string, reserr error, skipped bool) error {
 	o.Lock()
 	defer o.Unlock()
 
@@ -39,33 +39,33 @@ func (o *text) Write(filename, kind, name, version string, reserr error, skipped
 
 	o.files[filename] = true
 	switch status(kind, name, reserr, skipped) {
-	case VALID:
+	case statusValid:
 		if o.verbose {
 			_, err = fmt.Fprintf(o.w, "%s - %s %s is valid\n", filename, kind, name)
 		}
 		o.nValid++
-	case INVALID:
+	case statusInvalid:
 		_, err = fmt.Fprintf(o.w, "%s - %s %s is invalid: %s\n", filename, kind, name, reserr)
 		o.nInvalid++
-	case ERROR:
+	case statusError:
 		if kind != "" && name != "" {
 			_, err = fmt.Fprintf(o.w, "%s - %s %s failed validation: %s\n", filename, kind, name, reserr)
 		} else {
 			_, err = fmt.Fprintf(o.w, "%s - failed validation: %s\n", filename, reserr)
 		}
 		o.nErrors++
-	case SKIPPED:
+	case statusSkipped:
 		if o.verbose {
 			_, err = fmt.Fprintf(o.w, "%s - %s %s skipped\n", filename, name, kind)
 		}
 		o.nSkipped++
-	case EMPTY: // sent to ensure we count the filename as parsed
+	case statusEmpty: // sent to ensure we count the filename as parsed
 	}
 
 	return err
 }
 
-func (o *text) Flush() error {
+func (o *texto) Flush() error {
 	var err error
 	if o.withSummary {
 		nFiles := len(o.files)

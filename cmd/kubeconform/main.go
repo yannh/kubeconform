@@ -135,19 +135,6 @@ func (ap *arrayParam) Set(value string) error {
 	return nil
 }
 
-func getLogger(outputFormat string, printSummary, isStdin, verbose bool) (output.Output, error) {
-	w := os.Stdout
-
-	switch {
-	case outputFormat == "text":
-		return output.Text(w, printSummary, isStdin, verbose), nil
-	case outputFormat == "json":
-		return output.JSON(w, printSummary, isStdin, verbose), nil
-	default:
-		return nil, fmt.Errorf("-output must be text or json")
-	}
-}
-
 func skipKindsMap(skipKindsCSV string) map[string]bool {
 	splitKinds := strings.Split(skipKindsCSV, ",")
 	skipKinds := map[string]bool{}
@@ -289,7 +276,7 @@ func realMain() int {
 	}()
 
 	var o output.Output
-	if o, err = getLogger(outputFormat, summary, isStdin, verbose); err != nil {
+	if o, err = output.New(outputFormat, summary, isStdin, verbose); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}

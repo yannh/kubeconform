@@ -85,7 +85,7 @@ func TestJSONWrite(t *testing.T) {
       "kind": "Deployment",
       "name": "my-app",
       "version": "apps/v1",
-      "status": "VALID",
+      "status": "statusValid",
       "msg": ""
     }
   ],
@@ -100,7 +100,7 @@ func TestJSONWrite(t *testing.T) {
 		},
 	} {
 		w := new(bytes.Buffer)
-		o := JSON(w, testCase.withSummary, false, testCase.verbose)
+		o := jsonOutput(w, testCase.withSummary, false, testCase.verbose)
 
 		for _, res := range testCase.res {
 			o.Write(res.fileName, res.kind, res.name, res.version, res.err, res.skipped)

@@ -24,7 +24,7 @@ type jsono struct {
 }
 
 // JSON will output the results of the validation as a JSON
-func JSON(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
+func jsonOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
 	return &jsono{
 		w:           w,
 		withSummary: withSummary,
@@ -44,24 +44,24 @@ func (o *jsono) Write(filename, kind, name, version string, err error, skipped b
 	s := status(kind, name, err, skipped)
 
 	switch s {
-	case VALID:
-		st = "VALID"
+	case statusValid:
+		st = "statusValid"
 		o.nValid++
-	case INVALID:
-		st = "INVALID"
+	case statusInvalid:
+		st = "statusInvalid"
 		msg = err.Error()
 		o.nInvalid++
-	case ERROR:
-		st = "ERROR"
+	case statusError:
+		st = "statusError"
 		msg = err.Error()
 		o.nErrors++
-	case SKIPPED:
-		st = "SKIPPED"
+	case statusSkipped:
+		st = "statusSkipped"
 		o.nSkipped++
-	case EMPTY:
+	case statusEmpty:
 	}
 
-	if o.verbose || (s != VALID && s != SKIPPED && s != EMPTY) {
+	if o.verbose || (s != statusValid && s != statusSkipped && s != statusEmpty) {
 		o.results = append(o.results, result{Filename: filename, Kind: kind, Name: name, Version: version, Status: st, Msg: msg})
 	}
 

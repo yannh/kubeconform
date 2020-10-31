@@ -1,16 +1,18 @@
 package output
 
 import (
+	"fmt"
 	"github.com/yannh/kubeconform/pkg/validator"
+	"os"
 )
 
 const (
 	_ = iota
-	VALID
-	INVALID
-	ERROR
-	SKIPPED
-	EMPTY
+	statusValid
+	statusInvalid
+	statusError
+	statusSkipped
+	statusEmpty
 )
 
 type Output interface {
@@ -18,21 +20,34 @@ type Output interface {
 	Flush() error
 }
 
+func New(outputFormat string, printSummary, isStdin, verbose bool) (Output, error) {
+	w := os.Stdout
+
+	switch {
+	case outputFormat == "text":
+		return textOutput(w, printSummary, isStdin, verbose), nil
+	case outputFormat == "json":
+		return jsonOutput(w, printSummary, isStdin, verbose), nil
+	default:
+		return nil, fmt.Errorf("`outputFormat` must be 'text' or 'json'")
+	}
+}
+
 func status(kind, name string, err error, skipped bool) int {
 	if name == "" && kind == "" && err == nil && skipped == false {
-		return EMPTY
+		return statusEmpty
 	}
 
 	if skipped {
-		return SKIPPED
+		return statusSkipped
 	}
 
 	if err != nil {
 		if _, ok := err.(validator.InvalidResourceError); ok {
-			return INVALID
+			return statusInvalid
 		}
-		return ERROR
+		return statusError
 	}
 
-	return VALID
+	return statusValid
 }

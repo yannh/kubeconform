@@ -101,6 +101,12 @@ $ echo $?
 1
 ```
 
+* Passing manifests via Stdin
+```
+cat fixtures/valid.yaml  | ./bin/kubeconform -summary -
+Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+```
+
 * Validating a folder, increasing the number of parallel workers
 ```
 $ ./bin/kubeconform -summary -n 16 fixtures

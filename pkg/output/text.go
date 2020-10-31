@@ -10,16 +10,18 @@ type text struct {
 	sync.Mutex
 	w                                   io.Writer
 	withSummary                         bool
+	isStdin                             bool
 	verbose                             bool
 	files                               map[string]bool
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
 // Text will output the results of the validation as a text
-func Text(w io.Writer, withSummary, verbose bool) Output {
+func Text(w io.Writer, withSummary, isStdin, verbose bool) Output {
 	return &text{
 		w:           w,
 		withSummary: withSummary,
+		isStdin:     isStdin,
 		verbose:     verbose,
 		files:       map[string]bool{},
 		nValid:      0,
@@ -76,7 +78,11 @@ func (o *text) Flush() error {
 		if nFiles > 1 {
 			filesPlural = "s"
 		}
-		_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found in %d file%s - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", nResources, resourcesPlural, nFiles, filesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+		if o.isStdin {
+			_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found parsing stdin - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", nResources, resourcesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+		} else {
+			_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found in %d file%s - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", nResources, resourcesPlural, nFiles, filesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+		}
 	}
 
 	return err

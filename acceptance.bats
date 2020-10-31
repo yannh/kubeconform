@@ -125,3 +125,20 @@
   run bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/invalid.yaml
   [ "$status" -eq 1 ]
 }
+
+@test "Pass when parsing a valid Kubernetes config YAML file on stdin" {
+  run bash -c "cat fixtures/valid.yaml | bin/kubeconform -summary"
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
+@test "Pass when parsing a valid Kubernetes config YAML file explicitly on stdin" {
+  run bash -c "cat fixtures/valid.yaml | bin/kubeconform -summary"
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
+@test "Fail when parsing an invalid Kubernetes config file on stdin" {
+   run bash -c "cat fixtures/invalid.yaml | bin/kubeconform -"
+   [ "$status" -eq 1 ]
+ }

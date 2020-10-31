@@ -100,7 +100,7 @@ func TestJSONWrite(t *testing.T) {
 		},
 	} {
 		w := new(bytes.Buffer)
-		o := JSON(w, testCase.withSummary, testCase.verbose)
+		o := JSON(w, testCase.withSummary, false, testCase.verbose)
 
 		for _, res := range testCase.res {
 			o.Write(res.fileName, res.kind, res.name, res.version, res.err, res.skipped)

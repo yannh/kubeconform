@@ -24,7 +24,7 @@ type jsono struct {
 }
 
 // JSON will output the results of the validation as a JSON
-func JSON(w io.Writer, withSummary bool, verbose bool) Output {
+func JSON(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
 	return &jsono{
 		w:           w,
 		withSummary: withSummary,

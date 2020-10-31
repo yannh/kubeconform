@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"github.com/xeipuuv/gojsonschema"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
-
-	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/fsutils"
@@ -136,14 +135,14 @@ func (ap *arrayParam) Set(value string) error {
 	return nil
 }
 
-func getLogger(outputFormat string, printSummary, verbose bool) (output.Output, error) {
+func getLogger(outputFormat string, printSummary, isStdin, verbose bool) (output.Output, error) {
 	w := os.Stdout
 
 	switch {
 	case outputFormat == "text":
-		return output.Text(w, printSummary, verbose), nil
+		return output.Text(w, printSummary, isStdin, verbose), nil
 	case outputFormat == "json":
-		return output.JSON(w, printSummary, verbose), nil
+		return output.JSON(w, printSummary, isStdin, verbose), nil
 	default:
 		return nil, fmt.Errorf("-output must be text or json")
 	}
@@ -244,10 +243,18 @@ func realMain() int {
 		return 1
 	}
 
+	// Detect whether we have data being piped through stdin
+	stat, _ := os.Stdin.Stat()
+	isStdin := (stat.Mode() & os.ModeCharDevice) == 0
+
 	skipKinds := skipKindsMap(skipKindsCSV)
 
-	for _, file := range flag.Args() {
-		files = append(files, file)
+	if len(flag.Args()) == 1 && flag.Args()[0] == "-" {
+		isStdin = true
+	} else {
+		for _, file := range flag.Args() {
+			files = append(files, file)
+		}
 	}
 
 	filter := func(signature resource.Signature) bool {
@@ -273,6 +280,7 @@ func realMain() int {
 	}
 
 	validationResults := make(chan []validationResult)
+	c := cache.New()
 
 	fileBatches := make(chan []string)
 	go func() {
@@ -281,7 +289,7 @@ func realMain() int {
 	}()
 
 	var o output.Output
-	if o, err = getLogger(outputFormat, summary, verbose); err != nil {
+	if o, err = getLogger(outputFormat, summary, isStdin, verbose); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
@@ -289,38 +297,46 @@ func realMain() int {
 	res := make(chan bool)
 	go processResults(o, validationResults, res)
 
-	c := cache.New()
-	var wg sync.WaitGroup
-	for i := 0; i < nWorkers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	if isStdin {
+		res := ValidateStream(os.Stdin, registries, k8sVersion, c, filter, ignoreMissingSchemas)
+		for i := range res {
+			res[i].filename = "stdin"
+		}
+		validationResults <- res
+	} else {
+		var wg sync.WaitGroup
+		for i := 0; i < nWorkers; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
 
-			for fileBatch := range fileBatches {
-				for _, filename := range fileBatch {
-					f, err := os.Open(filename)
-					if err != nil {
-						validationResults <- []validationResult{{
-							filename: filename,
-							err:      err,
-							skipped:  true,
-						}}
-						continue
+				for fileBatch := range fileBatches {
+					for _, filename := range fileBatch {
+						f, err := os.Open(filename)
+						if err != nil {
+							validationResults <- []validationResult{{
+								filename: filename,
+								err:      err,
+								skipped:  true,
+							}}
+							continue
+						}
+
+						res := ValidateStream(f, registries, k8sVersion, c, filter, ignoreMissingSchemas)
+						f.Close()
+
+						for i := range res {
+							res[i].filename = filename
+						}
+						validationResults <- res
 					}
-
-					res := ValidateStream(f, registries, k8sVersion, c, filter, ignoreMissingSchemas)
-					f.Close()
-
-					for i := range res {
-						res[i].filename = filename
-					}
-					validationResults <- res
 				}
-			}
-		}()
+			}()
+		}
+
+		wg.Wait()
 	}
 
-	wg.Wait()
 	close(validationResults)
 	success := <-res
 	o.Flush()

@@ -72,7 +72,7 @@ Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 		},
 	} {
 		w := new(bytes.Buffer)
-		o := Text(w, testCase.withSummary, testCase.verbose)
+		o := Text(w, testCase.withSummary, false, testCase.verbose)
 
 		for _, res := range testCase.res {
 			o.Write(res.fileName, res.kind, res.name, res.version, res.err, res.skipped)

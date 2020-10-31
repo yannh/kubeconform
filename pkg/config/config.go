@@ -79,5 +79,9 @@ func FromFlags() Config {
 		c.Files = append(c.Files, file)
 	}
 
+	if c.Help {
+		flag.Usage()
+	}
+
 	return c
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
 	"github.com/yannh/kubeconform/pkg/config"
@@ -183,9 +182,7 @@ func realMain() int {
 	var err error
 
 	cfg := config.FromFlags()
-
 	if cfg.Help {
-		flag.Usage()
 		return 1
 	}
 
@@ -193,7 +190,7 @@ func realMain() int {
 	stat, _ := os.Stdin.Stat()
 	isStdin := (stat.Mode() & os.ModeCharDevice) == 0
 
-	if len(flag.Args()) == 1 && flag.Args()[0] == "-" {
+	if len(cfg.Files) == 1 && cfg.Files[0] == "-" {
 		isStdin = true
 	}
 

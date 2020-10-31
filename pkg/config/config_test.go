@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"reflect"
@@ -33,7 +33,7 @@ func TestSkipKindMaps(t *testing.T) {
 			},
 		},
 	} {
-		got := skipKindsMap(testCase.csvSkipKinds)
+		got := skipKinds(testCase.csvSkipKinds)
 		if !reflect.DeepEqual(got, testCase.expect) {
 			t.Errorf("%s - got %+v, expected %+v", testCase.name, got, testCase.expect)
 		}

@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
+	"github.com/yannh/kubeconform/pkg/config"
 	"io"
 	"io/ioutil"
 	"os"
@@ -201,31 +202,11 @@ func getFiles(files []string, fileBatches chan []string, validationResults chan 
 }
 
 func realMain() int {
-	var schemaLocationsParam arrayParam
-	var skipKindsCSV, k8sVersion, outputFormat string
-	var summary, strict, verbose, ignoreMissingSchemas, help bool
-	var nWorkers int
 	var err error
-	var files []string
 
-	flag.StringVar(&k8sVersion, "kubernetes-version", "1.18.0", "version of Kubernetes to validate against")
-	flag.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
-	flag.BoolVar(&ignoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
-	flag.BoolVar(&summary, "summary", false, "print a summary at the end")
-	flag.IntVar(&nWorkers, "n", 4, "number of routines to run in parallel")
-	flag.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
-	flag.BoolVar(&strict, "strict", false, "disallow additional properties not in schema")
-	flag.StringVar(&outputFormat, "output", "text", "output format - text, json")
-	flag.BoolVar(&verbose, "verbose", false, "print results for all resources")
-	flag.BoolVar(&help, "h", false, "show help information")
-	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", os.Args[0])
-		flag.PrintDefaults()
-	}
+	cfg := config.FromFlags()
 
-	flag.Parse()
-
-	if help {
+	if cfg.Help {
 		flag.Usage()
 		return 1
 	}
@@ -234,35 +215,25 @@ func realMain() int {
 	stat, _ := os.Stdin.Stat()
 	isStdin := (stat.Mode() & os.ModeCharDevice) == 0
 
-	skipKinds := skipKindsMap(skipKindsCSV)
-
 	if len(flag.Args()) == 1 && flag.Args()[0] == "-" {
 		isStdin = true
-	} else {
-		for _, file := range flag.Args() {
-			files = append(files, file)
-		}
 	}
 
 	filter := func(signature resource.Signature) bool {
-		isSkipKind, ok := skipKinds[signature.Kind]
+		isSkipKind, ok := cfg.SkipKinds[signature.Kind]
 		return ok && isSkipKind
 	}
 
-	if len(schemaLocationsParam) == 0 {
-		schemaLocationsParam = append(schemaLocationsParam, "https://kubernetesjsonschema.dev") // if not specified, default behaviour is to use kubernetesjson-schema.dev as registry
-	}
-
 	registries := []registry.Registry{}
-	for _, schemaLocation := range schemaLocationsParam {
+	for _, schemaLocation := range cfg.SchemaLocations {
 		if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of kubernetesjsonschema.dev
 			schemaLocation += "/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 		}
 
 		if strings.HasPrefix(schemaLocation, "http") {
-			registries = append(registries, registry.NewHTTPRegistry(schemaLocation, strict))
+			registries = append(registries, registry.NewHTTPRegistry(schemaLocation, cfg.Strict))
 		} else {
-			registries = append(registries, registry.NewLocalRegistry(schemaLocation, strict))
+			registries = append(registries, registry.NewLocalRegistry(schemaLocation, cfg.Strict))
 		}
 	}
 
@@ -271,12 +242,12 @@ func realMain() int {
 
 	fileBatches := make(chan []string)
 	go func() {
-		getFiles(files, fileBatches, validationResults)
+		getFiles(cfg.Files, fileBatches, validationResults)
 		close(fileBatches)
 	}()
 
 	var o output.Output
-	if o, err = output.New(outputFormat, summary, isStdin, verbose); err != nil {
+	if o, err = output.New(cfg.OutputFormat, cfg.Summary, isStdin, cfg.Verbose); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
@@ -285,14 +256,14 @@ func realMain() int {
 	go processResults(o, validationResults, res)
 
 	if isStdin {
-		res := ValidateStream(os.Stdin, registries, k8sVersion, c, filter, ignoreMissingSchemas)
+		res := ValidateStream(os.Stdin, registries, cfg.KubernetesVersion, c, filter, cfg.IgnoreMissingSchemas)
 		for i := range res {
 			res[i].filename = "stdin"
 		}
 		validationResults <- res
 	} else {
 		var wg sync.WaitGroup
-		for i := 0; i < nWorkers; i++ {
+		for i := 0; i < cfg.NumberOfWorkers; i++ {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -309,7 +280,7 @@ func realMain() int {
 							continue
 						}
 
-						res := ValidateStream(f, registries, k8sVersion, c, filter, ignoreMissingSchemas)
+						res := ValidateStream(f, registries, cfg.KubernetesVersion, c, filter, cfg.IgnoreMissingSchemas)
 						f.Close()
 
 						for i := range res {

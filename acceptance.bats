@@ -18,6 +18,12 @@
   [ "$output" = "fixtures/int_or_string.yaml - Service heapster is valid" ]
 }
 
+@test "Pass when parsing a valid Kubernetes config JSON file" {
+  run bin/kubeconform -kubernetes-version 1.17.1 -summary fixtures/valid.json
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+}
+
 @test "Pass when parsing a valid Kubernetes config YAML file with generate name" {
   run bin/kubeconform -verbose fixtures/generate_name.yaml
   [ "$status" -eq 0 ]
@@ -34,6 +40,12 @@
   run bin/kubeconform -verbose fixtures/null_string.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "fixtures/null_string.yaml - Service frontend is valid" ]
+}
+
+@test "Pass when parsing a valid Kubernetes config file with null strings" {
+  run bin/kubeconform -summary fixtures/null_string.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
 }
 
 @test "Pass when parsing a multi-document config file" {

@@ -158,7 +158,7 @@ first needs to be converted to JSON Schema. A script is provided to convert thes
 to JSON schema. Here is an example how to use it:
 
 ```
-$ ./cmd/openapi2jsonschema/main.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml > fixtures/registry/trainingjob-sagemaker-v1.json
+$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml > fixtures/registry/trainingjob-sagemaker-v1.json
 ```
 
 ### Credits

@@ -2,6 +2,7 @@ package output
 
 import (
 	"fmt"
+	"github.com/yannh/kubeconform/pkg/validator"
 	"io"
 	"sync"
 )
@@ -31,35 +32,37 @@ func textOutput(w io.Writer, withSummary, isStdin, verbose bool) Output {
 	}
 }
 
-func (o *texto) Write(filename, kind, name, version string, reserr error, skipped bool) error {
+func (o *texto) Write(result validator.Result) error {
 	o.Lock()
 	defer o.Unlock()
 
 	var err error
 
-	o.files[filename] = true
-	switch status(kind, name, reserr, skipped) {
-	case statusValid:
+	sig, _ := result.Resource.Signature()
+
+	o.files[result.Resource.Path] = true
+	switch result.Status {
+	case validator.Valid:
 		if o.verbose {
-			_, err = fmt.Fprintf(o.w, "%s - %s %s is valid\n", filename, kind, name)
+			_, err = fmt.Fprintf(o.w, "%s - %s %s is valid\n", result.Resource.Path, sig.Kind, sig.Name)
 		}
 		o.nValid++
-	case statusInvalid:
-		_, err = fmt.Fprintf(o.w, "%s - %s %s is invalid: %s\n", filename, kind, name, reserr)
+	case validator.Invalid:
+		_, err = fmt.Fprintf(o.w, "%s - %s %s is invalid: %s\n", result.Resource.Path, sig.Kind, sig.Name, result.Err)
 		o.nInvalid++
-	case statusError:
-		if kind != "" && name != "" {
-			_, err = fmt.Fprintf(o.w, "%s - %s %s failed validation: %s\n", filename, kind, name, reserr)
+	case validator.Error:
+		if sig.Kind != "" && sig.Name != "" {
+			_, err = fmt.Fprintf(o.w, "%s - %s %s failed validation: %s\n", result.Resource.Path, sig.Kind, sig.Name, result.Err)
 		} else {
-			_, err = fmt.Fprintf(o.w, "%s - failed validation: %s\n", filename, reserr)
+			_, err = fmt.Fprintf(o.w, "%s - failed validation: %s\n", result.Resource.Path, result.Err)
 		}
 		o.nErrors++
-	case statusSkipped:
+	case validator.Skipped:
 		if o.verbose {
-			_, err = fmt.Fprintf(o.w, "%s - %s %s skipped\n", filename, name, kind)
+			_, err = fmt.Fprintf(o.w, "%s - %s %s skipped\n", result.Resource.Path, sig.Name, sig.Kind)
 		}
 		o.nSkipped++
-	case statusEmpty: // sent to ensure we count the filename as parsed
+	case validator.Empty: // sent to ensure we count the filename as parsed
 	}
 
 	return err

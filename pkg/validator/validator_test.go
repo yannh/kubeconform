@@ -2,13 +2,13 @@ package validator
 
 import (
 	"fmt"
+	"github.com/yannh/kubeconform/pkg/resource"
 	"testing"
 
 	"github.com/xeipuuv/gojsonschema"
 )
 
 func TestValidate(t *testing.T) {
-
 	for i, testCase := range []struct {
 		name                string
 		rawResource, schema []byte
@@ -122,8 +122,8 @@ lastName: bar
 		if err != nil {
 			t.Errorf("failed parsing test schema")
 		}
-		if got := Validate(testCase.rawResource, schema); ((got == nil) != (testCase.expect == nil)) || (got != nil && (got.Error() != testCase.expect.Error())) {
-			t.Errorf("%d - expected %s, got %s", i, testCase.expect, got)
+		if got := Validate(resource.Resource{Bytes: testCase.rawResource}, schema); ((got.Err == nil) != (testCase.expect == nil)) || (got.Err != nil && (got.Err.Error() != testCase.expect.Error())) {
+			t.Errorf("%d - expected %s, got %s", i, testCase.expect, got.Err)
 		}
 	}
 }

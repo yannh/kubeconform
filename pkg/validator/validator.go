@@ -2,18 +2,22 @@ package validator
 
 import (
 	"fmt"
+	"github.com/yannh/kubeconform/pkg/resource"
 
 	"github.com/xeipuuv/gojsonschema"
 	"sigs.k8s.io/yaml"
 )
 
-// InvalidResourceError is returned when a resource does not conform to
-// the associated schema
-type InvalidResourceError struct{ err string }
+type Status int
 
-func (r InvalidResourceError) Error() string {
-	return r.err
-}
+const (
+	_ Status = iota
+	Error
+	Skipped
+	Valid
+	Invalid
+	Empty
+)
 
 // ValidFormat is a type for quickly forcing
 // new formats on the gojsonschema loader
@@ -33,26 +37,32 @@ func (f ValidFormat) IsFormat(input interface{}) bool {
 // 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
 // }
 
+type Result struct {
+	Resource resource.Resource
+	Err      error
+	Status   Status
+}
+
 // Validate validates a single Kubernetes resource against a Json Schema
-func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
+func Validate(res resource.Resource, schema *gojsonschema.Schema) Result {
 	if schema == nil {
-		return nil
+		return Result{Resource: res, Status: Skipped, Err: nil}
 	}
 
 	var resource map[string]interface{}
-	if err := yaml.Unmarshal(rawResource, &resource); err != nil {
-		return fmt.Errorf("error unmarshalling resource: %s", err)
+	if err := yaml.Unmarshal(res.Bytes, &resource); err != nil {
+		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
 	}
 	resourceLoader := gojsonschema.NewGoLoader(resource)
 
 	results, err := schema.Validate(resourceLoader)
 	if err != nil {
 		// This error can only happen if the Object to validate is poorly formed. There's no hope of saving this one
-		return fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)
+		return Result{Resource: res, Status: Error, Err: fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)}
 	}
 
 	if results.Valid() {
-		return nil
+		return Result{Resource: res, Status: Valid}
 	}
 
 	msg := ""
@@ -62,5 +72,6 @@ func Validate(rawResource []byte, schema *gojsonschema.Schema) error {
 		}
 		msg += errMsg.Description()
 	}
-	return InvalidResourceError{err: msg}
+
+	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg)}
 }

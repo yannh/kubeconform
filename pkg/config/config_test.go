@@ -92,6 +92,23 @@ func TestFromFlags(t *testing.T) {
 				Verbose:           true,
 			},
 		},
+		{
+			[]string{"-ignore-missing-schemas", "-kubernetes-version", "1.16.0", "-n", "2", "-output", "json",
+				"-schema-location", "folder", "-schema-location", "anotherfolder", "-skip", "kinda,kindb", "-strict",
+				"-summary", "-verbose", "file1", "file2"},
+			Config{
+				Files:                []string{"file1", "file2"},
+				IgnoreMissingSchemas: true,
+				KubernetesVersion:    "1.16.0",
+				NumberOfWorkers:      2,
+				OutputFormat:         "json",
+				SchemaLocations:      []string{"folder", "anotherfolder"},
+				SkipKinds:            map[string]bool{"kinda": true, "kindb": true},
+				Strict:               true,
+				Summary:              true,
+				Verbose:              true,
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

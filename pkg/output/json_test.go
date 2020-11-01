@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestTextWrite(t *testing.T) {
+func TestJSONWrite(t *testing.T) {
 	for _, testCase := range []struct {
 		name        string
 		withSummary bool
@@ -22,8 +22,9 @@ func TestTextWrite(t *testing.T) {
 			false,
 			false,
 			[]validator.Result{},
-			"",
+			"{\n  \"resources\": []\n}\n",
 		},
+
 		{
 			"a single deployment, summary, no verbose",
 			true,
@@ -43,7 +44,16 @@ metadata:
 					Err: nil,
 				},
 			},
-			"Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0\n",
+			`{
+  "resources": [],
+  "summary": {
+    "valid": 1,
+    "invalid": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}
+`,
 		},
 		{
 			"a single deployment, verbose, with summary",
@@ -65,13 +75,29 @@ metadata:
 				},
 
 			},
-			`deployment.yml - Deployment my-app is valid
-Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+			`{
+  "resources": [
+    {
+      "filename": "deployment.yml",
+      "kind": "Deployment",
+      "name": "my-app",
+      "version": "apps/v1",
+      "status": "statusValid",
+      "msg": ""
+    }
+  ],
+  "summary": {
+    "valid": 1,
+    "invalid": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}
 `,
 		},
 	} {
 		w := new(bytes.Buffer)
-		o := textOutput(w, testCase.withSummary, testCase.isStdin, testCase.verbose)
+		o := jsonOutput(w, testCase.withSummary, testCase.isStdin, testCase.verbose)
 
 		for _, res := range testCase.results {
 			o.Write(res)

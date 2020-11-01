@@ -107,11 +107,7 @@ func getFiles(files []string, filesChan chan<- string, validationResults chan va
 	for _, filename := range files {
 		file, err := os.Open(filename)
 		if err != nil {
-			validationResults <- validator.Result{
-				Resource: resource.Resource{Path: filename},
-				Err:      err,
-				Status:   validator.Error,
-			}
+			validationResults <- validator.NewError(filename, err)
 			continue
 		}
 		defer file.Close()
@@ -119,19 +115,11 @@ func getFiles(files []string, filesChan chan<- string, validationResults chan va
 		fi, err := file.Stat()
 		switch {
 		case err != nil:
-			validationResults <- validator.Result{
-				Resource: resource.Resource{Path: filename},
-				Err:      err,
-				Status:   validator.Error,
-			}
+			validationResults <- validator.NewError(filename, err)
 
 		case fi.IsDir():
 			if err := fsutils.FindYamlInDir(filename, filesChan); err != nil {
-				validationResults <- validator.Result{
-					Resource: resource.Resource{Path: filename},
-					Err:      err,
-					Status:   validator.Error,
-				}
+				validationResults <- validator.NewError(filename, err)
 			}
 
 		default:
@@ -195,11 +183,7 @@ func realMain() int {
 	if isStdin {
 		resources, err := resource.FromStream("stdin", os.Stdin)
 		if err != nil {
-			validationResults <- validator.Result{
-				Resource: resource.Resource{Path: "stdin"},
-				Err:      err,
-				Status:   validator.Error,
-			}
+			validationResults <- validator.NewError("stdin", err)
 		} else {
 			resourcesChan <- resources
 		}
@@ -207,21 +191,13 @@ func realMain() int {
 		for filename := range files {
 			f, err := os.Open(filename)
 			if err != nil {
-				validationResults <- validator.Result{
-					Resource: resource.Resource{Path: filename},
-					Err:      err,
-					Status:   validator.Error,
-				}
+				validationResults <- validator.NewError(filename, err)
 				continue
 			}
 
 			resources, err := resource.FromStream(filename, f)
 			if err != nil {
-				validationResults <- validator.Result{
-					Resource: resource.Resource{Path: filename},
-					Err:      err,
-					Status:   validator.Error,
-				}
+				validationResults <- validator.NewError(filename, err)
 				continue
 			}
 

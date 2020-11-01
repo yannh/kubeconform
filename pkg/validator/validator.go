@@ -43,6 +43,14 @@ type Result struct {
 	Status   Status
 }
 
+func NewError(filename string, err error) Result {
+	return Result{
+		Resource: resource.Resource{Path: filename},
+		Err:      err,
+		Status:   Error,
+	}
+}
+
 // Validate validates a single Kubernetes resource against a Json Schema
 func Validate(res resource.Resource, schema *gojsonschema.Schema) Result {
 	if schema == nil {

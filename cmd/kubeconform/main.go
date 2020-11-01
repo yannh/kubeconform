@@ -55,18 +55,17 @@ func ValidateResources(resources <-chan []resource.Resource, validationResults c
 				continue
 			}
 
-			ok := false
+			cached := false
 			var schema *gojsonschema.Schema
 			cacheKey := ""
 
 			if c != nil {
 				cacheKey = cache.Key(sig.Kind, sig.Version, k8sVersion)
-				schema, ok = c.Get(cacheKey)
+				schema, cached = c.Get(cacheKey)
 			}
 
-			if !ok {
-				schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion)
-				if err != nil {
+			if !cached {
+				if schema, err = downloadSchema(regs, sig.Kind, sig.Version, k8sVersion); err != nil {
 					validationResults <- validator.Result{Resource: res, Err: err, Status: validator.Error}
 					continue
 				}
@@ -82,6 +81,7 @@ func ValidateResources(resources <-chan []resource.Resource, validationResults c
 				} else {
 					validationResults <- validator.Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: validator.Error}
 				}
+				continue
 			}
 
 			validationResults <- validator.Validate(res, schema)

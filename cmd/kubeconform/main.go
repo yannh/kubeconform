@@ -85,18 +85,26 @@ func ValidateResources(resources <-chan resource.Resource, validationResults cha
 	}
 }
 
-func processResults(o output.Output, validationResults <-chan validator.Result, result chan<- bool) {
+func processResults(o output.Output, validationResults <-chan validator.Result) <-chan bool {
 	success := true
-	for res := range validationResults {
-		if res.Err != nil {
-			success = false
-		}
-		if err := o.Write(res); err != nil {
-			fmt.Fprint(os.Stderr, "failed writing log\n")
-		}
-	}
+	result := make(chan bool)
 
-	result <- success
+	go func() {
+		for res := range validationResults {
+			if res.Status == validator.Error || res.Status == validator.Invalid {
+				success = false
+			}
+			if o != nil {
+				if err := o.Write(res); err != nil {
+					fmt.Fprint(os.Stderr, "failed writing log\n")
+				}
+			}
+		}
+		result <- success
+		close(result)
+	}()
+
+	return result
 }
 
 func realMain() int {
@@ -135,9 +143,8 @@ func realMain() int {
 	var resourcesChan <-chan resource.Resource
 	var errors <-chan error
 	validationResults := make(chan validator.Result)
-	res := make(chan bool)
 
-	go processResults(o, validationResults, res)
+	successChan := processResults(o, validationResults)
 
 	if isStdin {
 		resourcesChan, errors = resource.FromStream("stdin", os.Stdin)
@@ -170,7 +177,7 @@ func realMain() int {
 	wg.Wait()
 
 	close(validationResults)
-	success := <-res
+	success := <-successChan
 	o.Flush()
 
 	if !success {

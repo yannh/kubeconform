@@ -41,7 +41,7 @@ metadata:
 `),
 					},
 					Status: validator.Valid,
-					Err: nil,
+					Err:    nil,
 				},
 			},
 			`{
@@ -71,9 +71,8 @@ metadata:
 `),
 					},
 					Status: validator.Valid,
-					Err: nil,
+					Err:    nil,
 				},
-
 			},
 			`{
   "resources": [

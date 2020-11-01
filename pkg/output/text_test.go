@@ -40,7 +40,7 @@ metadata:
 `),
 					},
 					Status: validator.Valid,
-					Err: nil,
+					Err:    nil,
 				},
 			},
 			"Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0\n",
@@ -61,9 +61,8 @@ metadata:
 `),
 					},
 					Status: validator.Valid,
-					Err: nil,
+					Err:    nil,
 				},
-
 			},
 			`deployment.yml - Deployment my-app is valid
 Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0

@@ -35,7 +35,8 @@ spec:
 	}
 
 	for _, testCase := range testCases {
-		sig, err := resource.SignatureFromBytes(testCase.have)
+		res := resource.Resource{Bytes: testCase.have}
+		sig, err := res.Signature()
 		if err != nil && err.Error() != testCase.err.Error() {
 			t.Errorf("test \"%s\" - received error: %s", testCase.name, err)
 		}
@@ -44,6 +45,5 @@ spec:
 			sig.Namespace != testCase.want.Namespace {
 			t.Errorf("test \"%s\": received %+v, expected %+v", testCase.name, sig, testCase.want)
 		}
-
 	}
 }

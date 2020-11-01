@@ -8,27 +8,17 @@ import (
 
 // FindYamlInDir will find yaml files in folder dir, and send their filenames in batches
 // of size batchSize to channel fileBatches
-func FindYamlInDir(dir string, fileBatches chan<- []string, batchSize int) error {
-	files := []string{}
-
+func FindYamlInDir(dir string, fileBatches chan<- string) error {
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if !info.IsDir() && (strings.HasSuffix(info.Name(), ".yaml") || strings.HasSuffix(info.Name(), ".yml")) {
-			files = append(files, path)
-			if len(files) > batchSize {
-				fileBatches <- files
-				files = []string{}
-			}
+			fileBatches <- path
 		}
 		return nil
 	})
-
-	if len(files) > 0 {
-		fileBatches <- files
-	}
 
 	return err
 }

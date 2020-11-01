@@ -23,7 +23,7 @@ func (e *fileNotFoundError) IsRetryable() bool { return e.isRetryable }
 func (e *fileNotFoundError) Error() string     { return e.err.Error() }
 
 // NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
-func NewLocalRegistry(pathTemplate string, strict bool) *LocalRegistry {
+func newLocalRegistry(pathTemplate string, strict bool) *LocalRegistry {
 	return &LocalRegistry{
 		pathTemplate,
 		strict,

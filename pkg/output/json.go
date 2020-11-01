@@ -3,10 +3,11 @@ package output
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/yannh/kubeconform/pkg/validator"
 	"io"
 )
 
-type result struct {
+type oresult struct {
 	Filename string `json:"filename"`
 	Kind     string `json:"kind"`
 	Name     string `json:"name"`
@@ -19,7 +20,7 @@ type jsono struct {
 	w                                   io.Writer
 	withSummary                         bool
 	verbose                             bool
-	results                             []result
+	results                             []oresult
 	nValid, nInvalid, nErrors, nSkipped int
 }
 
@@ -29,7 +30,7 @@ func jsonOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
 		w:           w,
 		withSummary: withSummary,
 		verbose:     verbose,
-		results:     []result{},
+		results:     []oresult{},
 		nValid:      0,
 		nInvalid:    0,
 		nErrors:     0,
@@ -38,31 +39,30 @@ func jsonOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
 }
 
 // JSON.Write will only write when JSON.Flush has been called
-func (o *jsono) Write(filename, kind, name, version string, err error, skipped bool) error {
+func (o *jsono) Write(result validator.Result) error {
 	msg, st := "", ""
 
-	s := status(kind, name, err, skipped)
-
-	switch s {
-	case statusValid:
+	switch result.Status {
+	case validator.Valid:
 		st = "statusValid"
 		o.nValid++
-	case statusInvalid:
+	case validator.Invalid:
 		st = "statusInvalid"
-		msg = err.Error()
+		msg = result.Err.Error()
 		o.nInvalid++
-	case statusError:
+	case validator.Error:
 		st = "statusError"
-		msg = err.Error()
+		msg = result.Err.Error()
 		o.nErrors++
-	case statusSkipped:
+	case validator.Skipped:
 		st = "statusSkipped"
 		o.nSkipped++
-	case statusEmpty:
+	case validator.Empty:
 	}
 
-	if o.verbose || (s != statusValid && s != statusSkipped && s != statusEmpty) {
-		o.results = append(o.results, result{Filename: filename, Kind: kind, Name: name, Version: version, Status: st, Msg: msg})
+	if o.verbose || (result.Status != validator.Valid && result.Status != validator.Skipped && result.Status != validator.Empty) {
+		sig, _ := result.Resource.Signature()
+		o.results = append(o.results, oresult{Filename: result.Resource.Path, Kind: sig.Kind, Name: sig.Name, Version: sig.Version, Status: st, Msg: msg})
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func (o *jsono) Flush() error {
 
 	if o.withSummary {
 		jsonObj := struct {
-			Resources []result `json:"resources"`
+			Resources []oresult `json:"resources"`
 			Summary   struct {
 				Valid   int `json:"valid"`
 				Invalid int `json:"invalid"`
@@ -100,7 +100,7 @@ func (o *jsono) Flush() error {
 		res, err = json.MarshalIndent(jsonObj, "", "  ")
 	} else {
 		jsonObj := struct {
-			Resources []result `json:"resources"`
+			Resources []oresult `json:"resources"`
 		}{
 			Resources: o.results,
 		}

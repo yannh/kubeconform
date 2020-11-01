@@ -22,7 +22,7 @@ func newDownloadError(err error, isRetryable bool) *downloadError {
 func (e *downloadError) IsRetryable() bool { return e.isRetryable }
 func (e *downloadError) Error() string     { return e.err.Error() }
 
-func NewHTTPRegistry(schemaPathTemplate string, strict bool) *KubernetesRegistry {
+func newHTTPRegistry(schemaPathTemplate string, strict bool) *KubernetesRegistry {
 	return &KubernetesRegistry{
 		schemaPathTemplate: schemaPathTemplate,
 		strict:             strict,

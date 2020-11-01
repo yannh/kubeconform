@@ -100,10 +100,12 @@ func processResults(o output.Output, validationResults <-chan validator.Result, 
 }
 
 func realMain() int {
-	var err error
-
-	cfg := config.FromFlags()
-	if cfg.Help {
+	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
+	if out != "" {
+		fmt.Println(out)
+		return 1
+	} else if err != nil {
+		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
 		return 1
 	}
 

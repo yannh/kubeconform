@@ -39,3 +39,65 @@ func TestSkipKindMaps(t *testing.T) {
 		}
 	}
 }
+
+func TestFromFlags(t *testing.T) {
+	testCases := []struct {
+		args []string
+		conf Config
+	}{
+		{
+			[]string{},
+			Config{
+				Files:             []string{},
+				KubernetesVersion: "1.18.0",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SkipKinds:         map[string]bool{},
+			},
+		},
+		{
+			[]string{"-h"},
+			Config{
+				Files:             []string{},
+				Help:              true,
+				KubernetesVersion: "1.18.0",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SkipKinds:         map[string]bool{},
+			},
+		},
+		{
+			[]string{"-skip", "a,b,c"},
+			Config{
+				Files:             []string{},
+				KubernetesVersion: "1.18.0",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SkipKinds:         map[string]bool{"a": true, "b": true, "c": true},
+			},
+		},
+		{
+			[]string{"-summary", "-verbose", "file1", "file2"},
+			Config{
+				Files:             []string{"file1", "file2"},
+				KubernetesVersion: "1.18.0",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SkipKinds:         map[string]bool{},
+				Summary:           true,
+				Verbose:           true,
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		cfg, _, _ := FromFlags("kubeconform", testCase.args)
+		if reflect.DeepEqual(cfg, testCase.conf) != true {
+			t.Errorf("failed parsing config - expected , got: \n%+v\n%+v", testCase.conf, cfg)
+		}
+	}
+}

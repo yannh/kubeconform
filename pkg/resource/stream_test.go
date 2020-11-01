@@ -10,25 +10,23 @@ import (
 	"testing"
 )
 
-
-
 func TestFromStream(t *testing.T) {
 	type have struct {
-		Path string
+		Path   string
 		Reader io.Reader
 	}
 
 	type want struct {
 		Resources []resource.Resource
-		Errors []error
+		Errors    []error
 	}
 
 	testCases := []struct {
 		Have have
 		Want want
-	} {
+	}{
 		{
-			Have: have {
+			Have: have{
 				Path: "myfile",
 				Reader: strings.NewReader(`
 apiVersion: v1
@@ -49,7 +47,7 @@ kind: ReplicationController
 			},
 		},
 		{
-			Have: have {
+			Have: have{
 				Path: "myfile",
 				Reader: strings.NewReader(`apiVersion: v1
 ---
@@ -65,7 +63,7 @@ apiVersion: v2
 `),
 					},
 					{
-						Path: "myfile",
+						Path:  "myfile",
 						Bytes: []byte(``),
 					},
 					{
@@ -78,7 +76,7 @@ apiVersion: v2
 			},
 		},
 		{
-			Have: have {
+			Have: have{
 				Path: "myfile",
 				Reader: strings.NewReader(`apiVersion: v1
 kind: ReplicationController
@@ -115,7 +113,7 @@ kind: CronJob
 			},
 		},
 		{
-			Have: have {
+			Have: have{
 				Path: "myfile",
 				Reader: strings.NewReader(`apiVersion: v1
 kind: ReplicationController
@@ -145,7 +143,7 @@ kind: Deployment
 	}
 
 	for _, testCase := range testCases {
-		resChan, errChan :=resource.FromStream(testCase.Have.Path, testCase.Have.Reader)
+		resChan, errChan := resource.FromStream(testCase.Have.Path, testCase.Have.Reader)
 		var wg sync.WaitGroup
 
 		wg.Add(2)

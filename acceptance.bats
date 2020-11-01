@@ -67,7 +67,7 @@
 @test "Return relevant error for non-existent file" {
   run bin/kubeconform fixtures/not-here
   [ "$status" -eq 1 ]
-  [ "$output" = "fixtures/not-here - failed validation: open fixtures/not-here: no such file or directory" ]
+  [ "$output" = "fixtures/not-here - failed validation: lstat fixtures/not-here: no such file or directory" ]
 }
 
 @test "Pass when parsing a blank config file" {

@@ -1,5 +1,5 @@
-FROM bats/bats:v1.1.0
-RUN apk --no-cache add ca-certificates
-COPY bin/kubeconform /bin/
-COPY acceptance.bats /acceptance.bats
-COPY fixtures /fixtures
+FROM bats/bats:v1.2.1
+RUN apk --no-cache add ca-certificates parallel
+COPY bin/kubeconform /code/bin/
+COPY acceptance.bats /code/acceptance.bats
+COPY fixtures /code/fixtures

@@ -52,7 +52,7 @@ func splitCSV(skipKindsCSV string) map[string]bool {
 func FromFlags(progName string, args []string) (Config, string, error) {
 	var schemaLocationsParam arrayParam
 	var skipKindsCSV, rejectKindsCSV string
-	flags := flag.NewFlagSet(progName, flag.PanicOnError)
+	flags := flag.NewFlagSet(progName, flag.ExitOnError)
 	var buf bytes.Buffer
 	flags.SetOutput(&buf)
 
@@ -74,6 +74,8 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.BoolVar(&c.Help, "h", false, "show help information")
 	flags.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", progName)
+
+		flags.SetOutput(os.Stderr)
 		flags.PrintDefaults()
 	}
 

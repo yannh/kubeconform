@@ -9,7 +9,7 @@ import (
 )
 
 type KubernetesRegistry struct {
-	http               *http.Transport
+	c                  *http.Client
 	schemaPathTemplate string
 	strict             bool
 }
@@ -29,12 +29,13 @@ func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *Kube
 		IdleConnTimeout:    3 * time.Second,
 		DisableCompression: true,
 	}
+
 	if skipTLS {
 		reghttp.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	return &KubernetesRegistry{
-		http:               reghttp,
+		c:                  &http.Client{Transport: reghttp},
 		schemaPathTemplate: schemaPathTemplate,
 		strict:             strict,
 	}
@@ -46,8 +47,7 @@ func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8s
 		return nil, err
 	}
 
-	client := &http.Client{Transport: r.http}
-	resp, err := client.Get(url)
+	resp, err := r.c.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed downloading schema at %s: %s", url, err)
 	}

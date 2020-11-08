@@ -17,7 +17,7 @@ type Registry interface {
 
 // Retryable indicates whether an error is a temporary or a permanent failure
 type Retryable interface {
-	IsRetryable() bool
+	IsNotFound() bool
 }
 
 func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool) (string, error) {

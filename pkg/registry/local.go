@@ -19,8 +19,8 @@ type fileNotFoundError struct {
 func newFileNotFoundError(err error, isRetryable bool) *fileNotFoundError {
 	return &fileNotFoundError{err, isRetryable}
 }
-func (e *fileNotFoundError) IsRetryable() bool { return e.isRetryable }
-func (e *fileNotFoundError) Error() string     { return e.err.Error() }
+func (e *fileNotFoundError) IsNotFound() bool { return e.isRetryable }
+func (e *fileNotFoundError) Error() string    { return e.err.Error() }
 
 // NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
 func newLocalRegistry(pathTemplate string, strict bool) *LocalRegistry {

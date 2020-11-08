@@ -12,16 +12,14 @@ type KubernetesRegistry struct {
 	strict             bool
 }
 
-type downloadError struct {
-	err         error
-	isRetryable bool
+type NotFoundError struct {
+	err error
 }
 
-func newDownloadError(err error, isRetryable bool) *downloadError {
-	return &downloadError{err, isRetryable}
+func newNetFoundError(err error) *NotFoundError {
+	return &NotFoundError{err}
 }
-func (e *downloadError) IsRetryable() bool { return e.isRetryable }
-func (e *downloadError) Error() string     { return e.err.Error() }
+func (e *NotFoundError) Error() string { return e.err.Error() }
 
 func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *KubernetesRegistry {
 	if skipTLS {
@@ -47,7 +45,7 @@ func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8s
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, newDownloadError(fmt.Errorf("no schema found"), false)
+		return nil, newNetFoundError(fmt.Errorf("no schema found"))
 	}
 
 	if resp.StatusCode != http.StatusOK {

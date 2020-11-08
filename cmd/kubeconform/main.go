@@ -26,7 +26,7 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 		}
 
 		// If we get a 404, we try the next registry, but we exit if we get a real failure
-		if er, retryable := err.(registry.Retryable); retryable && !er.IsRetryable() {
+		if _, notfound := err.(*registry.NotFoundError); notfound {
 			continue
 		}
 

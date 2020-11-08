@@ -168,6 +168,27 @@ to JSON schema. Here is an example how to use it:
 $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml > fixtures/registry/trainingjob-sagemaker-v1.json
 ```
 
+### Speed comparison with Kubeval
+
+Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:
+
+```
+$ time kubeconform -ignore-missing-schemas -n 8 -summary  preview staging production
+Summary: 50714 resources found in 35139 files - Valid: 27334, Invalid: 0, Errors: 0 Skipped: 23380
+
+real	0m6,710s
+user	0m38,701s
+sys	0m1,161s
+
+$ time kubeval -d preview,staging,production --ignore-missing-schemas --quiet
+[... Skipping output]
+
+real	0m35,336s
+user	0m0,717s
+sys	0m1,069s
+
+```
+
 ### Credits
 
  * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and

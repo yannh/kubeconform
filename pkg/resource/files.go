@@ -2,6 +2,8 @@ package resource
 
 import (
 	"bytes"
+	"context"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,17 +27,25 @@ func (de DiscoveryError) Error() string {
 	return de.Err.Error()
 }
 
-func FromFiles(paths ...string) (<-chan Resource, <-chan error) {
+func FromFiles(ctx context.Context, paths ...string) (<-chan Resource, <-chan error) {
 	resources := make(chan Resource)
 	errors := make(chan error)
+	stop := false
+
+	go func() {
+		<-ctx.Done()
+		stop = true
+	}()
 
 	go func() {
 		for _, path := range paths {
 			// we handle errors in the walk function directly
 			// so it should be safe to discard the outer error
-			_ = filepath.Walk(path, func(p string, i os.FileInfo, err error) error {
+			err := filepath.Walk(path, func(p string, i os.FileInfo, err error) error {
+				if stop == true {
+					return io.EOF
+				}
 				if err != nil {
-					errors <- DiscoveryError{p, err}
 					return err
 				}
 
@@ -45,13 +55,11 @@ func FromFiles(paths ...string) (<-chan Resource, <-chan error) {
 
 				f, err := os.Open(p)
 				if err != nil {
-					errors <- DiscoveryError{p, err}
 					return err
 				}
 
 				b, err := ioutil.ReadAll(f)
 				if err != nil {
-					errors <- DiscoveryError{p, err}
 					return err
 				}
 
@@ -61,6 +69,10 @@ func FromFiles(paths ...string) (<-chan Resource, <-chan error) {
 
 				return nil
 			})
+
+			if err != nil && err != io.EOF {
+				errors <- DiscoveryError{path, err}
+			}
 		}
 
 		close(resources)

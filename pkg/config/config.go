@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	ExitOnError          bool
 	Files                []string
 	SchemaLocations      []string
 	SkipKinds            map[string]bool
@@ -59,6 +60,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "1.18.0", "version of Kubernetes to validate against")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
+	flags.BoolVar(&c.ExitOnError, "exit-on-error", false, "immediately stop execution when the first error is encountered")
 	flags.BoolVar(&c.IgnoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flags.BoolVar(&c.Summary, "summary", false, "print a summary at the end")
 	flags.IntVar(&c.NumberOfWorkers, "n", 4, "number of goroutines to run concurrently")

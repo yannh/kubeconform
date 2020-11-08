@@ -2,6 +2,7 @@ package resource_test
 
 import (
 	"bytes"
+	"context"
 	"github.com/yannh/kubeconform/pkg/resource"
 	"io"
 	"reflect"
@@ -143,7 +144,8 @@ kind: Deployment
 	}
 
 	for _, testCase := range testCases {
-		resChan, errChan := resource.FromStream(testCase.Have.Path, testCase.Have.Reader)
+		ctx := context.Background()
+		resChan, errChan := resource.FromStream(ctx, testCase.Have.Path, testCase.Have.Reader)
 		var wg sync.WaitGroup
 
 		wg.Add(2)

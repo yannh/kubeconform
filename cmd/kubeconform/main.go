@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/xeipuuv/gojsonschema"
 	"os"
@@ -85,7 +86,7 @@ func ValidateResources(resources <-chan resource.Resource, validationResults cha
 	}
 }
 
-func processResults(o output.Output, validationResults <-chan validator.Result) <-chan bool {
+func processResults(ctx context.Context, o output.Output, validationResults <-chan validator.Result, exitOnError bool) <-chan bool {
 	success := true
 	result := make(chan bool)
 
@@ -99,7 +100,15 @@ func processResults(o output.Output, validationResults <-chan validator.Result) 
 					fmt.Fprint(os.Stderr, "failed writing log\n")
 				}
 			}
+			if success == false && exitOnError {
+				ctx.Done() // early exit - signal to stop searching for resources
+				break
+			}
 		}
+
+		for range validationResults { // allow resource finders to exit
+		}
+
 		result <- success
 		close(result)
 	}()
@@ -144,12 +153,13 @@ func realMain() int {
 	var errors <-chan error
 	validationResults := make(chan validator.Result)
 
-	successChan := processResults(o, validationResults)
+	ctx := context.Background()
+	successChan := processResults(ctx, o, validationResults, cfg.ExitOnError)
 
 	if isStdin {
-		resourcesChan, errors = resource.FromStream("stdin", os.Stdin)
+		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
 	} else {
-		resourcesChan, errors = resource.FromFiles(cfg.Files...)
+		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files...)
 	}
 
 	c := cache.New()
@@ -165,10 +175,13 @@ func realMain() int {
 	wg.Add(1)
 	go func() {
 		for err := range errors {
-			if err != nil {
-				if err, ok := err.(resource.DiscoveryError); ok {
-					validationResults <- validator.NewError(err.Path, err.Err)
-				}
+			if err == nil {
+				continue
+			}
+
+			if err, ok := err.(resource.DiscoveryError); ok {
+				validationResults <- validator.NewError(err.Path, err.Err)
+				ctx.Done()
 			}
 		}
 		wg.Done()

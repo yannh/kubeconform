@@ -1,11 +1,29 @@
 package resource
 
 import (
-	"bytes"
+	"bufio"
 	"context"
 	"io"
-	"io/ioutil"
+	"strings"
 )
+
+func yamlSplit(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	// Return nothing if at end of file and no data passed
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+
+	if i := strings.Index(string(data), "---\n"); i >= 0 {
+		return i + 4, data[0:i], nil
+	}
+
+	// If at end of file with data return the data
+	if atEOF {
+		return len(data), data, nil
+	}
+
+	return
+}
 
 // FromStream reads resources from a byte stream, usually here stdin
 func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource, <-chan error) {
@@ -19,17 +37,14 @@ func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource,
 	}()
 
 	go func() {
-		data, err := ioutil.ReadAll(r)
-		if err != nil {
-			errors <- DiscoveryError{path, err}
-		}
+		scanner := bufio.NewScanner(r)
+		scanner.Split(yamlSplit)
 
-		rawResources := bytes.Split(data, []byte("---\n"))
-		for _, rawResource := range rawResources {
+		for res := scanner.Scan(); res != false; res = scanner.Scan() {
 			if stop == true {
 				break
 			}
-			resources <- Resource{Path: path, Bytes: rawResource}
+			resources <- Resource{Path: path, Bytes: scanner.Bytes()}
 		}
 
 		close(resources)

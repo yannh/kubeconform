@@ -82,9 +82,9 @@ func (o *texto) Flush() error {
 			filesPlural = "s"
 		}
 		if o.isStdin {
-			_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found parsing stdin - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", nResources, resourcesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+			_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found parsing stdin - Valid: %d, Invalid: %d, Errors: %d, Skipped: %d\n", nResources, resourcesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
 		} else {
-			_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found in %d file%s - Valid: %d, Invalid: %d, Errors: %d Skipped: %d\n", nResources, resourcesPlural, nFiles, filesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
+			_, err = fmt.Fprintf(o.w, "Summary: %d resource%s found in %d file%s - Valid: %d, Invalid: %d, Errors: %d, Skipped: %d\n", nResources, resourcesPlural, nFiles, filesPlural, o.nValid, o.nInvalid, o.nErrors, o.nSkipped)
 		}
 	}
 

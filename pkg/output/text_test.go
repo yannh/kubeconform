@@ -43,7 +43,7 @@ metadata:
 					Err:    nil,
 				},
 			},
-			"Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0\n",
+			"Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0\n",
 		},
 		{
 			"a single deployment, verbose, with summary",
@@ -65,7 +65,7 @@ metadata:
 				},
 			},
 			`deployment.yml - Deployment my-app is valid
-Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0
 `,
 		},
 	} {

@@ -2,27 +2,40 @@ package resource
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"io"
-	"strings"
 )
 
-func yamlSplit(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	// Return nothing if at end of file and no data passed
+// Thank you https://github.com/helm/helm-classic/blob/master/codec/yaml.go#L90
+func SplitYAMLDocument(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	const yamlSeparator = "\n---"
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
-
-	if i := strings.Index(string(data), "---\n"); i >= 0 {
-		return i + 4, data[0:i], nil
+	sep := len([]byte(yamlSeparator))
+	if i := bytes.Index(data, []byte(yamlSeparator)); i >= 0 {
+		// We have a potential document terminator
+		i += sep
+		after := data[i:]
+		if len(after) == 0 {
+			// we can't read any more characters
+			if atEOF {
+				return len(data), data[:len(data)-sep], nil
+			}
+			return 0, nil, nil
+		}
+		if j := bytes.IndexByte(after, '\n'); j >= 0 {
+			return i + j + 1, data[0 : i-sep], nil
+		}
+		return 0, nil, nil
 	}
-
-	// If at end of file with data return the data
+	// If we're at EOF, we have a final, non-terminated line. Return it.
 	if atEOF {
 		return len(data), data, nil
 	}
-
-	return
+	// Request more data.
+	return 0, nil, nil
 }
 
 // FromStream reads resources from a byte stream, usually here stdin
@@ -38,7 +51,7 @@ func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource,
 
 	go func() {
 		scanner := bufio.NewScanner(r)
-		scanner.Split(yamlSplit)
+		scanner.Split(SplitYAMLDocument)
 
 		for res := scanner.Scan(); res != false; res = scanner.Scan() {
 			if stop == true {

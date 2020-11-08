@@ -3,13 +3,13 @@
 @test "Pass when parsing a valid Kubernetes config YAML file" {
   run bin/kubeconform -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Pass when parsing a folder containing valid YAML files" {
   run bin/kubeconform -summary fixtures/folder
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 7 resources found in 2 files - Valid: 7, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 7 resources found in 2 files - Valid: 7, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Pass when parsing a valid Kubernetes config file with int_to_string vars" {
@@ -21,7 +21,7 @@
 @test "Pass when parsing a valid Kubernetes config JSON file" {
   run bin/kubeconform -kubernetes-version 1.17.1 -summary fixtures/valid.json
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file with generate name" {
@@ -45,13 +45,13 @@
 @test "Pass when parsing a valid Kubernetes config file with null strings" {
   run bin/kubeconform -summary fixtures/null_string.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Pass when parsing a multi-document config file" {
   run bin/kubeconform -summary fixtures/multi_valid.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 6 resources found in 1 file - Valid: 6, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 6 resources found in 1 file - Valid: 6, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Fail when parsing a multi-document config file with one invalid resource" {
@@ -73,13 +73,13 @@
 @test "Pass when parsing a blank config file" {
    run bin/kubeconform -summary fixtures/blank.yaml
    [ "$status" -eq 0 ]
-   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0 Skipped: 0" ]
+   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Pass when parsing a blank config file with a comment" {
    run bin/kubeconform -summary fixtures/comment.yaml
    [ "$status" -eq 0 ]
-   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0 Skipped: 0" ]
+   [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Fail when parsing a config with additional properties and strict set" {
@@ -105,7 +105,7 @@
 @test "Pass when parsing a config with additional properties" {
   run bin/kubeconform -summary fixtures/extra_property.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Pass when using a valid, preset -schema-location" {
@@ -141,13 +141,13 @@
 @test "Pass when parsing a valid Kubernetes config YAML file on stdin" {
   run bash -c "cat fixtures/valid.yaml | bin/kubeconform -summary"
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file explicitly on stdin" {
   run bash -c "cat fixtures/valid.yaml | bin/kubeconform -summary"
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Fail when parsing an invalid Kubernetes config file on stdin" {
@@ -170,5 +170,5 @@
 @test "Ignores file that match the --ignore-filename-pattern given" {
   run bin/kubeconform -summary --ignore-filename-pattern 'crd' --ignore-filename-pattern '.*invalid.*' fixtures/multi_invalid.yaml fixtures/list_invalid.yaml fixtures/quantity.yaml fixtures/crd_schema.yaml
   [ "$status" -eq 0 ]
-  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }

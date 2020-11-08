@@ -1,10 +1,9 @@
 package resource
 
 import (
-	"bytes"
+	"bufio"
 	"context"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -67,7 +66,7 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 					return nil
 				}
 
-				ignored, err := isIgnored(path, ignoreFilePatterns)
+				ignored, err := isIgnored(p, ignoreFilePatterns)
 				if err != nil {
 					return err
 				}
@@ -80,13 +79,18 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 					return err
 				}
 
-				b, err := ioutil.ReadAll(f)
-				if err != nil {
-					return err
+				scanner := bufio.NewScanner(f)
+				scanner.Split(SplitYAMLDocument)
+				nRes := 0
+				for res := scanner.Scan(); res != false; res = scanner.Scan() {
+					resources <- Resource{Path: p, Bytes: scanner.Bytes()}
+					nRes++
 				}
-
-				for _, r := range bytes.Split(b, []byte("---\n")) {
-					resources <- Resource{Path: p, Bytes: r}
+				if err := scanner.Err(); err != nil {
+					errors <- DiscoveryError{p, err}
+				}
+				if nRes == 0 {
+					resources <- Resource{Path: p, Bytes: []byte{}}
 				}
 
 				return nil

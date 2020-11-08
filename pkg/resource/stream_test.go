@@ -29,7 +29,7 @@ func TestFromStream(t *testing.T) {
 		{
 			Have: have{
 				Path: "myfile",
-				Reader: strings.NewReader(`
+				Reader: strings.NewReader(`---
 apiVersion: v1
 kind: ReplicationController
 `),
@@ -38,7 +38,7 @@ kind: ReplicationController
 				Resources: []resource.Resource{
 					{
 						Path: "myfile",
-						Bytes: []byte(`
+						Bytes: []byte(`---
 apiVersion: v1
 kind: ReplicationController
 `),
@@ -52,20 +52,14 @@ kind: ReplicationController
 				Path: "myfile",
 				Reader: strings.NewReader(`apiVersion: v1
 ---
----
 apiVersion: v2
 `),
 			},
 			Want: want{
 				Resources: []resource.Resource{
-					{
-						Path: "myfile",
-						Bytes: []byte(`apiVersion: v1
-`),
-					},
 					{
 						Path:  "myfile",
-						Bytes: []byte(``),
+						Bytes: []byte(`apiVersion: v1`),
 					},
 					{
 						Path: "myfile",
@@ -94,14 +88,12 @@ kind: CronJob
 					{
 						Path: "myfile",
 						Bytes: []byte(`apiVersion: v1
-kind: ReplicationController
-`),
+kind: ReplicationController`),
 					},
 					{
 						Path: "myfile",
 						Bytes: []byte(`apiVersion: v1
-kind: Deployment
-`),
+kind: Deployment`),
 					},
 					{
 						Path: "myfile",
@@ -128,8 +120,7 @@ kind: Deployment
 					{
 						Path: "myfile",
 						Bytes: []byte(`apiVersion: v1
-kind: ReplicationController
-`),
+kind: ReplicationController`),
 					},
 					{
 						Path: "myfile",
@@ -143,7 +134,7 @@ kind: Deployment
 		},
 	}
 
-	for _, testCase := range testCases {
+	for testi, testCase := range testCases {
 		ctx := context.Background()
 		resChan, errChan := resource.FromStream(ctx, testCase.Have.Path, testCase.Have.Reader)
 		var wg sync.WaitGroup
@@ -156,11 +147,11 @@ kind: Deployment
 			}
 
 			if len(testCase.Want.Resources) != len(res) {
-				t.Errorf("expected %d resources, got %d", len(testCase.Want.Resources), len(res))
+				t.Errorf("test %d - expected %d resources, got %d", testi, len(testCase.Want.Resources), len(res))
 			}
 			for i, v := range res {
 				if bytes.Compare(v.Bytes, testCase.Want.Resources[i].Bytes) != 0 {
-					t.Errorf("for resource %d, got '%s', expected '%s'", i, string(res[i].Bytes), string(testCase.Want.Resources[i].Bytes))
+					t.Errorf("test %d - for resource %d, got '%s', expected '%s'", testi, i, string(res[i].Bytes), string(testCase.Want.Resources[i].Bytes))
 				}
 			}
 

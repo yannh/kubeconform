@@ -37,12 +37,14 @@ func (f ValidFormat) IsFormat(input interface{}) bool {
 // 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
 // }
 
+// Result contains the details of the result of a resource validation
 type Result struct {
 	Resource resource.Resource
 	Err      error
 	Status   Status
 }
 
+// NewError is a utility function to generate a validation error
 func NewError(filename string, err error) Result {
 	return Result{
 		Resource: resource.Resource{Path: filename},

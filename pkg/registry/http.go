@@ -8,12 +8,14 @@ import (
 	"time"
 )
 
-type KubernetesRegistry struct {
+// SchemaRegistry is a file repository (local or remote) that contains JSON schemas for Kubernetes resources
+type SchemaRegistry struct {
 	c                  *http.Client
 	schemaPathTemplate string
 	strict             bool
 }
 
+// NotFoundError is returned when the registry does not contain a schema for the resource
 type NotFoundError struct {
 	err error
 }
@@ -23,7 +25,7 @@ func newNetFoundError(err error) *NotFoundError {
 }
 func (e *NotFoundError) Error() string { return e.err.Error() }
 
-func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *KubernetesRegistry {
+func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *SchemaRegistry {
 	reghttp := &http.Transport{
 		MaxIdleConns:       100,
 		IdleConnTimeout:    3 * time.Second,
@@ -34,14 +36,15 @@ func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *Kube
 		reghttp.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	return &KubernetesRegistry{
+	return &SchemaRegistry{
 		c:                  &http.Client{Transport: reghttp},
 		schemaPathTemplate: schemaPathTemplate,
 		strict:             strict,
 	}
 }
 
-func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
+// DownloadSchema downloads the schema for a particular resource from an HTTP server
+func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
 	url, err := schemaPath(r.schemaPathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
 	if err != nil {
 		return nil, err

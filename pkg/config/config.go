@@ -50,6 +50,7 @@ func splitCSV(csvStr string) map[string]bool {
 	return valuesMap
 }
 
+// FromFlags retrieves kubeconform's runtime configuration from the command-line parameters
 func FromFlags(progName string, args []string) (Config, string, error) {
 	var schemaLocationsParam, ignoreFilenamePatterns arrayParam
 	var skipKindsCSV, rejectKindsCSV string

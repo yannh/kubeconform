@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 )
 
+// FromStream reads resources from a byte stream, usually here stdin
 func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource, <-chan error) {
 	resources := make(chan Resource)
 	errors := make(chan error)

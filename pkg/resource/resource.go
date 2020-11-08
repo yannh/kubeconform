@@ -4,16 +4,19 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// Resource represents a Kubernetes resource within a file
 type Resource struct {
 	Path  string
 	Bytes []byte
 	sig   *Signature
 }
 
+// Signature is a key representing a Kubernetes resource
 type Signature struct {
 	Kind, Version, Namespace, Name string
 }
 
+// Signature computes a signature for a resource, based on its Kind, Version, Namespace & Name
 func (res *Resource) Signature() (*Signature, error) {
 	if res.sig != nil {
 		return res.sig, nil

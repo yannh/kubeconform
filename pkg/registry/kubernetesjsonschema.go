@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type KubernetesRegistry struct {
+	http               *http.Transport
 	schemaPathTemplate string
 	strict             bool
 }
@@ -22,11 +24,17 @@ func newNetFoundError(err error) *NotFoundError {
 func (e *NotFoundError) Error() string { return e.err.Error() }
 
 func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *KubernetesRegistry {
+	reghttp := &http.Transport{
+		MaxIdleConns:       100,
+		IdleConnTimeout:    3 * time.Second,
+		DisableCompression: true,
+	}
 	if skipTLS {
-		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		reghttp.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
 	return &KubernetesRegistry{
+		http:               reghttp,
 		schemaPathTemplate: schemaPathTemplate,
 		strict:             strict,
 	}
@@ -38,7 +46,8 @@ func (r KubernetesRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8s
 		return nil, err
 	}
 
-	resp, err := http.Get(url)
+	client := &http.Client{Transport: r.http}
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed downloading schema at %s: %s", url, err)
 	}

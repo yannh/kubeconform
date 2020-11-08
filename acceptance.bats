@@ -151,6 +151,18 @@
 }
 
 @test "Fail when parsing an invalid Kubernetes config file on stdin" {
-   run bash -c "cat fixtures/invalid.yaml | bin/kubeconform -"
-   [ "$status" -eq 1 ]
- }
+  run bash -c "cat fixtures/invalid.yaml | bin/kubeconform -"
+  [ "$status" -eq 1 ]
+}
+
+@test "Skip when parsing a resource from a kind to skip" {
+  run bin/kubeconform -verbose -skip ReplicationController fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/valid.yaml - bob ReplicationController skipped" ]
+}
+
+@test "Fail when parsing a resource from a kind to reject" {
+  run bin/kubeconform -verbose -reject ReplicationController fixtures/valid.yaml
+  [ "$status" -eq 1 ]
+  [ "$output" = "fixtures/valid.yaml - ReplicationController bob failed validation: prohibited resource kind ReplicationController" ]
+}

@@ -36,7 +36,7 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
 }
 
-func ValidateResources(resources <-chan resource.Resource, validationResults chan<- validator.Result, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool, ignoreMissingSchemas bool) {
+func ValidateResources(resources <-chan resource.Resource, validationResults chan<- validator.Result, regs []registry.Registry, k8sVersion string, c *cache.SchemaCache, skip func(signature resource.Signature) bool, reject func(signature resource.Signature) bool, ignoreMissingSchemas bool) {
 	for res := range resources {
 		sig, err := res.Signature()
 		if err != nil {
@@ -51,6 +51,11 @@ func ValidateResources(resources <-chan resource.Resource, validationResults cha
 
 		if skip(*sig) {
 			validationResults <- validator.Result{Resource: res, Err: nil, Status: validator.Skipped}
+			continue
+		}
+
+		if reject(*sig) {
+			validationResults <- validator.Result{Resource: res, Err: fmt.Errorf("prohibited resource kind %s", sig.Kind), Status: validator.Error}
 			continue
 		}
 
@@ -138,6 +143,11 @@ func realMain() int {
 		return ok && isSkipKind
 	}
 
+	reject := func(signature resource.Signature) bool {
+		_, ok := cfg.RejectKinds[signature.Kind]
+		return ok
+	}
+
 	registries := []registry.Registry{}
 	for _, schemaLocation := range cfg.SchemaLocations {
 		registries = append(registries, registry.New(schemaLocation, cfg.Strict))
@@ -167,7 +177,7 @@ func realMain() int {
 	for i := 0; i < cfg.NumberOfWorkers; i++ {
 		wg.Add(1)
 		go func() {
-			ValidateResources(resourcesChan, validationResults, registries, cfg.KubernetesVersion, c, filter, cfg.IgnoreMissingSchemas)
+			ValidateResources(resourcesChan, validationResults, registries, cfg.KubernetesVersion, c, filter, reject, cfg.IgnoreMissingSchemas)
 			wg.Done()
 		}()
 	}

@@ -13,6 +13,7 @@ type Config struct {
 	Files                []string
 	SchemaLocations      []string
 	SkipKinds            map[string]bool
+	RejectKinds          map[string]bool
 	OutputFormat         string
 	KubernetesVersion    string
 	NumberOfWorkers      int
@@ -34,7 +35,7 @@ func (ap *arrayParam) Set(value string) error {
 	return nil
 }
 
-func skipKinds(skipKindsCSV string) map[string]bool {
+func splitCSV(skipKindsCSV string) map[string]bool {
 	splitKinds := strings.Split(skipKindsCSV, ",")
 	skipKinds := map[string]bool{}
 
@@ -49,7 +50,7 @@ func skipKinds(skipKindsCSV string) map[string]bool {
 
 func FromFlags(progName string, args []string) (Config, string, error) {
 	var schemaLocationsParam arrayParam
-	var skipKindsCSV string
+	var skipKindsCSV, rejectKindsCSV string
 	flags := flag.NewFlagSet(progName, flag.PanicOnError)
 	var buf bytes.Buffer
 	flags.SetOutput(&buf)
@@ -60,6 +61,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "1.18.0", "version of Kubernetes to validate against")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
+	flags.StringVar(&rejectKindsCSV, "reject", "", "comma-separated list of kinds to reject")
 	flags.BoolVar(&c.ExitOnError, "exit-on-error", false, "immediately stop execution when the first error is encountered")
 	flags.BoolVar(&c.IgnoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flags.BoolVar(&c.Summary, "summary", false, "print a summary at the end")
@@ -75,7 +77,8 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 
 	err := flags.Parse(args)
 
-	c.SkipKinds = skipKinds(skipKindsCSV)
+	c.SkipKinds = splitCSV(skipKindsCSV)
+	c.RejectKinds = splitCSV(rejectKindsCSV)
 	c.SchemaLocations = schemaLocationsParam
 	if len(c.SchemaLocations) == 0 {
 		c.SchemaLocations = append(c.SchemaLocations, "https://kubernetesjsonschema.dev") // if not specified, default behaviour is to use kubernetesjson-schema.dev as registry

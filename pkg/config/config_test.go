@@ -33,7 +33,7 @@ func TestSkipKindMaps(t *testing.T) {
 			},
 		},
 	} {
-		got := skipKinds(testCase.csvSkipKinds)
+		got := splitCSV(testCase.csvSkipKinds)
 		if !reflect.DeepEqual(got, testCase.expect) {
 			t.Errorf("%s - got %+v, expected %+v", testCase.name, got, testCase.expect)
 		}
@@ -54,6 +54,7 @@ func TestFromFlags(t *testing.T) {
 				OutputFormat:      "text",
 				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
 				SkipKinds:         map[string]bool{},
+				RejectKinds:       map[string]bool{},
 			},
 		},
 		{
@@ -66,6 +67,7 @@ func TestFromFlags(t *testing.T) {
 				OutputFormat:      "text",
 				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
 				SkipKinds:         map[string]bool{},
+				RejectKinds:       map[string]bool{},
 			},
 		},
 		{
@@ -77,6 +79,7 @@ func TestFromFlags(t *testing.T) {
 				OutputFormat:      "text",
 				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
 				SkipKinds:         map[string]bool{"a": true, "b": true, "c": true},
+				RejectKinds:       map[string]bool{},
 			},
 		},
 		{
@@ -88,6 +91,7 @@ func TestFromFlags(t *testing.T) {
 				OutputFormat:      "text",
 				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
 				SkipKinds:         map[string]bool{},
+				RejectKinds:       map[string]bool{},
 				Summary:           true,
 				Verbose:           true,
 			},
@@ -95,7 +99,7 @@ func TestFromFlags(t *testing.T) {
 		{
 			[]string{"-ignore-missing-schemas", "-kubernetes-version", "1.16.0", "-n", "2", "-output", "json",
 				"-schema-location", "folder", "-schema-location", "anotherfolder", "-skip", "kinda,kindb", "-strict",
-				"-summary", "-verbose", "file1", "file2"},
+				"-reject", "kindc,kindd", "-summary", "-verbose", "file1", "file2"},
 			Config{
 				Files:                []string{"file1", "file2"},
 				IgnoreMissingSchemas: true,
@@ -104,6 +108,7 @@ func TestFromFlags(t *testing.T) {
 				OutputFormat:         "json",
 				SchemaLocations:      []string{"folder", "anotherfolder"},
 				SkipKinds:            map[string]bool{"kinda": true, "kindb": true},
+				RejectKinds:          map[string]bool{"kindc": true, "kindd": true},
 				Strict:               true,
 				Summary:              true,
 				Verbose:              true,

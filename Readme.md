@@ -47,15 +47,20 @@ configuration errors.
 
 ```
 $ ./bin/kubeconform -h
-Usage of ./bin/kubeconform:
+Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
+  -exit-on-error
+        immediately stop execution when the first error is encountered
+  -h    show help information
   -ignore-missing-schemas
         skip files with missing schemas instead of failing
   -kubernetes-version string
         version of Kubernetes to validate against (default "1.18.0")
   -n int
-        number of routines to run in parallel (default 4)
+        number of goroutines to run concurrently (default 4)
   -output string
         output format - text, json (default "text")
+  -reject string
+        comma-separated list of kinds to reject
   -schema-location value
         override schemas location search path (can be specified multiple times)
   -skip string

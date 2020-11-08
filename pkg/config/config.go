@@ -36,17 +36,17 @@ func (ap *arrayParam) Set(value string) error {
 	return nil
 }
 
-func splitCSV(skipKindsCSV string) map[string]bool {
-	splitKinds := strings.Split(skipKindsCSV, ",")
-	skipKinds := map[string]bool{}
+func splitCSV(csvStr string) map[string]bool {
+	splitValues := strings.Split(csvStr, ",")
+	valuesMap := map[string]bool{}
 
-	for _, kind := range splitKinds {
+	for _, kind := range splitValues {
 		if len(kind) > 0 {
-			skipKinds[kind] = true
+			valuesMap[kind] = true
 		}
 	}
 
-	return skipKinds
+	return valuesMap
 }
 
 func FromFlags(progName string, args []string) (Config, string, error) {

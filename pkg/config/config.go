@@ -12,6 +12,7 @@ type Config struct {
 	ExitOnError          bool
 	Files                []string
 	SchemaLocations      []string
+	SkipTLS              bool
 	SkipKinds            map[string]bool
 	RejectKinds          map[string]bool
 	OutputFormat         string
@@ -69,6 +70,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.BoolVar(&c.Strict, "strict", false, "disallow additional properties not in schema")
 	flags.StringVar(&c.OutputFormat, "output", "text", "output format - text, json")
 	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources")
+	flags.BoolVar(&c.SkipTLS, "insecure-skip-tls-verify", false, "disable verification of the server's SSL certificate. This will make your HTTPS connections insecure")
 	flags.BoolVar(&c.Help, "h", false, "show help information")
 	flags.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", progName)

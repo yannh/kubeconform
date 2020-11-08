@@ -150,7 +150,7 @@ func realMain() int {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range cfg.SchemaLocations {
-		registries = append(registries, registry.New(schemaLocation, cfg.Strict))
+		registries = append(registries, registry.New(schemaLocation, cfg.Strict, cfg.SkipTLS))
 	}
 
 	var o output.Output

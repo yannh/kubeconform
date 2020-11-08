@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -22,7 +23,11 @@ func newDownloadError(err error, isRetryable bool) *downloadError {
 func (e *downloadError) IsRetryable() bool { return e.isRetryable }
 func (e *downloadError) Error() string     { return e.err.Error() }
 
-func newHTTPRegistry(schemaPathTemplate string, strict bool) *KubernetesRegistry {
+func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *KubernetesRegistry {
+	if skipTLS {
+		http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	}
+
 	return &KubernetesRegistry{
 		schemaPathTemplate: schemaPathTemplate,
 		strict:             strict,

@@ -53,6 +53,8 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -h    show help information
   -ignore-missing-schemas
         skip files with missing schemas instead of failing
+  -insecure-skip-tls-verify
+        disable verification of the server's SSL certificate. This will make your HTTPS connections insecure
   -kubernetes-version string
         version of Kubernetes to validate against (default "1.18.0")
   -n int

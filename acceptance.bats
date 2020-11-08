@@ -166,3 +166,9 @@
   [ "$status" -eq 1 ]
   [ "$output" = "fixtures/valid.yaml - ReplicationController bob failed validation: prohibited resource kind ReplicationController" ]
 }
+
+@test "Ignores file that match the --ignore-filename-pattern given" {
+  run bin/kubeconform -summary --ignore-filename-pattern 'crd' --ignore-filename-pattern '.*invalid.*' fixtures/multi_invalid.yaml fixtures/list_invalid.yaml fixtures/quantity.yaml fixtures/crd_schema.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0" ]
+}

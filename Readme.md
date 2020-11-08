@@ -51,6 +51,8 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -exit-on-error
         immediately stop execution when the first error is encountered
   -h    show help information
+  -ignore-filename-pattern value
+        regular expression specifying paths to ignore (can be specified multiple times)
   -ignore-missing-schemas
         skip files with missing schemas instead of failing
   -insecure-skip-tls-verify

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -27,7 +28,20 @@ func (de DiscoveryError) Error() string {
 	return de.Err.Error()
 }
 
-func FromFiles(ctx context.Context, paths ...string) (<-chan Resource, <-chan error) {
+func isIgnored(path string, ignoreFilePatterns []string) (bool, error) {
+	for _, p := range ignoreFilePatterns {
+		m, err := regexp.MatchString(p, path)
+		if err != nil {
+			return false, err
+		}
+		if m {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string) (<-chan Resource, <-chan error) {
 	resources := make(chan Resource)
 	errors := make(chan error)
 	stop := false
@@ -50,6 +64,14 @@ func FromFiles(ctx context.Context, paths ...string) (<-chan Resource, <-chan er
 				}
 
 				if !isYAMLFile(i) && !isJSONFile(i) {
+					return nil
+				}
+
+				ignored, err := isIgnored(path, ignoreFilePatterns)
+				if err != nil {
+					return err
+				}
+				if ignored {
 					return nil
 				}
 

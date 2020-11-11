@@ -43,21 +43,18 @@ func isIgnored(path string, ignoreFilePatterns []string) (bool, error) {
 func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string) (<-chan Resource, <-chan error) {
 	resources := make(chan Resource)
 	errors := make(chan error)
-	stop := false
-
-	go func() {
-		<-ctx.Done()
-		stop = true
-	}()
 
 	go func() {
 		for _, path := range paths {
 			// we handle errors in the walk function directly
 			// so it should be safe to discard the outer error
 			err := filepath.Walk(path, func(p string, i os.FileInfo, err error) error {
-				if stop == true {
+				select {
+				case <-ctx.Done():
 					return io.EOF
+				default:
 				}
+
 				if err != nil {
 					return err
 				}

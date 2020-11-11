@@ -42,20 +42,17 @@ func SplitYAMLDocument(data []byte, atEOF bool) (advance int, token []byte, err 
 func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource, <-chan error) {
 	resources := make(chan Resource)
 	errors := make(chan error)
-	stop := false
-
-	go func() {
-		<-ctx.Done()
-		stop = true
-	}()
 
 	go func() {
 		scanner := bufio.NewScanner(r)
 		scanner.Split(SplitYAMLDocument)
 
+	SCAN:
 		for res := scanner.Scan(); res != false; res = scanner.Scan() {
-			if stop == true {
-				break
+			select {
+			case <-ctx.Done():
+				break SCAN
+			default:
 			}
 			resources <- Resource{Path: path, Bytes: scanner.Bytes()}
 		}

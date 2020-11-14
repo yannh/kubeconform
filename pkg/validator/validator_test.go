@@ -135,7 +135,7 @@ lastName: bar
 		},
 	} {
 		v := Validator{
-			opts: &Opts{
+			opts: Opts{
 				SkipKinds:   map[string]bool{},
 				RejectKinds: map[string]bool{},
 			},

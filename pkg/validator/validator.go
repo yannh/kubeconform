@@ -22,7 +22,7 @@ const (
 )
 
 type Validator struct {
-	opts           *Opts
+	opts           Opts
 	schemaCache    *cache.SchemaCache
 	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error)
 	regs           []registry.Registry
@@ -58,7 +58,7 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
 }
 
-func New(schemaLocations []string, opts *Opts) *Validator {
+func New(schemaLocations []string, opts Opts) *Validator {
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
 		registries = append(registries, registry.New(schemaLocation, opts.Strict, opts.SkipTLS))

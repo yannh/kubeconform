@@ -65,7 +65,7 @@ func realMain() int {
 		return 1
 	}
 
-	v := validator.New(cfg.SchemaLocations, &validator.Opts{
+	v := validator.New(cfg.SchemaLocations, validator.Opts{
 		SkipTLS:              cfg.SkipTLS,
 		SkipKinds:            cfg.SkipKinds,
 		RejectKinds:          cfg.RejectKinds,

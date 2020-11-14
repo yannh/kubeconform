@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"fmt"
+	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
 	"testing"
 
@@ -12,11 +12,12 @@ func TestValidate(t *testing.T) {
 	for i, testCase := range []struct {
 		name                string
 		rawResource, schema []byte
-		expect              error
+		expect              Status
 	}{
 		{
 			"valid resource",
 			[]byte(`
+Kind: name
 firstName: foo
 lastName: bar
 `),
@@ -24,6 +25,9 @@ lastName: bar
   "title": "Example Schema",
   "type": "object",
   "properties": {
+    "Kind": {
+      "type": "string"
+    },
     "firstName": {
       "type": "string"
     },
@@ -38,11 +42,12 @@ lastName: bar
   },
   "required": ["firstName", "lastName"]
 }`),
-			nil,
+			Valid,
 		},
 		{
 			"invalid resource",
 			[]byte(`
+Kind: name
 firstName: foo
 lastName: bar
 `),
@@ -50,6 +55,9 @@ lastName: bar
   "title": "Example Schema",
   "type": "object",
   "properties": {
+    "Kind": {
+      "type": "string"
+    },
     "firstName": {
       "type": "number"
     },
@@ -64,17 +72,21 @@ lastName: bar
   },
   "required": ["firstName", "lastName"]
 }`),
-			fmt.Errorf("Invalid type. Expected: number, given: string"),
+			Invalid,
 		},
 		{
 			"missing required field",
 			[]byte(`
+Kind: name
 firstName: foo
 `),
 			[]byte(`{
   "title": "Example Schema",
   "type": "object",
   "properties": {
+    "Kind": {
+      "type": "string"
+    },
     "firstName": {
       "type": "string"
     },
@@ -89,11 +101,12 @@ firstName: foo
   },
   "required": ["firstName", "lastName"]
 }`),
-			fmt.Errorf("lastName is required"),
+			Invalid,
 		},
 		{
 			"resource has invalid yaml",
 			[]byte(`
+Kind: name
 firstName foo
 lastName: bar
 `),
@@ -101,6 +114,9 @@ lastName: bar
   "title": "Example Schema",
   "type": "object",
   "properties": {
+    "Kind": {
+      "type": "string"
+    },
     "firstName": {
       "type": "number"
     },
@@ -115,15 +131,26 @@ lastName: bar
   },
   "required": ["firstName", "lastName"]
 }`),
-			fmt.Errorf("error unmarshalling resource: error converting YAML to JSON: yaml: line 3: mapping values are not allowed in this context"),
+			Error,
 		},
 	} {
-		schema, err := gojsonschema.NewSchema(gojsonschema.NewBytesLoader(testCase.schema))
-		if err != nil {
-			t.Errorf("failed parsing test schema")
+		v := Validator{
+			opts: Opts{
+				SkipKinds:   map[string]bool{},
+				RejectKinds: map[string]bool{},
+			},
+			schemaCache: nil,
+			schemaDownload: func(_ []registry.Registry, _, _, _ string) (*gojsonschema.Schema, error) {
+				schema, err := gojsonschema.NewSchema(gojsonschema.NewBytesLoader(testCase.schema))
+				if err != nil {
+					t.Errorf("failed parsing test schema")
+				}
+				return schema, nil
+			},
+			regs: nil,
 		}
-		if got := Validate(resource.Resource{Bytes: testCase.rawResource}, schema); ((got.Err == nil) != (testCase.expect == nil)) || (got.Err != nil && (got.Err.Error() != testCase.expect.Error())) {
-			t.Errorf("%d - expected %s, got %s", i, testCase.expect, got.Err)
+		if got := v.Validate(resource.Resource{Bytes: testCase.rawResource}); got.Status != testCase.expect {
+			t.Errorf("%d - expected %d, got %d", i, testCase.expect, got.Status)
 		}
 	}
 }

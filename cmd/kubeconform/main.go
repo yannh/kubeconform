@@ -90,7 +90,7 @@ func realMain() int {
 	wg := sync.WaitGroup{}
 	for i := 0; i < cfg.NumberOfWorkers; i++ {
 		wg.Add(1)
-		go func(resources <-chan resource.Resource, validationResults chan<- validator.Result, v *validator.Validator) {
+		go func(resources <-chan resource.Resource, validationResults chan<- validator.Result, v validator.Validator) {
 			for res := range resources {
 				validationResults <- v.Validate(res)
 			}
@@ -106,7 +106,11 @@ func realMain() int {
 			}
 
 			if err, ok := err.(resource.DiscoveryError); ok {
-				validationResults <- validator.NewError(err.Path, err.Err)
+				validationResults <- validator.Result{
+					Resource: resource.Resource{Path: err.Path},
+					Err:      err.Err,
+					Status:   validator.Error,
+				}
 				ctx.Done()
 			}
 		}

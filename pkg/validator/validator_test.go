@@ -134,7 +134,7 @@ lastName: bar
 			Error,
 		},
 	} {
-		v := Validator{
+		val := v{
 			opts: Opts{
 				SkipKinds:   map[string]bool{},
 				RejectKinds: map[string]bool{},
@@ -149,7 +149,7 @@ lastName: bar
 			},
 			regs: nil,
 		}
-		if got := v.Validate(resource.Resource{Bytes: testCase.rawResource}); got.Status != testCase.expect {
+		if got := val.Validate(resource.Resource{Bytes: testCase.rawResource}); got.Status != testCase.expect {
 			t.Errorf("%d - expected %d, got %d", i, testCase.expect, got.Status)
 		}
 	}

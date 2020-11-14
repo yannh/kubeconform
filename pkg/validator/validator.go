@@ -21,11 +21,15 @@ const (
 	Empty
 )
 
-type Validator struct {
-	opts           Opts
-	schemaCache    *cache.SchemaCache
-	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error)
-	regs           []registry.Registry
+// Result contains the details of the result of a resource validation
+type Result struct {
+	Resource resource.Resource
+	Err      error
+	Status   Status
+}
+
+type Validator interface {
+	Validate(res resource.Resource) Result
 }
 
 type Opts struct {
@@ -37,28 +41,7 @@ type Opts struct {
 	IgnoreMissingSchemas bool
 }
 
-func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error) {
-	var err error
-	var schemaBytes []byte
-
-	for _, reg := range registries {
-		schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
-		if err == nil {
-			return gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
-		}
-
-		// If we get a 404, we try the next registry, but we exit if we get a real failure
-		if _, notfound := err.(*registry.NotFoundError); notfound {
-			continue
-		}
-
-		return nil, err
-	}
-
-	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
-}
-
-func New(schemaLocations []string, opts Opts) *Validator {
+func New(schemaLocations []string, opts Opts) Validator {
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
 		registries = append(registries, registry.New(schemaLocation, opts.Strict, opts.SkipTLS))
@@ -71,7 +54,7 @@ func New(schemaLocations []string, opts Opts) *Validator {
 		opts.RejectKinds = map[string]bool{}
 	}
 
-	return &Validator{
+	return &v{
 		opts:           opts,
 		schemaDownload: downloadSchema,
 		schemaCache:    cache.New(),
@@ -79,14 +62,21 @@ func New(schemaLocations []string, opts Opts) *Validator {
 	}
 }
 
-func (v *Validator) Validate(res resource.Resource) Result {
+type v struct {
+	opts           Opts
+	schemaCache    *cache.SchemaCache
+	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error)
+	regs           []registry.Registry
+}
+
+func (val *v) Validate(res resource.Resource) Result {
 	skip := func(signature resource.Signature) bool {
-		isSkipKind, ok := v.opts.SkipKinds[signature.Kind]
+		isSkipKind, ok := val.opts.SkipKinds[signature.Kind]
 		return ok && isSkipKind
 	}
 
 	reject := func(signature resource.Signature) bool {
-		_, ok := v.opts.RejectKinds[signature.Kind]
+		_, ok := val.opts.RejectKinds[signature.Kind]
 		return ok
 	}
 
@@ -111,38 +101,34 @@ func (v *Validator) Validate(res resource.Resource) Result {
 	var schema *gojsonschema.Schema
 	cacheKey := ""
 
-	if v.schemaCache != nil {
-		cacheKey = cache.Key(sig.Kind, sig.Version, v.opts.KubernetesVersion)
-		schema, cached = v.schemaCache.Get(cacheKey)
+	if val.schemaCache != nil {
+		cacheKey = cache.Key(sig.Kind, sig.Version, val.opts.KubernetesVersion)
+		schema, cached = val.schemaCache.Get(cacheKey)
 	}
 
 	if !cached {
-		if schema, err = v.schemaDownload(v.regs, sig.Kind, sig.Version, v.opts.KubernetesVersion); err != nil {
+		if schema, err = val.schemaDownload(val.regs, sig.Kind, sig.Version, val.opts.KubernetesVersion); err != nil {
 			return Result{Resource: res, Err: err, Status: Error}
 		}
 
-		if v.schemaCache != nil {
-			v.schemaCache.Set(cacheKey, schema)
+		if val.schemaCache != nil {
+			val.schemaCache.Set(cacheKey, schema)
 		}
 	}
 
 	if schema == nil {
-		if v.opts.IgnoreMissingSchemas {
+		if val.opts.IgnoreMissingSchemas {
 			return Result{Resource: res, Err: nil, Status: Skipped}
 		} else {
 			return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
 		}
 	}
 
-	if schema == nil {
-		return Result{Resource: res, Status: Skipped, Err: nil}
-	}
-
-	var resource map[string]interface{}
-	if err := yaml.Unmarshal(res.Bytes, &resource); err != nil {
+	var r map[string]interface{}
+	if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
 		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
 	}
-	resourceLoader := gojsonschema.NewGoLoader(resource)
+	resourceLoader := gojsonschema.NewGoLoader(r)
 
 	results, err := schema.Validate(resourceLoader)
 	if err != nil {
@@ -165,14 +151,25 @@ func (v *Validator) Validate(res resource.Resource) Result {
 	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg)}
 }
 
-// ValidFormat is a type for quickly forcing
-// new formats on the gojsonschema loader
-type ValidFormat struct{}
+func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error) {
+	var err error
+	var schemaBytes []byte
 
-// ValidFormat is a type for quickly forcing
-// new formats on the gojsonschema loader
-func (f ValidFormat) IsFormat(input interface{}) bool {
-	return true
+	for _, reg := range registries {
+		schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
+		if err == nil {
+			return gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
+		}
+
+		// If we get a 404, we try the next registry, but we exit if we get a real failure
+		if _, notfound := err.(*registry.NotFoundError); notfound {
+			continue
+		}
+
+		return nil, err
+	}
+
+	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
 }
 
 // From kubeval - let's see if absolutely necessary
@@ -182,19 +179,3 @@ func (f ValidFormat) IsFormat(input interface{}) bool {
 // 	gojsonschema.FormatCheckers.Add("int32", ValidFormat{})
 // 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
 // }
-
-// Result contains the details of the result of a resource validation
-type Result struct {
-	Resource resource.Resource
-	Err      error
-	Status   Status
-}
-
-// NewError is a utility function to generate a validation error
-func NewError(filename string, err error) Result {
-	return Result{
-		Resource: resource.Resource{Path: filename},
-		Err:      err,
-		Status:   Error,
-	}
-}

@@ -199,6 +199,8 @@ sys	0m1,069s
 Kubeconform contains a package that can be used as a library.
 An example of usage can be found in [examples/main.go](examples/main.go)
 
+Additional documentation on [pkg.go.dev](https://pkg.go.dev/github.com/yannh/kubeconform/pkg/validator)
+
 ### Credits
 
  * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and

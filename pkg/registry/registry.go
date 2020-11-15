@@ -73,7 +73,7 @@ func New(schemaLocation string, strict bool, skipTLS bool) (Registry, error) {
 		schemaLocation += "/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 	}
 
-	// We try a fake compilation of the schemaLocation template to ensure it is valid
+	// try to compile the schemaLocation template to ensure it is valid
 	if _, err := schemaPath(schemaLocation, "Deployment", "v1", "1.18.0", true); err != nil {
 		return nil, fmt.Errorf("failed initialising schema location registry: %s", err)
 	}

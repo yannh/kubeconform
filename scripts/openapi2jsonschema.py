@@ -4,6 +4,7 @@
 import yaml
 import json
 import sys
+import os
 import urllib.request
 
 def iteritems(d):
@@ -91,14 +92,37 @@ if len(sys.argv) == 0:
     print("missing file")
     exit(1)
 
-if sys.argv[1].startswith("http"):
-  f = urllib.request.urlopen(sys.argv[1])
-else:
-  f = open(sys.argv[1])
-with f:
-    y = yaml.load(f, Loader=yaml.SafeLoader)
-    schema = y["spec"]["validation"]["openAPIV3Schema"]
-    schema = additional_properties(schema)
-    schema = replace_int_or_string(schema)
-    print(json.dumps(schema))
-    exit(0)
+for crdFile in sys.argv[1:]:
+  if crdFile.startswith("http"):
+    f = urllib.request.urlopen(crdFile)
+  else:
+    f = open(crdFile)
+  with f:
+      y = yaml.load(f, Loader=yaml.SafeLoader)
+      filename = ""
+      schemaJSON = ""
+      if "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
+          filename = y["spec"]["names"]["kind"].lower()+"_"+y["spec"]["version"].lower()+".json"
+
+          schema = y["spec"]["validation"]["openAPIV3Schema"]
+          schema = additional_properties(schema)
+          schema = replace_int_or_string(schema)
+          schemaJSON = json.dumps(schema)
+      elif "spec" in y and "versions" in y["spec"]:
+          for version in y["spec"]["versions"]:
+              if "schema" in version and "openAPIV3Schema" in version["schema"]:
+                  filename = y["spec"]["names"]["kind"].lower()+"_"+version["name"].lower()+".json"
+
+                  schema = version["schema"]["openAPIV3Schema"]
+                  schema = additional_properties(schema)
+                  schema = replace_int_or_string(schema)
+                  schemaJSON = json.dumps(schema)
+
+      # Dealing with user input here..
+      filename = os.path.basename(filename)
+      f = open(filename, "w")
+      f.write(schemaJSON)
+      f.close()
+      print("JSON schema written to {filename}".format(filename=filename))
+
+exit(0)

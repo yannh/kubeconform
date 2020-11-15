@@ -45,14 +45,16 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 	}
 
 	tplData := struct {
-		NormalizedVersion string
-		StrictSuffix      string
-		ResourceKind      string
-		KindSuffix        string
+		NormalizedKubernetesVersion string
+		StrictSuffix                string
+		ResourceKind                string
+		ResourceAPIVersion          string
+		KindSuffix                  string
 	}{
 		normalisedVersion,
 		strictSuffix,
 		strings.ToLower(resourceKind),
+		groupParts[len(groupParts)-1],
 		kindSuffix,
 	}
 

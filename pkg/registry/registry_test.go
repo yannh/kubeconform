@@ -11,7 +11,7 @@ func TestSchemaPath(t *testing.T) {
 		errExpected                                                 error
 	}{
 		{
-			"https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
+			"https://kubernetesjsonschema.dev/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
 			"Deployment",
 			"apps/v1",
 			"1.16.0",
@@ -20,7 +20,7 @@ func TestSchemaPath(t *testing.T) {
 			nil,
 		},
 		{
-			"https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
+			"https://kubernetesjsonschema.dev/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
 			"Deployment",
 			"apps/v1",
 			"1.16.0",
@@ -29,7 +29,7 @@ func TestSchemaPath(t *testing.T) {
 			nil,
 		},
 		{
-			"https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
+			"https://kubernetesjsonschema.dev/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
 			"Service",
 			"v1",
 			"1.18.0",
@@ -38,7 +38,7 @@ func TestSchemaPath(t *testing.T) {
 			nil,
 		},
 		{
-			"https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
+			"https://kubernetesjsonschema.dev/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json",
 			"Service",
 			"v1",
 			"master",

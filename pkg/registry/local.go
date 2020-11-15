@@ -36,7 +36,6 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 	if err != nil {
 		return []byte{}, nil
 	}
-
 	f, err := os.Open(schemaFile)
 	if err != nil {
 		if os.IsNotExist(err) {

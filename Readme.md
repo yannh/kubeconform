@@ -142,7 +142,7 @@ All 3 following command lines are equivalent:
 ```
 $ ./bin/kubeconform fixtures/valid.yaml
 $ ./bin/kubeconform -schema-location https://kubernetesjsonschema.dev fixtures/valid.yaml
-$ ./bin/kubeconform -schema-location 'https://kubernetesjsonschema.dev/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+$ ./bin/kubeconform -schema-location 'https://kubernetesjsonschema.dev/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
 ```
 
 To support validating CRDs, we need to convert OpenAPI files to JSON schema, storing the JSON schemas
@@ -157,9 +157,16 @@ You can validate Openshift manifests using a custom schema location. Set the Ope
 against using -kubernetes-version.
 
 ```
-bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
+bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
 Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 ```
+
+Here are the variables you can use in -schema-location:
+ * *NormalizedKubernetesVersion* - Kubernetes Version, prefixed by v
+ * *StrictSuffix* - "-strict" or "" depending on whether validation is running in strict mode or not
+ * *ResourceKind* - Kind of the Kubernetes Resource
+ * *ResourceAPIVersion* - Version of API used for the resource - "v1" in "apiVersion: monitoring.coreos.com/v1"
+ * *KindSuffix* - suffix computed from apiVersion - for compatibility with Kubeval schema registries
 
 ### Converting an OpenAPI file to a JSON Schema
 
@@ -168,7 +175,8 @@ first needs to be converted to JSON Schema. A script is provided to convert thes
 to JSON schema. Here is an example how to use it:
 
 ```
-$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml > fixtures/registry/trainingjob-sagemaker-v1.json
+$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+JSON schema written to trainingjob_v1.json
 ```
 
 ### Speed comparison with Kubeval

@@ -77,6 +77,9 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 				}
 
 				scanner := bufio.NewScanner(f)
+				const maxResourceSize = 4 * 1024 * 1024 // 4MB ought to be enough for everybody
+				buf := make([]byte, maxResourceSize)
+				scanner.Buffer(buf, maxResourceSize)
 				scanner.Split(SplitYAMLDocument)
 				nRes := 0
 				for res := scanner.Scan(); res != false; res = scanner.Scan() {

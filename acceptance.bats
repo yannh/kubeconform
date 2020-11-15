@@ -82,11 +82,6 @@
    [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
-@test "Fail when parsing a config with additional properties and strict set" {
-  run bin/kubeconform -strict -kubernetes-version 1.16.0 fixtures/extra_property.yaml
-  [ "$status" -eq 1 ]
-}
-
 @test "Fail when parsing a config with CRD" {
   run bin/kubeconform fixtures/test_crd.yaml
   [ "$status" -eq 1 ]
@@ -106,6 +101,11 @@
   run bin/kubeconform -summary fixtures/extra_property.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
+}
+
+@test "Fail when parsing a config with additional properties and strict set" {
+  run bin/kubeconform -strict -kubernetes-version 1.16.0 fixtures/extra_property.yaml
+  [ "$status" -eq 1 ]
 }
 
 @test "Pass when using a valid, preset -schema-location" {

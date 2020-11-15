@@ -149,7 +149,7 @@ lastName: bar
 			},
 			regs: nil,
 		}
-		if got := val.Validate(resource.Resource{Bytes: testCase.rawResource}); got.Status != testCase.expect {
+		if got := val.ValidateResource(resource.Resource{Bytes: testCase.rawResource}); got.Status != testCase.expect {
 			t.Errorf("%d - expected %d, got %d", i, testCase.expect, got.Status)
 		}
 	}

@@ -88,10 +88,6 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	c.RejectKinds = splitCSV(rejectKindsCSV)
 	c.IgnoreFilenamePatterns = ignoreFilenamePatterns
 	c.SchemaLocations = schemaLocationsParam
-	if len(c.SchemaLocations) == 0 {
-		c.SchemaLocations = append(c.SchemaLocations, "https://kubernetesjsonschema.dev") // if not specified, default behaviour is to use kubernetesjson-schema.dev as registry
-	}
-
 	c.Files = flags.Args()
 
 	if c.Help {

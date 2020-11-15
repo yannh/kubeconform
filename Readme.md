@@ -191,6 +191,13 @@ sys	0m1,069s
 
 ```
 
+### Using kubeconform as a Go Module
+
+**Warning**: This is a work-in-progress, the interface is not yet considered stable. Feedback is encouraged.
+
+Kubeconform contains a package that can be used as a library.
+An example of usage can be found in [examples/main.go](examples/main.go)
+
 ### Credits
 
  * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and

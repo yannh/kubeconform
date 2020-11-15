@@ -74,25 +74,25 @@ func realMain() int {
 		IgnoreMissingSchemas: cfg.IgnoreMissingSchemas,
 	})
 
-	var resourcesChan <-chan resource.Resource
-	var errors <-chan error
 	validationResults := make(chan validator.Result)
-
 	ctx := context.Background()
 	successChan := processResults(ctx, o, validationResults, cfg.ExitOnError)
 
+	var resourcesChan <-chan resource.Resource
+	var errors <-chan error
 	if isStdin {
 		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
 	} else {
 		resourcesChan, errors = resource.FromFiles(ctx, cfg.IgnoreFilenamePatterns, cfg.Files...)
 	}
 
+	// Process discovered resources across multiple workers
 	wg := sync.WaitGroup{}
 	for i := 0; i < cfg.NumberOfWorkers; i++ {
 		wg.Add(1)
 		go func(resources <-chan resource.Resource, validationResults chan<- validator.Result, v validator.Validator) {
 			for res := range resources {
-				validationResults <- v.Validate(res)
+				validationResults <- v.ValidateResource(res)
 			}
 			wg.Done()
 		}(resourcesChan, validationResults, v)
@@ -100,6 +100,7 @@ func realMain() int {
 
 	wg.Add(1)
 	go func() {
+		// Process errors while discovering resources
 		for err := range errors {
 			if err == nil {
 				continue
@@ -111,8 +112,14 @@ func realMain() int {
 					Err:      err.Err,
 					Status:   validator.Error,
 				}
-				ctx.Done()
+			} else {
+				validationResults <- validator.Result{
+					Resource: resource.Resource{},
+					Err:      err,
+					Status:   validator.Error,
+				}
 			}
+			ctx.Done()
 		}
 		wg.Done()
 	}()

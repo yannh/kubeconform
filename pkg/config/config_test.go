@@ -52,7 +52,7 @@ func TestFromFlags(t *testing.T) {
 				KubernetesVersion: "1.18.0",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
-				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SchemaLocations:   nil,
 				SkipKinds:         map[string]bool{},
 				RejectKinds:       map[string]bool{},
 			},
@@ -65,7 +65,7 @@ func TestFromFlags(t *testing.T) {
 				KubernetesVersion: "1.18.0",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
-				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SchemaLocations:   nil,
 				SkipKinds:         map[string]bool{},
 				RejectKinds:       map[string]bool{},
 			},
@@ -77,7 +77,7 @@ func TestFromFlags(t *testing.T) {
 				KubernetesVersion: "1.18.0",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
-				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SchemaLocations:   nil,
 				SkipKinds:         map[string]bool{"a": true, "b": true, "c": true},
 				RejectKinds:       map[string]bool{},
 			},
@@ -89,7 +89,7 @@ func TestFromFlags(t *testing.T) {
 				KubernetesVersion: "1.18.0",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
-				SchemaLocations:   []string{"https://kubernetesjsonschema.dev"},
+				SchemaLocations:   nil,
 				SkipKinds:         map[string]bool{},
 				RejectKinds:       map[string]bool{},
 				Summary:           true,
@@ -116,10 +116,10 @@ func TestFromFlags(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range testCases {
+	for i, testCase := range testCases {
 		cfg, _, _ := FromFlags("kubeconform", testCase.args)
 		if reflect.DeepEqual(cfg, testCase.conf) != true {
-			t.Errorf("failed parsing config - expected , got: \n%+v\n%+v", testCase.conf, cfg)
+			t.Errorf("test %d: failed parsing config - expected , got: \n%+v\n%+v", i, testCase.conf, cfg)
 		}
 	}
 }

@@ -1,10 +1,12 @@
 package validator
 
 import (
+	"context"
 	"fmt"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
+	"io"
 
 	"github.com/xeipuuv/gojsonschema"
 	"sigs.k8s.io/yaml"
@@ -29,7 +31,8 @@ type Result struct {
 }
 
 type Validator interface {
-	Validate(res resource.Resource) Result
+	ValidateResource(res resource.Resource) Result
+	Validate(filename string, r io.Reader) []Result
 }
 
 type Opts struct {
@@ -42,9 +45,18 @@ type Opts struct {
 }
 
 func New(schemaLocations []string, opts Opts) Validator {
+	// Default to kubernetesjsonschema.dev
+	if schemaLocations == nil || len(schemaLocations) == 0 {
+		schemaLocations = []string{"https://kubernetesjsonschema.dev"}
+	}
+
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
 		registries = append(registries, registry.New(schemaLocation, opts.Strict, opts.SkipTLS))
+	}
+
+	if opts.KubernetesVersion == "" {
+		opts.KubernetesVersion = "1.18.0"
 	}
 
 	if opts.SkipKinds == nil {
@@ -69,7 +81,7 @@ type v struct {
 	regs           []registry.Registry
 }
 
-func (val *v) Validate(res resource.Resource) Result {
+func (val *v) ValidateResource(res resource.Resource) Result {
 	skip := func(signature resource.Signature) bool {
 		isSkipKind, ok := val.opts.SkipKinds[signature.Kind]
 		return ok && isSkipKind
@@ -149,6 +161,33 @@ func (val *v) Validate(res resource.Resource) Result {
 	}
 
 	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg)}
+}
+
+func (val *v) ValidateWithContext(ctx context.Context, filename string, r io.Reader) []Result {
+	validationResults := []Result{}
+	resourcesChan, _ := resource.FromStream(ctx, filename, r)
+	for {
+		select {
+		case res, ok := <-resourcesChan:
+			validationResults = append(validationResults, val.ValidateResource(res))
+			if !ok {
+				resourcesChan = nil
+			}
+
+		case <-ctx.Done():
+			break
+		}
+
+		if resourcesChan == nil {
+			break
+		}
+	}
+
+	return validationResults
+}
+
+func (val *v) Validate(filename string, r io.Reader) []Result {
+	return val.ValidateWithContext(context.Background(), filename, r)
 }
 
 func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error) {

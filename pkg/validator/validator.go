@@ -105,13 +105,13 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return ok
 	}
 
+	if len(res.Bytes) == 0 {
+		return Result{Resource: res, Err: nil, Status: Empty}
+	}
+
 	sig, err := res.Signature()
 	if err != nil {
 		return Result{Resource: res, Err: fmt.Errorf("error while parsing: %s", err), Status: Error}
-	}
-
-	if sig.Kind == "" {
-		return Result{Resource: res, Err: nil, Status: Empty}
 	}
 
 	if skip(*sig) {
@@ -120,6 +120,19 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 
 	if reject(*sig) {
 		return Result{Resource: res, Err: fmt.Errorf("prohibited resource kind %s", sig.Kind), Status: Error}
+	}
+
+	var r map[string]interface{}
+	if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
+		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
+	}
+
+	if r == nil { // Resource is empty
+		return Result{Resource: res, Err: nil, Status: Empty}
+	}
+
+	if sig.Kind == "" && r != nil { // Resource contains key/values but no Kind
+		return Result{Resource: res, Err: fmt.Errorf("resource missing a Kind"), Status: Error}
 	}
 
 	cached := false
@@ -149,10 +162,6 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		}
 	}
 
-	var r map[string]interface{}
-	if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
-		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
-	}
 	resourceLoader := gojsonschema.NewGoLoader(r)
 
 	results, err := schema.Validate(resourceLoader)

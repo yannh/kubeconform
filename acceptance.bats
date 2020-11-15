@@ -82,6 +82,12 @@
    [ "$output" = "Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
+@test "Fail when parsing a config that is missing a Kind" {
+   run bin/kubeconform -summary fixtures/missing_kind.yaml
+   [ "$status" -eq 1 ]
+   [[ "$output" = *resource\ missing\ a\ Kind* ]]
+}
+
 @test "Fail when parsing a config with CRD" {
   run bin/kubeconform fixtures/test_crd.yaml
   [ "$status" -eq 1 ]

@@ -69,7 +69,7 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 
 func New(schemaLocation string, strict bool, skipTLS bool) Registry {
 	if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of kubernetesjsonschema.dev
-		schemaLocation += "/{{ .NormalizedVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
+		schemaLocation += "/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 	}
 
 	if strings.HasPrefix(schemaLocation, "http") {

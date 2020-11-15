@@ -19,8 +19,11 @@ func main() {
 	v := validator.New(nil, validator.Opts{Strict: true})
 	for i, res := range v.Validate(filepath, f) { // A file might contain multiple resources
 		// File starts with ---, the parser assumes a first empty resource
-		if res.Status != validator.Valid && res.Status != validator.Empty {
-			log.Fatalf("resource %d in file %s is not valid: %d, %s", i, filepath, res.Status, res.Err)
+		if res.Status == validator.Invalid {
+			log.Fatalf("resource %d in file %s is not valid: %s", i, filepath, res.Err)
+		}
+		if res.Status == validator.Error {
+			log.Fatalf("error while processing resource %d in file %s: %s", i, filepath, res.Err)
 		}
 	}
 }

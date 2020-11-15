@@ -1,9 +1,10 @@
 package validator
 
 import (
+	"testing"
+
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
-	"testing"
 
 	"github.com/xeipuuv/gojsonschema"
 )
@@ -136,8 +137,8 @@ lastName: bar
 	} {
 		val := v{
 			opts: Opts{
-				SkipKinds:   map[string]bool{},
-				RejectKinds: map[string]bool{},
+				SkipKinds:   map[string]struct{}{},
+				RejectKinds: map[string]struct{}{},
 			},
 			schemaCache: nil,
 			schemaDownload: func(_ []registry.Registry, _, _, _ string) (*gojsonschema.Schema, error) {

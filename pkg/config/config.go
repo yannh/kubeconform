@@ -13,8 +13,8 @@ type Config struct {
 	Files                  []string
 	SchemaLocations        []string
 	SkipTLS                bool
-	SkipKinds              map[string]bool
-	RejectKinds            map[string]bool
+	SkipKinds              map[string]struct{}
+	RejectKinds            map[string]struct{}
 	OutputFormat           string
 	KubernetesVersion      string
 	NumberOfWorkers        int
@@ -37,13 +37,13 @@ func (ap *arrayParam) Set(value string) error {
 	return nil
 }
 
-func splitCSV(csvStr string) map[string]bool {
+func splitCSV(csvStr string) map[string]struct{} {
 	splitValues := strings.Split(csvStr, ",")
-	valuesMap := map[string]bool{}
+	valuesMap := map[string]struct{}{}
 
 	for _, kind := range splitValues {
 		if len(kind) > 0 {
-			valuesMap[kind] = true
+			valuesMap[kind] = struct{}{}
 		}
 	}
 

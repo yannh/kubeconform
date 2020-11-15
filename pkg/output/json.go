@@ -3,8 +3,9 @@ package output
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yannh/kubeconform/pkg/validator"
 	"io"
+
+	"github.com/yannh/kubeconform/pkg/validator"
 )
 
 type oresult struct {

@@ -9,27 +9,27 @@ func TestSkipKindMaps(t *testing.T) {
 	for _, testCase := range []struct {
 		name         string
 		csvSkipKinds string
-		expect       map[string]bool
+		expect       map[string]struct{}
 	}{
 		{
 			"nothing to skip",
 			"",
-			map[string]bool{},
+			map[string]struct{}{},
 		},
 		{
 			"a single kind to skip",
 			"somekind",
-			map[string]bool{
-				"somekind": true,
+			map[string]struct{}{
+				"somekind": {},
 			},
 		},
 		{
 			"multiple kinds to skip",
 			"somekind,anotherkind,yetsomeotherkind",
-			map[string]bool{
-				"somekind":         true,
-				"anotherkind":      true,
-				"yetsomeotherkind": true,
+			map[string]struct{}{
+				"somekind":         {},
+				"anotherkind":      {},
+				"yetsomeotherkind": {},
 			},
 		},
 	} {
@@ -53,8 +53,8 @@ func TestFromFlags(t *testing.T) {
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,
-				SkipKinds:         map[string]bool{},
-				RejectKinds:       map[string]bool{},
+				SkipKinds:         map[string]struct{}{},
+				RejectKinds:       map[string]struct{}{},
 			},
 		},
 		{
@@ -66,8 +66,8 @@ func TestFromFlags(t *testing.T) {
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,
-				SkipKinds:         map[string]bool{},
-				RejectKinds:       map[string]bool{},
+				SkipKinds:         map[string]struct{}{},
+				RejectKinds:       map[string]struct{}{},
 			},
 		},
 		{
@@ -78,8 +78,8 @@ func TestFromFlags(t *testing.T) {
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,
-				SkipKinds:         map[string]bool{"a": true, "b": true, "c": true},
-				RejectKinds:       map[string]bool{},
+				SkipKinds:         map[string]struct{}{"a": {}, "b": {}, "c": {}},
+				RejectKinds:       map[string]struct{}{},
 			},
 		},
 		{
@@ -90,8 +90,8 @@ func TestFromFlags(t *testing.T) {
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,
-				SkipKinds:         map[string]bool{},
-				RejectKinds:       map[string]bool{},
+				SkipKinds:         map[string]struct{}{},
+				RejectKinds:       map[string]struct{}{},
 				Summary:           true,
 				Verbose:           true,
 			},
@@ -107,8 +107,8 @@ func TestFromFlags(t *testing.T) {
 				NumberOfWorkers:      2,
 				OutputFormat:         "json",
 				SchemaLocations:      []string{"folder", "anotherfolder"},
-				SkipKinds:            map[string]bool{"kinda": true, "kindb": true},
-				RejectKinds:          map[string]bool{"kindc": true, "kindd": true},
+				SkipKinds:            map[string]struct{}{"kinda": {}, "kindb": {}},
+				RejectKinds:          map[string]struct{}{"kindc": {}, "kindd": {}},
 				Strict:               true,
 				Summary:              true,
 				Verbose:              true,

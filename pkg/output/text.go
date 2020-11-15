@@ -2,9 +2,10 @@ package output
 
 import (
 	"fmt"
-	"github.com/yannh/kubeconform/pkg/validator"
 	"io"
 	"sync"
+
+	"github.com/yannh/kubeconform/pkg/validator"
 )
 
 type texto struct {

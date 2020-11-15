@@ -2,9 +2,10 @@ package output
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/yannh/kubeconform/pkg/resource"
 	"github.com/yannh/kubeconform/pkg/validator"
-	"testing"
 )
 
 func TestTextWrite(t *testing.T) {

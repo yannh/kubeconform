@@ -1,26 +1,29 @@
+// This is the main package to import to embed kubeconform in your software
 package validator
 
 import (
 	"context"
 	"fmt"
+	"io"
+
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
-	"io"
 
 	"github.com/xeipuuv/gojsonschema"
 	"sigs.k8s.io/yaml"
 )
 
+// Different types of validation results
 type Status int
 
 const (
-	_ Status = iota
-	Error
-	Skipped
-	Valid
-	Invalid
-	Empty
+	_       Status = iota
+	Error          // an error occurred processing the file / resource
+	Skipped        // resource has been skipped, for example if its Kind was part of the kinds to skip
+	Valid          // resource is valid
+	Invalid        // resource is invalid
+	Empty          // resource is empty. Note: is triggered for files starting with a --- separator.
 )
 
 // Result contains the details of the result of a resource validation
@@ -30,6 +33,7 @@ type Result struct {
 	Status   Status
 }
 
+// Validator exposes multiple methods to validate your Kubernetes resources.
 type Validator interface {
 	ValidateResource(res resource.Resource) Result
 	Validate(filename string, r io.ReadCloser) []Result
@@ -38,12 +42,12 @@ type Validator interface {
 
 // Opts contains a set of options for the validator.
 type Opts struct {
-	SkipTLS              bool            // skip TLS validation when downloading from an HTTP Schema Registry
-	SkipKinds            map[string]bool // List of resource Kinds to ignore
-	RejectKinds          map[string]bool // List of resource Kinds to reject
-	KubernetesVersion    string          // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
-	Strict               bool            // thros an error if resources contain undocumented fields
-	IgnoreMissingSchemas bool            // skip a resource if no schema for that resource can be found
+	SkipTLS              bool                // skip TLS validation when downloading from an HTTP Schema Registry
+	SkipKinds            map[string]struct{} // List of resource Kinds to ignore
+	RejectKinds          map[string]struct{} // List of resource Kinds to reject
+	KubernetesVersion    string              // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
+	Strict               bool                // thros an error if resources contain undocumented fields
+	IgnoreMissingSchemas bool                // skip a resource if no schema for that resource can be found
 }
 
 // New returns a new Validator
@@ -63,10 +67,10 @@ func New(schemaLocations []string, opts Opts) Validator {
 	}
 
 	if opts.SkipKinds == nil {
-		opts.SkipKinds = map[string]bool{}
+		opts.SkipKinds = map[string]struct{}{}
 	}
 	if opts.RejectKinds == nil {
-		opts.RejectKinds = map[string]bool{}
+		opts.RejectKinds = map[string]struct{}{}
 	}
 
 	return &v{
@@ -88,8 +92,8 @@ type v struct {
 // large resource streams using multiple Go Routines.
 func (val *v) ValidateResource(res resource.Resource) Result {
 	skip := func(signature resource.Signature) bool {
-		isSkipKind, ok := val.opts.SkipKinds[signature.Kind]
-		return ok && isSkipKind
+		_, ok := val.opts.SkipKinds[signature.Kind]
+		return ok
 	}
 
 	reject := func(signature resource.Signature) bool {

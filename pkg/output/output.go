@@ -2,8 +2,9 @@ package output
 
 import (
 	"fmt"
-	"github.com/yannh/kubeconform/pkg/validator"
 	"os"
+
+	"github.com/yannh/kubeconform/pkg/validator"
 )
 
 type Output interface {

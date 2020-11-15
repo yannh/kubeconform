@@ -3,12 +3,13 @@ package resource_test
 import (
 	"bytes"
 	"context"
-	"github.com/yannh/kubeconform/pkg/resource"
 	"io"
 	"reflect"
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/yannh/kubeconform/pkg/resource"
 )
 
 func TestFromStream(t *testing.T) {

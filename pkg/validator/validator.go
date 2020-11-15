@@ -32,18 +32,21 @@ type Result struct {
 
 type Validator interface {
 	ValidateResource(res resource.Resource) Result
-	Validate(filename string, r io.Reader) []Result
+	Validate(filename string, r io.ReadCloser) []Result
+	ValidateWithContext(ctx context.Context, filename string, r io.ReadCloser) []Result
 }
 
+// Opts contains a set of options for the validator.
 type Opts struct {
-	SkipTLS              bool
-	SkipKinds            map[string]bool
-	RejectKinds          map[string]bool
-	KubernetesVersion    string
-	Strict               bool
-	IgnoreMissingSchemas bool
+	SkipTLS              bool            // skip TLS validation when downloading from an HTTP Schema Registry
+	SkipKinds            map[string]bool // List of resource Kinds to ignore
+	RejectKinds          map[string]bool // List of resource Kinds to reject
+	KubernetesVersion    string          // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
+	Strict               bool            // thros an error if resources contain undocumented fields
+	IgnoreMissingSchemas bool            // skip a resource if no schema for that resource can be found
 }
 
+// New returns a new Validator
 func New(schemaLocations []string, opts Opts) Validator {
 	// Default to kubernetesjsonschema.dev
 	if schemaLocations == nil || len(schemaLocations) == 0 {
@@ -81,6 +84,8 @@ type v struct {
 	regs           []registry.Registry
 }
 
+// ValidateResource validates a single resource. This allows to validate
+// large resource streams using multiple Go Routines.
 func (val *v) ValidateResource(res resource.Resource) Result {
 	skip := func(signature resource.Signature) bool {
 		isSkipKind, ok := val.opts.SkipKinds[signature.Kind]
@@ -163,7 +168,9 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg)}
 }
 
-func (val *v) ValidateWithContext(ctx context.Context, filename string, r io.Reader) []Result {
+// ValidateWithContext validates resources found in r
+// filename should be a name for the stream, such as a filename or stdin
+func (val *v) ValidateWithContext(ctx context.Context, filename string, r io.ReadCloser) []Result {
 	validationResults := []Result{}
 	resourcesChan, _ := resource.FromStream(ctx, filename, r)
 	for {
@@ -183,10 +190,13 @@ func (val *v) ValidateWithContext(ctx context.Context, filename string, r io.Rea
 		}
 	}
 
+	r.Close()
 	return validationResults
 }
 
-func (val *v) Validate(filename string, r io.Reader) []Result {
+// Validate validates resources found in r
+// filename should be a name for the stream, such as a filename or stdin
+func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 	return val.ValidateWithContext(context.Background(), filename, r)
 }
 

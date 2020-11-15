@@ -16,7 +16,10 @@ func main() {
 		log.Fatalf("failed opening %s: %s", filepath, err)
 	}
 
-	v := validator.New(nil, validator.Opts{Strict: true})
+	v, err := validator.New(nil, validator.Opts{Strict: true})
+	if err != nil {
+		log.Fatalf("failed initializing validator: %s", err)
+	}
 	for i, res := range v.Validate(filepath, f) { // A file might contain multiple resources
 		// File starts with ---, the parser assumes a first empty resource
 		if res.Status == validator.Invalid {

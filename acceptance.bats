@@ -128,6 +128,13 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Fail early when passing a non valid -schema-location template" {
+  run bin/kubeconform -schema-location 'foo {{ .Foo }}' fixtures/valid.yaml
+  [[ "$output" = failed\ initialising* ]]
+  [[ `echo "$output" | wc -l` -eq 1 ]]
+  [ "$status" -eq 1 ]
+}
+
 @test "Pass with a valid input when validating against openshift manifests" {
   run bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]

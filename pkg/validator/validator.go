@@ -51,7 +51,7 @@ type Opts struct {
 }
 
 // New returns a new Validator
-func New(schemaLocations []string, opts Opts) Validator {
+func New(schemaLocations []string, opts Opts) (Validator, error) {
 	// Default to kubernetesjsonschema.dev
 	if schemaLocations == nil || len(schemaLocations) == 0 {
 		schemaLocations = []string{"https://kubernetesjsonschema.dev"}
@@ -59,7 +59,11 @@ func New(schemaLocations []string, opts Opts) Validator {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
-		registries = append(registries, registry.New(schemaLocation, opts.Strict, opts.SkipTLS))
+		reg, err := registry.New(schemaLocation, opts.Strict, opts.SkipTLS)
+		if err != nil {
+			return nil, err
+		}
+		registries = append(registries, reg)
 	}
 
 	if opts.KubernetesVersion == "" {
@@ -78,7 +82,7 @@ func New(schemaLocations []string, opts Opts) Validator {
 		schemaDownload: downloadSchema,
 		schemaCache:    cache.New(),
 		regs:           registries,
-	}
+	}, nil
 }
 
 type v struct {

@@ -65,7 +65,7 @@ func realMain() int {
 		return 1
 	}
 
-	v := validator.New(cfg.SchemaLocations, validator.Opts{
+	v, err := validator.New(cfg.SchemaLocations, validator.Opts{
 		SkipTLS:              cfg.SkipTLS,
 		SkipKinds:            cfg.SkipKinds,
 		RejectKinds:          cfg.RejectKinds,
@@ -73,6 +73,10 @@ func realMain() int {
 		Strict:               cfg.Strict,
 		IgnoreMissingSchemas: cfg.IgnoreMissingSchemas,
 	})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return 1
+	}
 
 	validationResults := make(chan validator.Result)
 	ctx := context.Background()

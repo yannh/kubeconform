@@ -2,6 +2,7 @@ package registry
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"text/template"
 )
@@ -67,14 +68,19 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 	return buf.String(), nil
 }
 
-func New(schemaLocation string, strict bool, skipTLS bool) Registry {
+func New(schemaLocation string, strict bool, skipTLS bool) (Registry, error) {
 	if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of kubernetesjsonschema.dev
 		schemaLocation += "/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 	}
 
+	// We try a fake compilation of the schemaLocation template to ensure it is valid
+	if _, err := schemaPath(schemaLocation, "Deployment", "v1", "1.18.0", true); err != nil {
+		return nil, fmt.Errorf("failed initialising schema location registry: %s", err)
+	}
+
 	if strings.HasPrefix(schemaLocation, "http") {
-		return newHTTPRegistry(schemaLocation, strict, skipTLS)
+		return newHTTPRegistry(schemaLocation, strict, skipTLS), nil
 	} else {
-		return newLocalRegistry(schemaLocation, strict)
+		return newLocalRegistry(schemaLocation, strict), nil
 	}
 }

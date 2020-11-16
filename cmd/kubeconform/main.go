@@ -12,7 +12,7 @@ import (
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
-func processResults(ctx context.Context, o output.Output, validationResults <-chan validator.Result, exitOnError bool) <-chan bool {
+func processResults(cancel context.CancelFunc, o output.Output, validationResults <-chan validator.Result, exitOnError bool) <-chan bool {
 	success := true
 	result := make(chan bool)
 
@@ -27,7 +27,7 @@ func processResults(ctx context.Context, o output.Output, validationResults <-ch
 				}
 			}
 			if success == false && exitOnError {
-				ctx.Done() // early exit - signal to stop searching for resources
+				cancel() // early exit - signal to stop searching for resources
 				break
 			}
 		}
@@ -36,7 +36,6 @@ func processResults(ctx context.Context, o output.Output, validationResults <-ch
 		}
 
 		result <- success
-		close(result)
 	}()
 
 	return result
@@ -79,8 +78,8 @@ func realMain() int {
 	}
 
 	validationResults := make(chan validator.Result)
-	ctx := context.Background()
-	successChan := processResults(ctx, o, validationResults, cfg.ExitOnError)
+	ctx, cancel := context.WithCancel(context.Background())
+	successChan := processResults(cancel, o, validationResults, cfg.ExitOnError)
 
 	var resourcesChan <-chan resource.Resource
 	var errors <-chan error
@@ -123,7 +122,7 @@ func realMain() int {
 					Status:   validator.Error,
 				}
 			}
-			ctx.Done()
+			cancel()
 		}
 		wg.Done()
 	}()

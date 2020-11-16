@@ -85,7 +85,13 @@
 @test "Fail when parsing a config that is missing a Kind" {
    run bin/kubeconform -summary fixtures/missing_kind.yaml
    [ "$status" -eq 1 ]
-   [[ "$output" = *resource\ missing\ a\ Kind* ]]
+   [[ "$output" == *"resource missing a Kind"* ]]
+}
+
+@test "Fail when parsing a config that is missing a Kind value" {
+   run bin/kubeconform -summary fixtures/missing_kind_value.yaml
+   [ "$status" -eq 1 ]
+   [[ "$output" == *"resource missing a Kind"* ]]
 }
 
 @test "Fail when parsing a config with CRD" {
@@ -136,7 +142,7 @@
 
 @test "Fail early when passing a non valid -schema-location template" {
   run bin/kubeconform -schema-location 'foo {{ .Foo }}' fixtures/valid.yaml
-  [[ "$output" = failed\ initialising* ]]
+  [[ "$output" == "failed initialising"* ]]
   [[ `echo "$output" | wc -l` -eq 1 ]]
   [ "$status" -eq 1 ]
 }

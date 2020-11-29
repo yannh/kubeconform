@@ -8,9 +8,13 @@ import (
 	"time"
 )
 
+type httpGetter interface {
+	Get(url string) (resp *http.Response, err error)
+}
+
 // SchemaRegistry is a file repository (local or remote) that contains JSON schemas for Kubernetes resources
 type SchemaRegistry struct {
-	c                  *http.Client
+	c                  httpGetter
 	schemaPathTemplate string
 	strict             bool
 }

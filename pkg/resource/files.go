@@ -111,8 +111,8 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 			}
 		}
 
-		close(resources)
 		close(errors)
+		close(resources)
 	}()
 
 	return resources, errors

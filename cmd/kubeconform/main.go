@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"runtime/pprof"
 	"sync"
 
@@ -62,6 +63,8 @@ func realMain() int {
 		if err := pprof.StartCPUProfile(f); err != nil {
 			log.Fatal("could not start CPU profile: ", err)
 		}
+		runtime.SetBlockProfileRate(1)
+
 		defer pprof.StopCPUProfile()
 	}
 

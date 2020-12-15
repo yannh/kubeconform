@@ -109,7 +109,12 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: nil, Status: Empty}
 	}
 
-	sig, err := res.Signature()
+	var r map[string]interface{}
+	if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
+		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
+	}
+
+	sig, err := res.SignatureFromMap(r)
 	if err != nil {
 		return Result{Resource: res, Err: fmt.Errorf("error while parsing: %s", err), Status: Error}
 	}
@@ -120,11 +125,6 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 
 	if reject(*sig) {
 		return Result{Resource: res, Err: fmt.Errorf("prohibited resource kind %s", sig.Kind), Status: Error}
-	}
-
-	var r map[string]interface{}
-	if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
-		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
 	}
 
 	if r == nil { // Resource is empty

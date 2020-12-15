@@ -13,6 +13,7 @@ type tapo struct {
 	verbose                             bool
 	results                             []validator.Result
 	nValid, nInvalid, nErrors, nSkipped int
+	index                               int
 }
 
 func tapOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
@@ -29,39 +30,33 @@ func tapOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
 }
 
 // JSON.Write will only write when JSON.Flush has been called
-func (o *tapo) Write(result validator.Result) error {
-	o.results = append(o.results, result)
+func (o *tapo) Write(res validator.Result) error {
+	o.index++
+	switch res.Status {
+	case validator.Valid:
+		sig, _ := res.Resource.Signature()
+		fmt.Fprintf(o.w, "ok %d - %s (%s)\n", o.index, res.Resource.Path, sig.Kind)
+
+	case validator.Invalid:
+		sig, _ := res.Resource.Signature()
+		fmt.Fprintf(o.w, "not ok %d - %s (%s): %s\n", o.index, res.Resource.Path, sig.Kind, res.Err.Error())
+
+	case validator.Empty:
+		fmt.Fprintf(o.w, "ok %d - %s (empty)\n", o.index, res.Resource.Path)
+
+	case validator.Error:
+		fmt.Fprintf(o.w, "not ok %d - %s: %s\n", o.index, res.Resource.Path, res.Err.Error())
+
+	case validator.Skipped:
+		fmt.Fprintf(o.w, "ok %d #skip - %s\n", o.index, res.Resource.Path)
+	}
+
 	return nil
 }
 
 // Flush outputs the results as JSON
 func (o *tapo) Flush() error {
-	var err error
-
-	fmt.Fprintf(o.w, "1..%d\n", len(o.results))
-	for i, res := range o.results {
-		switch res.Status {
-		case validator.Valid:
-			sig, _ := res.Resource.Signature()
-			fmt.Fprintf(o.w, "ok %d - %s (%s)\n", i, res.Resource.Path, sig.Kind)
-
-		case validator.Invalid:
-			sig, _ := res.Resource.Signature()
-			fmt.Fprintf(o.w, "not ok %d - %s (%s): %s\n", i, res.Resource.Path, sig.Kind, res.Err.Error())
-
-		case validator.Empty:
-			fmt.Fprintf(o.w, "ok %d - %s (empty)\n", i, res.Resource.Path)
-
-		case validator.Error:
-			fmt.Fprintf(o.w, "not ok %d - %s: %s\n", i, res.Resource.Path, res.Err.Error())
-
-		case validator.Skipped:
-			fmt.Fprintf(o.w, "ok %d #skip - %s\n", i, res.Resource.Path)
-		}
-	}
-	if err != nil {
-		return err
-	}
+	fmt.Fprintf(o.w, "1..%d\n", o.index)
 
 	return nil
 }

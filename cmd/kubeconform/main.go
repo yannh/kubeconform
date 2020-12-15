@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"runtime/pprof"
 	"sync"
 
 	"github.com/yannh/kubeconform/pkg/config"
@@ -49,6 +51,18 @@ func realMain() int {
 	} else if err != nil {
 		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
 		return 1
+	}
+
+	if cfg.CPUProfileFile != "" {
+		f, err := os.Create(cfg.CPUProfileFile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
 	}
 
 	// Detect whether we have data being piped through stdin

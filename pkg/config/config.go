@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	CPUProfileFile         string
 	ExitOnError            bool
 	Files                  []string
 	SchemaLocations        []string
@@ -74,6 +75,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.StringVar(&c.OutputFormat, "output", "text", "output format - json, tap, text")
 	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources")
 	flags.BoolVar(&c.SkipTLS, "insecure-skip-tls-verify", false, "disable verification of the server's SSL certificate. This will make your HTTPS connections insecure")
+	flags.StringVar(&c.CPUProfileFile, "cpu-prof", "", "debug - log CPU profiling to file")
 	flags.BoolVar(&c.Help, "h", false, "show help information")
 	flags.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", progName)

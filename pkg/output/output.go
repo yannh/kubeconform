@@ -16,11 +16,13 @@ func New(outputFormat string, printSummary, isStdin, verbose bool) (Output, erro
 	w := os.Stdout
 
 	switch {
-	case outputFormat == "text":
-		return textOutput(w, printSummary, isStdin, verbose), nil
 	case outputFormat == "json":
 		return jsonOutput(w, printSummary, isStdin, verbose), nil
+	case outputFormat == "tap":
+		return tapOutput(w, printSummary, isStdin, verbose), nil
+	case outputFormat == "text":
+		return textOutput(w, printSummary, isStdin, verbose), nil
 	default:
-		return nil, fmt.Errorf("`outputFormat` must be 'text' or 'json'")
+		return nil, fmt.Errorf("`outputFormat` must be 'json', 'tap' or 'text'")
 	}
 }

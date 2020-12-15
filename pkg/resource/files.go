@@ -42,6 +42,7 @@ func isIgnored(path string, ignoreFilePatterns []string) (bool, error) {
 
 func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string) (<-chan Resource, <-chan error) {
 	resources := make(chan Resource)
+	files := make(chan string)
 	errors := make(chan error)
 
 	go func() {
@@ -71,33 +72,42 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 					return nil
 				}
 
-				f, err := os.Open(p)
-				if err != nil {
-					return err
-				}
-
-				scanner := bufio.NewScanner(f)
-				const maxResourceSize = 4 * 1024 * 1024 // 4MB ought to be enough for everybody
-				buf := make([]byte, maxResourceSize)
-				scanner.Buffer(buf, maxResourceSize)
-				scanner.Split(SplitYAMLDocument)
-				nRes := 0
-				for res := scanner.Scan(); res != false; res = scanner.Scan() {
-					resources <- Resource{Path: p, Bytes: scanner.Bytes()}
-					nRes++
-				}
-				if err := scanner.Err(); err != nil {
-					errors <- DiscoveryError{p, err}
-				}
-				if nRes == 0 {
-					resources <- Resource{Path: p, Bytes: []byte{}}
-				}
+				files <- p
 
 				return nil
 			})
 
 			if err != nil && err != io.EOF {
 				errors <- DiscoveryError{path, err}
+			}
+		}
+
+		close(files)
+	}()
+
+	go func() {
+		maxResourceSize := 4 * 1024 * 1024
+		buf := make([]byte, maxResourceSize)
+
+		for p := range files {
+			f, err := os.Open(p)
+			if err != nil {
+				errors <- DiscoveryError{p, err}
+			}
+
+			scanner := bufio.NewScanner(f)
+			scanner.Buffer(buf, maxResourceSize)
+			scanner.Split(SplitYAMLDocument)
+			nRes := 0
+			for res := scanner.Scan(); res != false; res = scanner.Scan() {
+				resources <- Resource{Path: p, Bytes: []byte(scanner.Text())}
+				nRes++
+			}
+			if err := scanner.Err(); err != nil {
+				errors <- DiscoveryError{p, err}
+			}
+			if nRes == 0 {
+				resources <- Resource{Path: p, Bytes: []byte{}}
 			}
 		}
 

@@ -93,6 +93,7 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 			f, err := os.Open(p)
 			if err != nil {
 				errors <- DiscoveryError{p, err}
+				continue
 			}
 
 			scanner := bufio.NewScanner(f)
@@ -109,6 +110,8 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 			if nRes == 0 {
 				resources <- Resource{Path: p, Bytes: []byte{}}
 			}
+
+			f.Close()
 		}
 
 		close(errors)

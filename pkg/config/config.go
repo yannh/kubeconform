@@ -73,7 +73,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.IntVar(&c.NumberOfWorkers, "n", 4, "number of goroutines to run concurrently")
 	flags.BoolVar(&c.Strict, "strict", false, "disallow additional properties not in schema")
 	flags.StringVar(&c.OutputFormat, "output", "text", "output format - json, tap, text")
-	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources")
+	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources (ignored for tap output)")
 	flags.BoolVar(&c.SkipTLS, "insecure-skip-tls-verify", false, "disable verification of the server's SSL certificate. This will make your HTTPS connections insecure")
 	flags.StringVar(&c.CPUProfileFile, "cpu-prof", "", "debug - log CPU profiling to file")
 	flags.BoolVar(&c.Help, "h", false, "show help information")

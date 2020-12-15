@@ -75,7 +75,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -summary
         print a summary at the end
   -verbose
-        print results for all resources
+        print results for all resources (ignored for tap output)
 ```
 
 ### Usage examples

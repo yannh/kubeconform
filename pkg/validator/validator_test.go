@@ -18,7 +18,7 @@ func TestValidate(t *testing.T) {
 		{
 			"valid resource",
 			[]byte(`
-Kind: name
+kind: name
 firstName: foo
 lastName: bar
 `),
@@ -26,7 +26,7 @@ lastName: bar
   "title": "Example Schema",
   "type": "object",
   "properties": {
-    "Kind": {
+    "kind": {
       "type": "string"
     },
     "firstName": {
@@ -48,7 +48,7 @@ lastName: bar
 		{
 			"invalid resource",
 			[]byte(`
-Kind: name
+kind: name
 firstName: foo
 lastName: bar
 `),
@@ -56,7 +56,7 @@ lastName: bar
   "title": "Example Schema",
   "type": "object",
   "properties": {
-    "Kind": {
+    "kind": {
       "type": "string"
     },
     "firstName": {
@@ -78,14 +78,14 @@ lastName: bar
 		{
 			"missing required field",
 			[]byte(`
-Kind: name
+kind: name
 firstName: foo
 `),
 			[]byte(`{
   "title": "Example Schema",
   "type": "object",
   "properties": {
-    "Kind": {
+    "kind": {
       "type": "string"
     },
     "firstName": {
@@ -107,7 +107,7 @@ firstName: foo
 		{
 			"resource has invalid yaml",
 			[]byte(`
-Kind: name
+kind: name
 firstName foo
 lastName: bar
 `),
@@ -115,7 +115,7 @@ lastName: bar
   "title": "Example Schema",
   "type": "object",
   "properties": {
-    "Kind": {
+    "kind": {
       "type": "string"
     },
     "firstName": {
@@ -151,7 +151,7 @@ lastName: bar
 			regs: nil,
 		}
 		if got := val.ValidateResource(resource.Resource{Bytes: testCase.rawResource}); got.Status != testCase.expect {
-			t.Errorf("%d - expected %d, got %d", i, testCase.expect, got.Status)
+			t.Errorf("%d - expected %d, got %d: %s", i, testCase.expect, got.Status, got.Err.Error())
 		}
 	}
 }

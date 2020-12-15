@@ -1,9 +1,12 @@
 package resource_test
 
 import (
+	"fmt"
+	"log"
 	"testing"
 
 	"github.com/yannh/kubeconform/pkg/resource"
+	"sigs.k8s.io/yaml"
 )
 
 func TestSignatureFromBytes(t *testing.T) {
@@ -45,5 +48,31 @@ spec:
 			sig.Namespace != testCase.want.Namespace {
 			t.Errorf("test \"%s\": received %+v, expected %+v", testCase.name, sig, testCase.want)
 		}
+	}
+}
+
+func TestSignatureFromMap(t *testing.T) {
+	testCases := []struct {
+		b string
+	}{
+		{
+			"apiVersion: v1\nkind: ReplicationController\nmetadata:\n  name: \"bob\"\nspec:\n  replicas: 2\n",
+		},
+	}
+
+	for _, testCase := range testCases {
+		res := resource.Resource{
+			Path:  "foo",
+			Bytes: []byte(testCase.b),
+		}
+
+		var r map[string]interface{}
+		if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
+			log.Fatal(err)
+		}
+
+		res.SignatureFromMap(r)
+		sig, _ := res.Signature()
+		fmt.Printf("%+v", sig)
 	}
 }

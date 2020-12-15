@@ -42,3 +42,26 @@ func (res *Resource) Signature() (*Signature, error) {
 	res.sig = &Signature{Kind: resource.Kind, Version: resource.APIVersion, Namespace: resource.Metadata.Namespace, Name: name}
 	return res.sig, err
 }
+
+func (res *Resource) SignatureFromMap(m map[string]interface{}) (*Signature, error) {
+	if res.sig != nil {
+		return res.sig, nil
+	}
+
+	APIVersion, _ := m["apiVersion"].(string)
+	Kind, _ := m["kind"].(string)
+
+	var name, ns string
+	Metadata, ok := m["metadata"].(map[string]interface{})
+	if ok {
+		name, _ = Metadata["name"].(string)
+		ns, _ = Metadata["namespace"].(string)
+		if _, ok := Metadata["generateName"].(string); ok {
+			name = Metadata["generateName"].(string) + "{{ generateName }}"
+		}
+	}
+
+	// We cache the result to not unmarshall every time we want to access the signature
+	res.sig = &Signature{Kind: Kind, Version: APIVersion, Namespace: ns, Name: name}
+	return res.sig, nil
+}

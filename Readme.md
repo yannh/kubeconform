@@ -63,7 +63,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -n int
         number of goroutines to run concurrently (default 4)
   -output string
-        output format - text, json (default "text")
+        output format - json, tap, text (default "text")
   -reject string
         comma-separated list of kinds to reject
   -schema-location value

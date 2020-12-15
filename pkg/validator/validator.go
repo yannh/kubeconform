@@ -157,9 +157,9 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 	if schema == nil {
 		if val.opts.IgnoreMissingSchemas {
 			return Result{Resource: res, Err: nil, Status: Skipped}
-		} else {
-			return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
 		}
+
+		return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
 	}
 
 	resourceLoader := gojsonschema.NewGoLoader(r)

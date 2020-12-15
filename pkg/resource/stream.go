@@ -7,7 +7,10 @@ import (
 	"io"
 )
 
-// Thank you https://github.com/helm/helm-classic/blob/master/codec/yaml.go#L90
+// SplitYAMLDocument is a bufio.SplitFunc for splitting a YAML document into individual documents.
+//
+// This is from Kubernetes' 'pkg/util/yaml'.splitYAMLDocument, which is unfortunately
+// not exported.
 func SplitYAMLDocument(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	const yamlSeparator = "\n---"
 	if atEOF && len(data) == 0 {

@@ -80,7 +80,7 @@ func New(schemaLocation string, strict bool, skipTLS bool) (Registry, error) {
 
 	if strings.HasPrefix(schemaLocation, "http") {
 		return newHTTPRegistry(schemaLocation, strict, skipTLS), nil
-	} else {
-		return newLocalRegistry(schemaLocation, strict), nil
 	}
+
+	return newLocalRegistry(schemaLocation, strict), nil
 }

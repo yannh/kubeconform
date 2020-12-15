@@ -32,6 +32,11 @@ func tapOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
 // JSON.Write will only write when JSON.Flush has been called
 func (o *tapo) Write(res validator.Result) error {
 	o.index++
+
+	if o.index == 1 {
+		fmt.Fprintf(o.w, "TAP version 13\n")
+	}
+
 	switch res.Status {
 	case validator.Valid:
 		sig, _ := res.Resource.Signature()

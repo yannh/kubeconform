@@ -123,10 +123,6 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: fmt.Errorf("error while parsing: %s", err), Status: Error}
 	}
 
-	if sig.Kind == "" { // Resource contains key/values but no Kind
-		return Result{Resource: res, Err: fmt.Errorf("resource missing a Kind"), Status: Error}
-	}
-
 	if skip(*sig) {
 		return Result{Resource: res, Err: nil, Status: Skipped}
 	}

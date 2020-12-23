@@ -19,6 +19,7 @@ func TestValidate(t *testing.T) {
 			"valid resource",
 			[]byte(`
 kind: name
+apiVersion: v1
 firstName: foo
 lastName: bar
 `),
@@ -49,6 +50,7 @@ lastName: bar
 			"invalid resource",
 			[]byte(`
 kind: name
+apiVersion: v1
 firstName: foo
 lastName: bar
 `),
@@ -79,6 +81,7 @@ lastName: bar
 			"missing required field",
 			[]byte(`
 kind: name
+apiVersion: v1
 firstName: foo
 `),
 			[]byte(`{
@@ -108,6 +111,7 @@ firstName: foo
 			"resource has invalid yaml",
 			[]byte(`
 kind: name
+apiVersion: v1
 firstName foo
 lastName: bar
 `),
@@ -116,6 +120,9 @@ lastName: bar
   "type": "object",
   "properties": {
     "kind": {
+      "type": "string"
+    },
+    "apiVersion": {
       "type": "string"
     },
     "firstName": {

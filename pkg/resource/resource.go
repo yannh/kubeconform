@@ -1,6 +1,8 @@
 package resource
 
 import (
+	"fmt"
+
 	"sigs.k8s.io/yaml"
 )
 
@@ -40,6 +42,19 @@ func (res *Resource) Signature() (*Signature, error) {
 
 	// We cache the result to not unmarshall every time we want to access the signature
 	res.sig = &Signature{Kind: resource.Kind, Version: resource.APIVersion, Namespace: resource.Metadata.Namespace, Name: name}
+
+	if err != nil { // Exit if there was an error unmarshalling
+		return res.sig, err
+	}
+
+	if resource.Kind == "" {
+		return res.sig, fmt.Errorf("missing 'kind' key")
+	}
+
+	if resource.APIVersion == "" {
+		return res.sig, fmt.Errorf("missing 'apiVersion' key")
+	}
+
 	return res.sig, err
 }
 
@@ -48,8 +63,15 @@ func (res *Resource) SignatureFromMap(m map[string]interface{}) (*Signature, err
 		return res.sig, nil
 	}
 
-	APIVersion, _ := m["apiVersion"].(string)
-	Kind, _ := m["kind"].(string)
+	Kind, ok := m["kind"].(string)
+	if !ok {
+		return res.sig, fmt.Errorf("missing 'kind' key")
+	}
+
+	APIVersion, ok := m["apiVersion"].(string)
+	if !ok {
+		return res.sig, fmt.Errorf("missing 'apiVersion' key")
+	}
 
 	var name, ns string
 	Metadata, ok := m["metadata"].(map[string]interface{})

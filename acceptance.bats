@@ -85,13 +85,19 @@
 @test "Fail when parsing a config that is missing a Kind" {
    run bin/kubeconform -summary fixtures/missing_kind.yaml
    [ "$status" -eq 1 ]
-   [[ "$output" == *"resource missing a Kind"* ]]
+   [[ "$output" == *"missing 'kind' key"* ]]
+}
+
+@test "Fail when parsing a config that is missing an apiVersion" {
+   run bin/kubeconform -summary fixtures/missing_apiversion.yaml
+   [ "$status" -eq 1 ]
+   [[ "$output" == *"missing 'apiVersion' key"* ]]
 }
 
 @test "Fail when parsing a config that is missing a Kind value" {
    run bin/kubeconform -summary fixtures/missing_kind_value.yaml
    [ "$status" -eq 1 ]
-   [[ "$output" == *"resource missing a Kind"* ]]
+   [[ "$output" == *"missing 'kind' key"* ]]
 }
 
 @test "Fail when parsing a config with CRD" {

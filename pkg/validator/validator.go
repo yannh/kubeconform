@@ -175,7 +175,8 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		if msg != "" {
 			msg += " - "
 		}
-		msg += errMsg.Description()
+		details := errMsg.Details()
+		msg += fmt.Sprintf("For field %s: %s", details["field"].(string), errMsg.Description())
 	}
 
 	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg)}

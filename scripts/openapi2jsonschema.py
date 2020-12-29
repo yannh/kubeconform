@@ -104,10 +104,15 @@ for crdFile in sys.argv[1:]:
             if y["kind"] != "CustomResourceDefinition":
                 continue
 
+            filename_format = os.getenv("FILENAME_FORMAT", "{kind}_{version}")
             filename = ""
             schemaJSON = ""
             if "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
-                filename = y["spec"]["names"]["kind"].lower()+"_"+y["spec"]["version"].lower()+".json"
+                filename = filename_format.format(
+                    kind=y["spec"]["names"]["kind"],
+                    group=y["spec"]["group"].split(".")[0],
+                    version=y["spec"]["version"],
+                ).lower() + ".json"
 
                 schema = y["spec"]["validation"]["openAPIV3Schema"]
                 schema = additional_properties(schema)
@@ -116,7 +121,11 @@ for crdFile in sys.argv[1:]:
             elif "spec" in y and "versions" in y["spec"]:
                 for version in y["spec"]["versions"]:
                     if "schema" in version and "openAPIV3Schema" in version["schema"]:
-                        filename = y["spec"]["names"]["kind"].lower()+"_"+version["name"].lower()+".json"
+                        filename = filename_format.format(
+                            kind=y["spec"]["names"]["kind"],
+                            group=y["spec"]["group"].split(".")[0],
+                            version=version["name"],
+                        ).lower() + ".json"
 
                         schema = version["schema"]["openAPIV3Schema"]
                         schema = additional_properties(schema)

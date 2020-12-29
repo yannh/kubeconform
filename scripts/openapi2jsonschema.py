@@ -88,6 +88,21 @@ def append_no_duplicates(obj, key, value):
         obj[key].append(value)
 
 
+def write_schema_file(schema, filename):
+    schemaJSON = ""
+
+    schema = additional_properties(schema)
+    schema = replace_int_or_string(schema)
+    schemaJSON = json.dumps(schema)
+
+    # Dealing with user input here..
+    filename = os.path.basename(filename)
+    f = open(filename, "w")
+    f.write(schemaJSON)
+    f.close()
+    print("JSON schema written to {filename}".format(filename=filename))
+
+
 if len(sys.argv) == 0:
     print("missing file")
     exit(1)
@@ -105,29 +120,17 @@ for crdFile in sys.argv[1:]:
                 continue
 
             filename = ""
-            schemaJSON = ""
             if "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
                 filename = y["spec"]["names"]["kind"].lower()+"_"+y["spec"]["version"].lower()+".json"
 
                 schema = y["spec"]["validation"]["openAPIV3Schema"]
-                schema = additional_properties(schema)
-                schema = replace_int_or_string(schema)
-                schemaJSON = json.dumps(schema)
+                write_schema_file(schema, filename)
             elif "spec" in y and "versions" in y["spec"]:
                 for version in y["spec"]["versions"]:
                     if "schema" in version and "openAPIV3Schema" in version["schema"]:
                         filename = y["spec"]["names"]["kind"].lower()+"_"+version["name"].lower()+".json"
 
                         schema = version["schema"]["openAPIV3Schema"]
-                        schema = additional_properties(schema)
-                        schema = replace_int_or_string(schema)
-                        schemaJSON = json.dumps(schema)
-
-            # Dealing with user input here..
-            filename = os.path.basename(filename)
-            f = open(filename, "w")
-            f.write(schemaJSON)
-            f.close()
-            print("JSON schema written to {filename}".format(filename=filename))
+                        write_schema_file(schema, filename)
 
 exit(0)

@@ -21,6 +21,17 @@ type Retryable interface {
 	IsNotFound() bool
 }
 
+// NotFoundError is returned when the registry does not contain a schema for the resource
+type NotFoundError struct {
+	err error
+}
+
+func newNotFoundError(err error) *NotFoundError {
+	return &NotFoundError{err}
+}
+func (e *NotFoundError) Error() string   { return e.err.Error() }
+func (e *NotFoundError) Retryable() bool { return false }
+
 func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool) (string, error) {
 	normalisedVersion := k8sVersion
 	if normalisedVersion != "master" {

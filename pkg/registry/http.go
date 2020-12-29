@@ -19,16 +19,6 @@ type SchemaRegistry struct {
 	strict             bool
 }
 
-// NotFoundError is returned when the registry does not contain a schema for the resource
-type NotFoundError struct {
-	err error
-}
-
-func newNetFoundError(err error) *NotFoundError {
-	return &NotFoundError{err}
-}
-func (e *NotFoundError) Error() string { return e.err.Error() }
-
 func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *SchemaRegistry {
 	reghttp := &http.Transport{
 		MaxIdleConns:       100,
@@ -61,7 +51,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, newNetFoundError(fmt.Errorf("no schema found"))
+		return nil, newNotFoundError(fmt.Errorf("no schema found"))
 	}
 
 	if resp.StatusCode != http.StatusOK {

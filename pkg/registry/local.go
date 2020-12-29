@@ -11,17 +11,6 @@ type LocalRegistry struct {
 	strict       bool
 }
 
-type fileNotFoundError struct {
-	err         error
-	isRetryable bool
-}
-
-func newFileNotFoundError(err error, isRetryable bool) *fileNotFoundError {
-	return &fileNotFoundError{err, isRetryable}
-}
-func (e *fileNotFoundError) IsNotFound() bool { return e.isRetryable }
-func (e *fileNotFoundError) Error() string    { return e.err.Error() }
-
 // NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
 func newLocalRegistry(pathTemplate string, strict bool) *LocalRegistry {
 	return &LocalRegistry{
@@ -39,7 +28,7 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 	f, err := os.Open(schemaFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, newFileNotFoundError(fmt.Errorf("no schema found"), false)
+			return nil, newNotFoundError(fmt.Errorf("no schema found"))
 		}
 		return nil, fmt.Errorf("failed to open schema %s", schemaFile)
 	}

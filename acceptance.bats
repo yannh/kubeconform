@@ -115,6 +115,11 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Pass when parsing a Custom Resource and specifying several local registries, the last one having the appropriate CRD" {
+  run bin/kubeconform -schema-location 'fixtures/{{ .ResourceKind }}.json' -schema-location './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
+  [ "$status" -eq 0 ]
+}
+
 @test "Pass when parsing a config with additional properties" {
   run bin/kubeconform -summary fixtures/extra_property.yaml
   [ "$status" -eq 0 ]

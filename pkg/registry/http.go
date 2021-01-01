@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/yannh/kubeconform/pkg/cache"
 )
 
 type httpGetter interface {
@@ -16,10 +18,11 @@ type httpGetter interface {
 type SchemaRegistry struct {
 	c                  httpGetter
 	schemaPathTemplate string
+	cache              cache.Cache
 	strict             bool
 }
 
-func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *SchemaRegistry {
+func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool, skipTLS bool) *SchemaRegistry {
 	reghttp := &http.Transport{
 		MaxIdleConns:       100,
 		IdleConnTimeout:    3 * time.Second,
@@ -30,9 +33,15 @@ func newHTTPRegistry(schemaPathTemplate string, strict bool, skipTLS bool) *Sche
 		reghttp.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
+	var filecache cache.Cache = nil
+	if cacheFolder != "" {
+		filecache = cache.NewOnDiskCache(cacheFolder)
+	}
+
 	return &SchemaRegistry{
 		c:                  &http.Client{Transport: reghttp},
 		schemaPathTemplate: schemaPathTemplate,
+		cache:              filecache,
 		strict:             strict,
 	}
 }
@@ -42,6 +51,12 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 	url, err := schemaPath(r.schemaPathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
 	if err != nil {
 		return nil, err
+	}
+
+	if r.cache != nil {
+		if b, err := r.cache.Get(resourceKind, resourceAPIVersion, k8sVersion); err == nil {
+			return b.([]byte), nil
+		}
 	}
 
 	resp, err := r.c.Get(url)
@@ -61,6 +76,12 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed downloading schema at %s: %s", url, err)
+	}
+
+	if r.cache != nil {
+		if err := r.cache.Set(resourceKind, resourceAPIVersion, k8sVersion, body); err != nil {
+			return nil, fmt.Errorf("failed writing schema to cache: %s", err)
+		}
 	}
 
 	return body, nil

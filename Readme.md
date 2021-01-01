@@ -49,6 +49,10 @@ configuration errors.
 ```
 $ ./bin/kubeconform -h
 Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
+  -cache string
+        cache schemas downloaded via HTTP to this folder
+  -cpu-prof string
+        debug - log CPU profiling to file
   -exit-on-error
         immediately stop execution when the first error is encountered
   -h    show help information

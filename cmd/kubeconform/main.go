@@ -82,6 +82,7 @@ func realMain() int {
 	}
 
 	v, err := validator.New(cfg.SchemaLocations, validator.Opts{
+		Cache:                cfg.Cache,
 		SkipTLS:              cfg.SkipTLS,
 		SkipKinds:            cfg.SkipKinds,
 		RejectKinds:          cfg.RejectKinds,

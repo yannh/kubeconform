@@ -13,7 +13,7 @@ It is inspired by, contains code from and is designed to stay close to
  * **high performance**: will validate & download manifests over multiple routines, caching
    downloaded files in memory
  * configurable list of **remote, or local schemas locations**, enabling validating Kubernetes
-   custom resources (CRDs)
+   custom resources (CRDs) and offline validation capabilities.
 
 ### A small overview of Kubernetes manifest validation
 

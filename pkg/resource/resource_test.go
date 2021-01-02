@@ -1,12 +1,13 @@
 package resource_test
 
 import (
-	"fmt"
 	"log"
+	"reflect"
 	"testing"
 
-	"github.com/yannh/kubeconform/pkg/resource"
 	"sigs.k8s.io/yaml"
+
+	"github.com/yannh/kubeconform/pkg/resource"
 )
 
 func TestSignatureFromBytes(t *testing.T) {
@@ -54,13 +55,20 @@ spec:
 func TestSignatureFromMap(t *testing.T) {
 	testCases := []struct {
 		b string
+		s resource.Signature
 	}{
 		{
 			"apiVersion: v1\nkind: ReplicationController\nmetadata:\n  name: \"bob\"\nspec:\n  replicas: 2\n",
+			resource.Signature{
+				Kind:      "ReplicationController",
+				Version:   "v1",
+				Namespace: "",
+				Name:      "bob",
+			},
 		},
 	}
 
-	for _, testCase := range testCases {
+	for i, testCase := range testCases {
 		res := resource.Resource{
 			Path:  "foo",
 			Bytes: []byte(testCase.b),
@@ -73,6 +81,8 @@ func TestSignatureFromMap(t *testing.T) {
 
 		res.SignatureFromMap(r)
 		sig, _ := res.Signature()
-		fmt.Printf("%+v", sig)
+		if !reflect.DeepEqual(*sig, testCase.s) {
+			t.Errorf("test %d - for resource %s, expected %+v, got %+v", i+1, testCase.b, testCase.s, sig)
+		}
 	}
 }

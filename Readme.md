@@ -183,6 +183,8 @@ $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-s
 JSON schema written to trainingjob_v1.json
 ```
 
+The `FILENAME_FORMAT` environment variable can be used to change the output file name (Available variables: `kind`, `group`, `version`) (Default: `{kind}_{version}`).
+
 ### Speed comparison with Kubeval
 
 Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:

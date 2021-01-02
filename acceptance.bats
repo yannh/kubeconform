@@ -216,3 +216,11 @@
   [ "$status" -eq 1 ]
   [ "$output" = "failed opening cache folder cache_does_not_exist: stat cache_does_not_exist: no such file or directory" ]
 }
+
+@test "Produces correct TAP output" {
+  run bin/kubeconform -output tap fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" == 'TAP version 13' ]
+  [ "${lines[1]}" == 'ok 1 - fixtures/valid.yaml (ReplicationController)' ]
+  [ "${lines[2]}" == '1..1' ]
+}

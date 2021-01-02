@@ -104,7 +104,7 @@ func realMain() int {
 	if isStdin {
 		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
 	} else {
-		resourcesChan, errors = resource.FromFiles(ctx, cfg.IgnoreFilenamePatterns, cfg.Files...)
+		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns)
 	}
 
 	// Process discovered resources across multiple workers

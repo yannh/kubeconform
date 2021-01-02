@@ -40,8 +40,7 @@ func isIgnored(path string, ignoreFilePatterns []string) (bool, error) {
 	return false, nil
 }
 
-func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string) (<-chan Resource, <-chan error) {
-	resources := make(chan Resource)
+func findFilesInFolders(ctx context.Context, paths []string, ignoreFilePatterns []string) (chan string, chan error) {
 	files := make(chan string)
 	errors := make(chan error)
 
@@ -85,33 +84,44 @@ func FromFiles(ctx context.Context, ignoreFilePatterns []string, paths ...string
 		close(files)
 	}()
 
+	return files, errors
+}
+
+func findResourcesInFile(p string, resources chan<- Resource, errors chan<- error, buf []byte) {
+	f, err := os.Open(p)
+	defer f.Close()
+	if err != nil {
+		errors <- DiscoveryError{p, err}
+		return
+	}
+
+	scanner := bufio.NewScanner(f)
+	scanner.Buffer(buf, len(buf))
+	scanner.Split(SplitYAMLDocument)
+	nRes := 0
+	for res := scanner.Scan(); res != false; res = scanner.Scan() {
+		resources <- Resource{Path: p, Bytes: []byte(scanner.Text())}
+		nRes++
+	}
+	if err := scanner.Err(); err != nil {
+		errors <- DiscoveryError{p, err}
+	}
+	if nRes == 0 {
+		resources <- Resource{Path: p, Bytes: []byte{}}
+	}
+}
+
+func FromFiles(ctx context.Context, paths []string, ignoreFilePatterns []string) (<-chan Resource, <-chan error) {
+	resources := make(chan Resource)
+
+	files, errors := findFilesInFolders(ctx, paths, ignoreFilePatterns)
+
 	go func() {
-		maxResourceSize := 4 * 1024 * 1024
-		buf := make([]byte, maxResourceSize)
+		maxResourceSize := 4 * 1024 * 1024   // 4MB ought to be enough for everybody
+		buf := make([]byte, maxResourceSize) // We reuse this to avoid multiple large memory allocations
 
 		for p := range files {
-			f, err := os.Open(p)
-			if err != nil {
-				errors <- DiscoveryError{p, err}
-				continue
-			}
-
-			scanner := bufio.NewScanner(f)
-			scanner.Buffer(buf, maxResourceSize)
-			scanner.Split(SplitYAMLDocument)
-			nRes := 0
-			for res := scanner.Scan(); res != false; res = scanner.Scan() {
-				resources <- Resource{Path: p, Bytes: []byte(scanner.Text())}
-				nRes++
-			}
-			if err := scanner.Err(); err != nil {
-				errors <- DiscoveryError{p, err}
-			}
-			if nRes == 0 {
-				resources <- Resource{Path: p, Bytes: []byte{}}
-			}
-
-			f.Close()
+			findResourcesInFile(p, resources, errors, buf)
 		}
 
 		close(errors)

@@ -87,21 +87,16 @@ func findFilesInFolders(ctx context.Context, paths []string, ignoreFilePatterns 
 	return files, errors
 }
 
-func findResourcesInFile(p string, resources chan<- Resource, errors chan<- error, buf []byte) {
-	f, err := os.Open(p)
-	defer f.Close()
-	if err != nil {
-		errors <- DiscoveryError{p, err}
-		return
-	}
-
+func findResourcesInReader(p string, f io.Reader, resources chan<- Resource, errors chan<- error, buf []byte) {
 	scanner := bufio.NewScanner(f)
 	scanner.Buffer(buf, len(buf))
 	scanner.Split(SplitYAMLDocument)
 	nRes := 0
 	for res := scanner.Scan(); res != false; res = scanner.Scan() {
-		resources <- Resource{Path: p, Bytes: []byte(scanner.Text())}
-		nRes++
+		if len(scanner.Text()) > 0 {
+			resources <- Resource{Path: p, Bytes: []byte(scanner.Text())}
+			nRes++
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		errors <- DiscoveryError{p, err}
@@ -109,6 +104,18 @@ func findResourcesInFile(p string, resources chan<- Resource, errors chan<- erro
 	if nRes == 0 {
 		resources <- Resource{Path: p, Bytes: []byte{}}
 	}
+}
+
+func findResourcesInFile(p string, resources chan<- Resource, errors chan<- error, buf []byte) {
+	f, err := os.Open(p)
+	defer f.Close()
+
+	if err != nil {
+		errors <- DiscoveryError{p, err}
+		return
+	}
+
+	findResourcesInReader(p, f, resources, errors, buf)
 }
 
 func FromFiles(ctx context.Context, paths []string, ignoreFilePatterns []string) (<-chan Resource, <-chan error) {

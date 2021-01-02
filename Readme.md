@@ -185,6 +185,12 @@ JSON schema written to trainingjob_v1.json
 
 The `FILENAME_FORMAT` environment variable can be used to change the output file name (Available variables: `kind`, `group`, `version`) (Default: `{kind}_{version}`).
 
+```
+$ export FILENAME_FORMAT='{kind}-{group}-{version}'
+$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+JSON schema written to trainingjob-sagemaker-v1.json
+```
+
 ### Speed comparison with Kubeval
 
 Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:

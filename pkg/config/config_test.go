@@ -97,10 +97,11 @@ func TestFromFlags(t *testing.T) {
 			},
 		},
 		{
-			[]string{"-ignore-missing-schemas", "-kubernetes-version", "1.16.0", "-n", "2", "-output", "json",
+			[]string{"-cache", "cache", "-ignore-missing-schemas", "-kubernetes-version", "1.16.0", "-n", "2", "-output", "json",
 				"-schema-location", "folder", "-schema-location", "anotherfolder", "-skip", "kinda,kindb", "-strict",
 				"-reject", "kindc,kindd", "-summary", "-verbose", "file1", "file2"},
 			Config{
+				Cache:                "cache",
 				Files:                []string{"file1", "file2"},
 				IgnoreMissingSchemas: true,
 				KubernetesVersion:    "1.16.0",

@@ -12,11 +12,11 @@ type LocalRegistry struct {
 }
 
 // NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
-func newLocalRegistry(pathTemplate string, strict bool) *LocalRegistry {
+func newLocalRegistry(pathTemplate string, strict bool) (*LocalRegistry, error) {
 	return &LocalRegistry{
 		pathTemplate,
 		strict,
-	}
+	}, nil
 }
 
 // DownloadSchema retrieves the schema from a file for the resource

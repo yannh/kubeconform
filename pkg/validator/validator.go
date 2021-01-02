@@ -42,6 +42,7 @@ type Validator interface {
 
 // Opts contains a set of options for the validator.
 type Opts struct {
+	Cache                string              // Cache schemas downloaded via HTTP to this folder
 	SkipTLS              bool                // skip TLS validation when downloading from an HTTP Schema Registry
 	SkipKinds            map[string]struct{} // List of resource Kinds to ignore
 	RejectKinds          map[string]struct{} // List of resource Kinds to reject
@@ -59,7 +60,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
-		reg, err := registry.New(schemaLocation, opts.Strict, opts.SkipTLS)
+		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS)
 		if err != nil {
 			return nil, err
 		}
@@ -80,14 +81,14 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 	return &v{
 		opts:           opts,
 		schemaDownload: downloadSchema,
-		schemaCache:    cache.New(),
+		schemaCache:    cache.NewInMemoryCache(),
 		regs:           registries,
 	}, nil
 }
 
 type v struct {
 	opts           Opts
-	schemaCache    *cache.SchemaCache
+	schemaCache    cache.Cache
 	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error)
 	regs           []registry.Registry
 }
@@ -133,11 +134,13 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 
 	cached := false
 	var schema *gojsonschema.Schema
-	cacheKey := ""
 
 	if val.schemaCache != nil {
-		cacheKey = cache.Key(sig.Kind, sig.Version, val.opts.KubernetesVersion)
-		schema, cached = val.schemaCache.Get(cacheKey)
+		s, err := val.schemaCache.Get(sig.Kind, sig.Version, val.opts.KubernetesVersion)
+		if err == nil {
+			cached = true
+			schema = s.(*gojsonschema.Schema)
+		}
 	}
 
 	if !cached {
@@ -146,7 +149,7 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		}
 
 		if val.schemaCache != nil {
-			val.schemaCache.Set(cacheKey, schema)
+			val.schemaCache.Set(sig.Kind, sig.Version, val.opts.KubernetesVersion, schema)
 		}
 	}
 

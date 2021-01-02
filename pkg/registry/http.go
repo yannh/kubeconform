@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/yannh/kubeconform/pkg/cache"
@@ -22,7 +23,7 @@ type SchemaRegistry struct {
 	strict             bool
 }
 
-func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool, skipTLS bool) *SchemaRegistry {
+func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool, skipTLS bool) (*SchemaRegistry, error) {
 	reghttp := &http.Transport{
 		MaxIdleConns:       100,
 		IdleConnTimeout:    3 * time.Second,
@@ -35,6 +36,14 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 
 	var filecache cache.Cache = nil
 	if cacheFolder != "" {
+		fi, err := os.Stat(cacheFolder)
+		if err != nil {
+			return nil, fmt.Errorf("failed opening cache folder %s: %s", cacheFolder, err)
+		}
+		if !fi.IsDir() {
+			return nil, fmt.Errorf("cache folder %s is not a directory", err)
+		}
+
 		filecache = cache.NewOnDiskCache(cacheFolder)
 	}
 
@@ -43,7 +52,7 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 		schemaPathTemplate: schemaPathTemplate,
 		cache:              filecache,
 		strict:             strict,
-	}
+	}, nil
 }
 
 // DownloadSchema downloads the schema for a particular resource from an HTTP server

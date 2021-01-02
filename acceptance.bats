@@ -202,3 +202,17 @@
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
+
+@test "Pass when parsing a valid Kubernetes config YAML file and store cache" {
+  run mkdir cache
+  run bin/kubeconform -cache cache -summary fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
+  [ "`ls cache/ | wc -l`" -eq 1 ]
+}
+
+@test "Fail when cache folder does not exist" {
+  run bin/kubeconform -cache cache_does_not_exist -summary fixtures/valid.yaml
+  [ "$status" -eq 1 ]
+  [ "$output" = "failed opening cache folder cache_does_not_exist: stat cache_does_not_exist: no such file or directory" ]
+}

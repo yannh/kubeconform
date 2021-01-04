@@ -93,7 +93,7 @@ def write_schema_file(schema, filename):
 
     schema = additional_properties(schema)
     schema = replace_int_or_string(schema)
-    schemaJSON = json.dumps(schema)
+    schemaJSON = json.dumps(schema, indent=2)
 
     # Dealing with user input here..
     filename = os.path.basename(filename)

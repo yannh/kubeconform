@@ -10,7 +10,8 @@
       "type": "string"
     },
     "metadata": {
-      "type": "object"
+      "$ref": "https://kubernetesjsonschema.dev/v1.14.0/_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta",
+      "description": "Standard object metadata."
     },
     "spec": {
       "description": "TrainingJobSpec defines the desired state of TrainingJob",

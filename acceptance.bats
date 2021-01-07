@@ -1,5 +1,36 @@
 #!/usr/bin/env bats
 
+cp /etc/hosts /etc/hosts.original
+cp /etc/resolv.conf /etc/resolv.conf.original
+
+teardown() {
+  cat /etc/resolv.conf.original > /etc/resolv.conf
+  cat /etc/hosts.original > /etc/hosts
+}
+
+blockNetwork() {
+  echo "nameserver 127.0.0.1" > /etc/resolv.conf
+}
+
+startRegistryHTTPServer() {
+  /bin/sh -c '
+    # Start simple static server for schemas
+    cd fixtures/registry/
+    python -m SimpleHTTPServer 3000 2>/dev/null 1>/dev/null &
+    echo -n $! > /tmp/registry-pid
+
+    # Wait until server is ready
+    until wget http://localhost:3000/trainingjob-sagemaker-v1.json -qO /dev/null 2>/dev/null
+    do
+      echo -n ""
+    done
+  ' 3>/dev/null
+}
+
+stopRegistryHTTPServer() {
+  kill "$(cat /tmp/registry-pid)"
+}
+
 @test "Pass when parsing a valid Kubernetes config YAML file" {
   run bin/kubeconform -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]
@@ -204,11 +235,27 @@
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file and store cache" {
-  run mkdir cache
+  run rm -rf cache && mkdir cache
   run bin/kubeconform -cache cache -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
   [ "`ls cache/ | wc -l`" -eq 1 ]
+}
+
+@test "Pass when parsing a valid Kubernetes config YAML file offline using cache" {
+  startRegistryHTTPServer
+
+  run rm -rf cache && mkdir cache
+  run bin/kubeconform -cache cache -schema-location 'http://localhost:3000/{{ .ResourceKind }}{{ .KindSuffix }}.json' -summary fixtures/test_crd.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
+
+  stopRegistryHTTPServer
+  blockNetwork
+
+  run bin/kubeconform -cache cache -schema-location 'http://localhost:3000/{{ .ResourceKind }}{{ .KindSuffix }}.json' -summary fixtures/test_crd.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Fail when cache folder does not exist" {

@@ -27,6 +27,7 @@ build-bats:
 
 docker-acceptance: build-bats
 	docker run -t bats -p acceptance.bats
+	docker run --network none -t bats -p acceptance-nonetwork.bats
 
 release:
 	docker run -e GITHUB_TOKEN -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v0.138 goreleaser release --rm-dist

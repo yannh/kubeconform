@@ -6,6 +6,8 @@ cp /etc/resolv.conf /etc/resolv.conf.original
 teardown() {
   cat /etc/resolv.conf.original > /etc/resolv.conf
   cat /etc/hosts.original > /etc/hosts
+  stopRegistryHTTPServer
+  rm -rf cache
 }
 
 blockNetwork() {
@@ -28,7 +30,15 @@ startRegistryHTTPServer() {
 }
 
 stopRegistryHTTPServer() {
-  kill "$(cat /tmp/registry-pid)"
+  registryPIDFile=/tmp/registry-pid
+  if test -f "$registryPIDFile"; then
+    kill "$(cat $registryPIDFile)"
+    rm $registryPIDFile
+  fi
+}
+
+createCacheFolder() {
+  run mkdir cache
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file" {
@@ -235,7 +245,7 @@ stopRegistryHTTPServer() {
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file and store cache" {
-  run rm -rf cache && mkdir cache
+  createCacheFolder
   run bin/kubeconform -cache cache -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
@@ -244,8 +254,8 @@ stopRegistryHTTPServer() {
 
 @test "Pass when parsing a valid Kubernetes config YAML file offline using cache" {
   startRegistryHTTPServer
+  createCacheFolder
 
-  run rm -rf cache && mkdir cache
   run bin/kubeconform -cache cache -schema-location 'http://localhost:3000/{{ .ResourceKind }}{{ .KindSuffix }}.json' -summary fixtures/test_crd.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
@@ -256,6 +266,16 @@ stopRegistryHTTPServer() {
   run bin/kubeconform -cache cache -schema-location 'http://localhost:3000/{{ .ResourceKind }}{{ .KindSuffix }}.json' -summary fixtures/test_crd.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
+}
+
+@test "Do not cache http responses with status 404" {
+  startRegistryHTTPServer
+  createCacheFolder
+
+  run bin/kubeconform -cache cache -schema-location 'http://localhost:3000/bad-url/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
+  [ "$status" -eq 1 ]
+  [ "$output" = "fixtures/test_crd.yaml - TrainingJob xgboost-mnist-debugger failed validation: could not find schema for TrainingJob" ]
+  [ "`ls cache/ | wc -l`" -eq 0 ]
 }
 
 @test "Fail when cache folder does not exist" {

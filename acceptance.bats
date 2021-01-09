@@ -214,6 +214,12 @@ resetCacheFolder() {
   [ "`ls cache/ | wc -l`" -eq 0 ]
 }
 
+@test "Cache not only original schema but also refs to other schemas" {
+  run bin/kubeconform -schema-location './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}-with-ref.json' fixtures/test_crd.yaml
+  [ "$status" -eq 0 ]
+  [ "`ls cache/ | wc -l`" -eq 1 ]
+}
+
 @test "Fail when cache folder does not exist" {
   run bin/kubeconform -cache cache_does_not_exist -summary fixtures/valid.yaml
   [ "$status" -eq 1 ]

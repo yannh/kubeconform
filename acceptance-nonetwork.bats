@@ -6,7 +6,7 @@
 }
 
 @test "Pass when parsing a valid config YAML file without network access, with cache" {
-  run bin/kubeconform -cache fixtures/ fixtures/valid.yaml
+  run bin/kubeconform -cache fixtures/cache/ fixtures/valid.yaml
   [ "$status" -eq 0 ]
 }
 

@@ -1,5 +1,10 @@
 #!/usr/bin/env bats
 
+resetCacheFolder() {
+  rm -rf cache
+  mkdir -p cache
+}
+
 @test "Pass when parsing a valid Kubernetes config YAML file" {
   run bin/kubeconform -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]
@@ -110,16 +115,6 @@
   [ "$status" -eq 0 ]
 }
 
-@test "Pass when parsing a Custom Resource and using a local schema registry with appropriate CRD" {
-  run bin/kubeconform -schema-location './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
-  [ "$status" -eq 0 ]
-}
-
-@test "Pass when parsing a Custom Resource and specifying several local registries, the last one having the appropriate CRD" {
-  run bin/kubeconform -schema-location 'fixtures/{{ .ResourceKind }}.json' -schema-location './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
-  [ "$status" -eq 0 ]
-}
-
 @test "Pass when parsing a config with additional properties" {
   run bin/kubeconform -summary fixtures/extra_property.yaml
   [ "$status" -eq 0 ]
@@ -204,11 +199,19 @@
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file and store cache" {
-  run mkdir cache
+  resetCacheFolder
   run bin/kubeconform -cache cache -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
   [ "`ls cache/ | wc -l`" -eq 1 ]
+}
+
+@test "Fail when no schema found, ensure 404 is not cached on disk" {
+  resetCacheFolder
+  run bin/kubeconform -cache cache -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/doesnotexist.json' fixtures/valid.yaml
+  [ "$status" -eq 1 ]
+  [ "$output" == 'fixtures/valid.yaml - ReplicationController bob failed validation: could not find schema for ReplicationController' ]
+  [ "`ls cache/ | wc -l`" -eq 0 ]
 }
 
 @test "Fail when cache folder does not exist" {

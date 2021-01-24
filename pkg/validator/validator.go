@@ -53,9 +53,10 @@ type Opts struct {
 
 // New returns a new Validator
 func New(schemaLocations []string, opts Opts) (Validator, error) {
-	// Default to kubernetesjsonschema.dev
+	// Default to our kubernetes-json-schema fork
+	// raw.githubusercontent.com is frontend by Fastly and very fast
 	if schemaLocations == nil || len(schemaLocations) == 0 {
-		schemaLocations = []string{"https://kubernetesjsonschema.dev"}
+		schemaLocations = []string{"https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"}
 	}
 
 	registries := []registry.Registry{}

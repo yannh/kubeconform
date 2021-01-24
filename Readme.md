@@ -28,8 +28,8 @@ and break it down into multiple JSON schemas, stored in github at
 [instrumenta/kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) and published on
 [kubernetesjsonschema.dev](https://kubernetesjsonschema.dev/).
 
-Kubeconform relies on the same JSON schemas from kubernetesjsonschema.dev, and will download required
-schemas at runtime as required.
+Kubeconform relies on [a fork of kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema/)
+that is more aggressively kept up-to-date, and contains schemas for all recent versions of Kubernetes.
 
 ### Limits of Kubeconform validation
 

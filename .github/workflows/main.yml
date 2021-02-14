@@ -10,9 +10,6 @@ jobs:
     - name: test
       run: make docker-test
 
-    - name: build
-      run: make docker-build-static
-
     - name: acceptance-test
       run: make docker-acceptance
 

@@ -13,5 +13,4 @@ runs:
   image: 'Dockerfile'
   entrypoint: '/kubeconform'
   args:
-    - -summary
     - /github/workspace/fixtures

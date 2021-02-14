@@ -10,5 +10,5 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: '.github/action/Dockerfile'
+  image: 'Dockerfile-action'
   args: ['${{ inputs.filenames }}']

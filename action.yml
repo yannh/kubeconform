@@ -13,4 +13,4 @@ runs:
   image: 'Dockerfile'
   entrypoint: '/kubeconform'
   args:
-    - /github/workspace/fixtures
+    - ${{ inputs.filenames }}

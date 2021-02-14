@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+RELEASE_VERSION ?= latest
+
 .PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image release
 
 test-build: test build
@@ -11,10 +13,17 @@ build:
 	go build -o bin/ ./...
 
 docker-image:
-	docker build -t kubeconform .
+	docker build -t kubeconform:${RELEASE_VERSION} .
+
+save-image:
+	docker save --output kubeconform-image.tar kubeconform:${RELEASE_VERSION}
+
+push-image:
+	docker tag kubeconform:latest docker.pkg.github.com/yannh/kubeconform/kubeconform:${RELEASE_VERSION}
+	docker push docker.pkg.github.com/yannh/kubeconform/kubeconform:${RELEASE_VERSION}
 
 build-static:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -o bin/ ./...
+	CGO_ENABLED=0 GOFLAGS=-mod=vendor GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -tags=netgo -ldflags "-extldflags=\"-static\""  -a -o bin/ ./...
 
 docker-test:
 	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.14 make test

@@ -10,5 +10,5 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'Dockerfile-action'
+  image: 'docker://docker.pkg.github.com/yannh/kubeconform/kubeconform:latest'
   args: ['${{ inputs.filenames }}']

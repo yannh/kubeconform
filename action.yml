@@ -12,4 +12,6 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   entrypoint: '/kubeconform'
-  args: ['-summary', '${{ inputs.filenames }}']
+  args:
+    - -summary
+    - ${{ inputs.filenames }}

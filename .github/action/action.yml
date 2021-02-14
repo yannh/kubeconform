@@ -1,0 +1,14 @@
+name: 'Kubeconform'
+description: 'GitHub Action for Kubeconform'
+author: 'Yann Hamon <yann+kubeconform@mandragor.org>'
+branding:
+  icon: 'play'
+  color: 'purple'
+inputs:
+  filenames:
+    description: 'Folders or filenames to verify'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://docker.pkg.github.com/yannh/kubeconform/kubeconform:latest'
+  args: ['${{ inputs.filenames }}']

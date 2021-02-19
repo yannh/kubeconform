@@ -54,7 +54,7 @@ func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource,
 		scanner.Split(SplitYAMLDocument)
 
 	SCAN:
-		for res := scanner.Scan(); res != false; res = scanner.Scan() {
+		for scanner.Scan() {
 			select {
 			case <-ctx.Done():
 				break SCAN

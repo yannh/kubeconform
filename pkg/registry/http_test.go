@@ -93,7 +93,7 @@ func TestDownloadSchema(t *testing.T) {
 			t.Errorf("during test '%s': expected error, got:\n%s\n%s\n", testCase.name, testCase.expectErr, err)
 		}
 
-		if bytes.Compare(res, testCase.expect) != 0 {
+		if !bytes.Equal(res, testCase.expect) {
 			t.Errorf("during test '%s': expected %s, got %s", testCase.name, testCase.expect, res)
 		}
 	}

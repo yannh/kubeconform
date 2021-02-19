@@ -151,7 +151,7 @@ kind: Deployment
 				t.Errorf("test %d - expected %d resources, got %d", testi, len(testCase.Want.Resources), len(res))
 			}
 			for i, v := range res {
-				if bytes.Compare(v.Bytes, testCase.Want.Resources[i].Bytes) != 0 {
+				if !bytes.Equal(v.Bytes, testCase.Want.Resources[i].Bytes) {
 					t.Errorf("test %d - for resource %d, got '%s', expected '%s'", testi, i, string(res[i].Bytes), string(testCase.Want.Resources[i].Bytes))
 				}
 			}

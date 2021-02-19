@@ -29,7 +29,7 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 					fmt.Fprint(os.Stderr, "failed writing log\n")
 				}
 			}
-			if success == false && exitOnError {
+			if !success && exitOnError {
 				cancel() // early exit - signal to stop searching for resources
 				break
 			}

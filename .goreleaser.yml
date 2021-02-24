@@ -29,3 +29,12 @@ changelog:
   filters:
     exclude:
       - '^test:'
+brews:
+  -
+    tap:
+      owner: yannh
+      name: homebrew-yannh
+    homepage: "https://github.com/yannh/kubeconform"
+    description: "Kubeconform is a Kubernetes manifests validation tool"    
+    license: "Apache 2.0"
+    skip_upload: true

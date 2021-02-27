@@ -127,7 +127,7 @@ resetCacheFolder() {
 }
 
 @test "Pass when using a valid, preset -schema-location" {
-  run bin/kubeconform -schema-location https://kubernetesjsonschema.dev fixtures/valid.yaml
+  run bin/kubeconform -schema-location default fixtures/valid.yaml
   [ "$status" -eq 0 ]
 }
 

@@ -92,7 +92,7 @@ func findResourcesInReader(p string, f io.Reader, resources chan<- Resource, err
 	scanner.Buffer(buf, len(buf))
 	scanner.Split(SplitYAMLDocument)
 	nRes := 0
-	for res := scanner.Scan(); res != false; res = scanner.Scan() {
+	for scanner.Scan() {
 		if len(scanner.Text()) > 0 {
 			resources <- Resource{Path: p, Bytes: []byte(scanner.Text())}
 			nRes++

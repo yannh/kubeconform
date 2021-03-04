@@ -74,6 +74,10 @@ func realMain() int {
 	if len(cfg.Files) == 1 && cfg.Files[0] == "-" {
 		isStdin = true
 	}
+	// Ignore every data from stdin and check for files.
+	if cfg.IgnoreStdIn {
+		isStdin = false
+	}
 
 	var o output.Output
 	if o, err = output.New(cfg.OutputFormat, cfg.Summary, isStdin, cfg.Verbose); err != nil {

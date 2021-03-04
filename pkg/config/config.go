@@ -25,6 +25,7 @@ type Config struct {
 	Verbose                bool
 	IgnoreMissingSchemas   bool
 	IgnoreFilenamePatterns []string
+	IgnoreStdIn            bool
 	Help                   bool
 }
 
@@ -68,6 +69,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
 	flags.StringVar(&rejectKindsCSV, "reject", "", "comma-separated list of kinds to reject")
 	flags.BoolVar(&c.ExitOnError, "exit-on-error", false, "immediately stop execution when the first error is encountered")
+	flags.BoolVar(&c.IgnoreStdIn, "ignore-stdin", false, "ignores the stdin for the cli.")
 	flags.BoolVar(&c.IgnoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")
 	flags.Var(&ignoreFilenamePatterns, "ignore-filename-pattern", "regular expression specifying paths to ignore (can be specified multiple times)")
 	flags.BoolVar(&c.Summary, "summary", false, "print a summary at the end")

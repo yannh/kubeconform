@@ -170,13 +170,23 @@ resetCacheFolder() {
 }
 
 @test "Pass when parsing a valid Kubernetes config YAML file explicitly on stdin" {
-  run bash -c "cat fixtures/valid.yaml | bin/kubeconform -summary"
+  run bash -c "cat fixtures/valid.yaml | bin/kubeconform -summary -"
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
 
 @test "Fail when parsing an invalid Kubernetes config file on stdin" {
   run bash -c "cat fixtures/invalid.yaml | bin/kubeconform -"
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when not passing data to stdin, when implicitly configured to read from stdin" {
+  run bash -c "bin/kubeconform -summary"
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when not passing data to stdin, when explicitly configured to read from stdin" {
+  run bash -c "bin/kubeconform -summary -"
   [ "$status" -eq 1 ]
 }
 

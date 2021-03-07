@@ -68,15 +68,17 @@ func realMain() int {
 		defer pprof.StopCPUProfile()
 	}
 
-	// Detect whether we have data being piped through stdin
-	stat, _ := os.Stdin.Stat()
-	isStdin := (stat.Mode() & os.ModeCharDevice) == 0
-	if len(cfg.Files) == 1 && cfg.Files[0] == "-" {
-		isStdin = true
+	useStdin := false
+	if len(cfg.Files) == 0 || (len(cfg.Files) == 1 && cfg.Files[0] == "-") {
+		stat, _ := os.Stdin.Stat()
+		if (stat.Mode() & os.ModeCharDevice) != 0 {
+			log.Fatalf("failing to read data from stdin")
+		}
+		useStdin = true
 	}
 
 	var o output.Output
-	if o, err = output.New(cfg.OutputFormat, cfg.Summary, isStdin, cfg.Verbose); err != nil {
+	if o, err = output.New(cfg.OutputFormat, cfg.Summary, useStdin, cfg.Verbose); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
@@ -101,7 +103,7 @@ func realMain() int {
 
 	var resourcesChan <-chan resource.Resource
 	var errors <-chan error
-	if isStdin {
+	if useStdin {
 		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
 	} else {
 		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns)

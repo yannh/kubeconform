@@ -46,7 +46,9 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 
 func realMain() int {
 	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
-	if out != "" {
+	if cfg.Help {
+		return 0
+	} else if out != "" {
 		fmt.Println(out)
 		return 1
 	} else if err != nil {

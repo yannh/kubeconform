@@ -5,6 +5,12 @@ resetCacheFolder() {
   mkdir -p cache
 }
 
+@test "Pass when displaying help with -h" {
+  run bin/kubeconform -h
+  [ "$status" -eq 0 ]
+  [ "${lines[0]}" == 'Usage: bin/kubeconform [OPTION]... [FILE OR FOLDER]...' ]
+}
+
 @test "Pass when parsing a valid Kubernetes config YAML file" {
   run bin/kubeconform -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]

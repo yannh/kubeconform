@@ -18,6 +18,8 @@ func New(outputFormat string, printSummary, isStdin, verbose bool) (Output, erro
 	switch {
 	case outputFormat == "json":
 		return jsonOutput(w, printSummary, isStdin, verbose), nil
+	case outputFormat == "junit":
+		return junitOutput(w, printSummary, isStdin, verbose), nil
 	case outputFormat == "tap":
 		return tapOutput(w, printSummary, isStdin, verbose), nil
 	case outputFormat == "text":

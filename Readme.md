@@ -69,7 +69,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -n int
         number of goroutines to run concurrently (default 4)
   -output string
-        output format - json, tap, text (default "text")
+        output format - json, junit, tap, text (default "text")
   -reject string
         comma-separated list of kinds to reject
   -schema-location value
@@ -79,9 +79,9 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -strict
         disallow additional properties not in schema
   -summary
-        print a summary at the end
+        print a summary at the end (ignored for junit output)
   -verbose
-        print results for all resources (ignored for tap output)
+        print results for all resources (ignored for tap and junit output)
 ```
 
 ### Usage examples

@@ -5,15 +5,17 @@
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/yannh/kubeconform/pkg/validator)](https://pkg.go.dev/github.com/yannh/kubeconform/pkg/validator)
 
 Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes
-configuration using the schemas from the registry maintained by the
-[kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) project!
+configuration!
 
 It is inspired by, contains code from and is designed to stay close to
 [Kubeval](https://github.com/instrumenta/kubeval), but with the following improvements:
  * **high performance**: will validate & download manifests over multiple routines, caching
    downloaded files in memory
  * configurable list of **remote, or local schemas locations**, enabling validating Kubernetes
-   custom resources (CRDs) and offline validation capabilities.
+   custom resources (CRDs) and offline validation capabilities
+ * uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
+   by the [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) project - which guarantees
+   up-to-date **schemas for all recent versions of Kubernetes**.
 
 ### A small overview of Kubernetes manifest validation
 
@@ -67,7 +69,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -n int
         number of goroutines to run concurrently (default 4)
   -output string
-        output format - json, tap, text (default "text")
+        output format - json, junit, tap, text (default "text")
   -reject string
         comma-separated list of kinds to reject
   -schema-location value
@@ -77,9 +79,9 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -strict
         disallow additional properties not in schema
   -summary
-        print a summary at the end
+        print a summary at the end (ignored for junit output)
   -verbose
-        print results for all resources (ignored for tap output)
+        print results for all resources (ignored for tap and junit output)
 ```
 
 ### Usage examples
@@ -132,21 +134,21 @@ Summary: 65 resources found in 34 files - Valid: 55, Invalid: 2, Errors: 8 Skipp
 
 ### Overriding schemas location - CRD and Openshift support
 
-When the `-schema-location` parameter is not used, kubeconform will default to downloading schemas from
-`https://kubernetesjsonschema.dev`. Kubeconform however supports passing one, or multiple, schemas
-locations - HTTP URLs, or local filesystem paths, in which case it will lookup for schema definitions
+When the `-schema-location` parameter is not used, or set to "default", kubeconform will default to downloading
+schemas from `https://github.com/yannh/kubernetes-json-schema`. Kubeconform however supports passing one, or multiple,
+schemas locations - HTTP(s) URLs, or local filesystem paths, in which case it will lookup for schema definitions
 in each of them, in order, stopping as soon as a matching file is found.
 
  * If the -schema-location value does not end with '.json', Kubeconform will assume filenames / a file
- structure identical to that of kubernetesjsonschema.dev
+ structure identical to that of kubernetesjsonschema.dev or github.com/yannh/kubernetes-json-schema.
  * if the -schema-location value ends with '.json' - Kubeconform assumes the value is a Go templated
  string that indicates how to search for JSON schemas.
-
-All 3 following command lines are equivalent:
+* the -schema-location value of "default" is an alias for https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json.
+Both following command lines are equivalent:
 ```
 $ ./bin/kubeconform fixtures/valid.yaml
-$ ./bin/kubeconform -schema-location https://kubernetesjsonschema.dev fixtures/valid.yaml
-$ ./bin/kubeconform -schema-location 'https://kubernetesjsonschema.dev/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+$ ./bin/kubeconform -schema-location default fixtures/valid.yaml
+$ ./bin/kubeconform -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
 ```
 
 To support validating CRDs, we need to convert OpenAPI files to JSON schema, storing the JSON schemas
@@ -154,7 +156,7 @@ in a local folder - for example schemas. Then we specify this folder as an addit
 
 ```
 # If the resource Kind is not found in kubernetesjsonschema.dev, also lookup in the schemas/ folder for a matching file
-$ ./bin/kubeconform -registry https://kubernetesjsonschema.dev -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
+$ ./bin/kubeconform -schema-location default -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
 
 You can validate Openshift manifests using a custom schema location. Set the OpenShift version to validate

@@ -31,7 +31,7 @@ func (c *inMemory) Get(resourceKind, resourceAPIVersion, k8sVersion string) (int
 	defer c.RUnlock()
 	schema, ok := c.schemas[k]
 
-	if ok == false {
+	if !ok {
 		return nil, fmt.Errorf("schema not found in in-memory cache")
 	}
 

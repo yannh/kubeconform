@@ -98,6 +98,11 @@ metadata:
 							t.Errorf("Test suite name should be the resource path")
 						}
 						continue
+					case "id":
+						if attr.Value != "1" {
+							t.Errorf("testsuite/@id should be 1")
+						}
+						continue
 					case "tests":
 						if attr.Value != "1" {
 							t.Errorf("testsuite/@tests should be 1")

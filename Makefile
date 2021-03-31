@@ -19,8 +19,8 @@ save-image:
 	docker save --output kubeconform-image.tar kubeconform:${RELEASE_VERSION}
 
 push-image:
-	docker tag kubeconform:latest docker.pkg.github.com/yannh/kubeconform/kubeconform:${RELEASE_VERSION}
-	docker push docker.pkg.github.com/yannh/kubeconform/kubeconform:${RELEASE_VERSION}
+	docker tag kubeconform:latest ghcr.io/yannh/kubeconform:${RELEASE_VERSION}
+	docker push ghcr.io/yannh/kubeconform:${RELEASE_VERSION}
 
 build-static:
 	CGO_ENABLED=0 GOFLAGS=-mod=vendor GOOS=linux GOARCH=amd64 GO111MODULE=on go build -trimpath -tags=netgo -ldflags "-extldflags=\"-static\""  -a -o bin/ ./...

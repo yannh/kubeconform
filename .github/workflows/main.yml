@@ -46,7 +46,7 @@ jobs:
 
       - name: push
         run: |
-          echo "${{ github.token }}" | docker login https://docker.pkg.github.com -u ${GITHUB_ACTOR} --password-stdin
+          echo "${{ github.token }}" | docker login https://ghcr.io -u ${GITHUB_ACTOR} --password-stdin
           make push-image
         env:
           RELEASE_VERSION: master
@@ -72,7 +72,7 @@ jobs:
 
       - name: push-tag
         run: |
-          echo "${{ github.token }}" | docker login https://docker.pkg.github.com -u ${GITHUB_ACTOR} --password-stdin
+          echo "${{ github.token }}" | docker login https://ghcr.io -u ${GITHUB_ACTOR} --password-stdin
           make push-image
 
       - name: push-latest

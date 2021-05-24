@@ -114,6 +114,8 @@ for crdFile in sys.argv[1:]:
       f = open(crdFile)
     with f:
         for y in yaml.load_all(f, Loader=yaml.SafeLoader):
+            if y is None:
+                continue
             if "kind" not in y:
                 continue
             if y["kind"] != "CustomResourceDefinition":

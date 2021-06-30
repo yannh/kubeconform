@@ -24,7 +24,7 @@ in a [file](https://github.com/kubernetes/kubernetes/blob/master/api/openapi-spe
 the main Kubernetes repository.
 
 Because of the state of the tooling to perform validation against OpenAPI schemas, projects usually convert
-the OpenAPI schemas to [JSON schemas](https://json-schema.org/) first. Kubeval relies on 
+the OpenAPI schemas to [JSON schemas](https://json-schema.org/) first. Kubeval relies on
 [instrumenta/OpenApi2JsonSchema](https://github.com/instrumenta/openapi2jsonschema) to convert Kubernetes' Swagger file
 and break it down into multiple JSON schemas, stored in github at
 [instrumenta/kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) and published on
@@ -44,6 +44,14 @@ validation would still error when being deployed. See for example these bugs aga
 [#259](https://github.com/instrumenta/kubeval/issues/259). The validation logic mentioned in these
 bug reports is not part of Kubernetes' OpenAPI spec, and therefore kubeconform/kubeval will not detect the
 configuration errors.
+
+### Installation
+
+If you are [Homebrew](https://brew.sh/) user, you can install by running
+
+```bash
+$ brew install kubeconform
+```
 
 
 ### Usage
@@ -177,7 +185,7 @@ Here are the variables you can use in -schema-location:
 ### Converting an OpenAPI file to a JSON Schema
 
 Kubeconform uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition
-first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions 
+first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions
 to JSON schema. Here is an example how to use it:
 
 ```

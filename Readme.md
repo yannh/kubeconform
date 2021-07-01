@@ -1,6 +1,7 @@
 # Kubeconform
 
 [![Build status](https://github.com/yannh/kubeconform/workflows/build/badge.svg?branch=master)](https://github.com/yannh/kubeconform/actions?query=branch%3Amaster)
+[![Homebrew](https://img.shields.io/badge/dynamic/json.svg?url=https://formulae.brew.sh/api/formula/kubeconform.json&query=$.versions.stable&label=homebrew)](https://formulae.brew.sh/formula/kubeconform)
 [![Go Report card](https://goreportcard.com/badge/github.com/yannh/kubeconform)](https://goreportcard.com/report/github.com/yannh/kubeconform)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/yannh/kubeconform/pkg/validator)](https://pkg.go.dev/github.com/yannh/kubeconform/pkg/validator)
 

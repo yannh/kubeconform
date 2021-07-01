@@ -1,6 +1,7 @@
 # Kubeconform
 
 [![Build status](https://github.com/yannh/kubeconform/workflows/build/badge.svg?branch=master)](https://github.com/yannh/kubeconform/actions?query=branch%3Amaster)
+[![Homebrew](https://img.shields.io/badge/dynamic/json.svg?url=https://formulae.brew.sh/api/formula/kubeconform.json&query=$.versions.stable&label=homebrew)](https://formulae.brew.sh/formula/kubeconform)
 [![Go Report card](https://goreportcard.com/badge/github.com/yannh/kubeconform)](https://goreportcard.com/report/github.com/yannh/kubeconform)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/yannh/kubeconform/pkg/validator)](https://pkg.go.dev/github.com/yannh/kubeconform/pkg/validator)
 
@@ -24,7 +25,7 @@ in a [file](https://github.com/kubernetes/kubernetes/blob/master/api/openapi-spe
 the main Kubernetes repository.
 
 Because of the state of the tooling to perform validation against OpenAPI schemas, projects usually convert
-the OpenAPI schemas to [JSON schemas](https://json-schema.org/) first. Kubeval relies on 
+the OpenAPI schemas to [JSON schemas](https://json-schema.org/) first. Kubeval relies on
 [instrumenta/OpenApi2JsonSchema](https://github.com/instrumenta/openapi2jsonschema) to convert Kubernetes' Swagger file
 and break it down into multiple JSON schemas, stored in github at
 [instrumenta/kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) and published on
@@ -45,6 +46,15 @@ validation would still error when being deployed. See for example these bugs aga
 bug reports is not part of Kubernetes' OpenAPI spec, and therefore kubeconform/kubeval will not detect the
 configuration errors.
 
+### Installation
+
+If you are a [Homebrew](https://brew.sh/) user, you can install by running:
+
+```bash
+$ brew install kubeconform
+```
+
+You can also download the latest version from the [release page](https://github.com/yannh/kubeconform/releases).
 
 ### Usage
 
@@ -177,7 +187,7 @@ Here are the variables you can use in -schema-location:
 ### Converting an OpenAPI file to a JSON Schema
 
 Kubeconform uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition
-first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions 
+first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions
 to JSON schema. Here is an example how to use it:
 
 ```

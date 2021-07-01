@@ -48,12 +48,13 @@ configuration errors.
 
 ### Installation
 
-If you are [Homebrew](https://brew.sh/) user, you can install by running
+If you are a [Homebrew](https://brew.sh/) user, you can install by running:
 
 ```bash
 $ brew install kubeconform
 ```
 
+You can also download the latest version from the [release page](https://github.com/yannh/kubeconform/releases).
 
 ### Usage
 

@@ -93,19 +93,52 @@ func TestResources(t *testing.T) {
 		expected int
 	}{
 		{
-			"apiVersion: v1\nkind: List\n",
+			`
+apiVersion: v1
+kind: List
+`,
 			0,
 		},
 		{
-			"apiVersion: v1\nkind: List\nItems: []\n",
+			`
+apiVersion: v1
+kind: List
+Items: []
+`,
 			0,
 		},
 		{
-			"apiVersion: v1\nkind: List\nItems:\n  - apiVersion: v1\n    kind: ReplicationController\n    metadata:\n      name: \"bob\"\n    spec:\n    replicas: 2\n",
+			`
+apiVersion: v1
+kind: List
+Items:
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    name: "bob"
+  spec:
+    replicas: 2
+`,
 			1,
 		},
 		{
-			"apiVersion: v1\nkind: List\nItems:\n  - apiVersion: v1\n    kind: ReplicationController\n    metadata:\n      name: \"bob\"\n    spec:\n    replicas: 2\n  - apiVersion: v1\n    kind: ReplicationController\n    metadata:\n      name: \"Jim\"\n    spec:\n    replicas: 2\n",
+			`
+apiVersion: v1
+kind: List
+Items:
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    name: "bob"
+  spec:
+    replicas: 2
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    name: "Jim"
+  spec:
+    replicas: 2
+`,
 			2,
 		},
 	}

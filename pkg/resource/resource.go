@@ -2,15 +2,17 @@ package resource
 
 import (
 	"fmt"
+	"strings"
 
 	"sigs.k8s.io/yaml"
 )
 
 // Resource represents a Kubernetes resource within a file
 type Resource struct {
-	Path  string
-	Bytes []byte
-	sig   *Signature
+	Path   string
+	Bytes  []byte
+	sig    *Signature // Cache signature parsing
+	sigErr error      // Cache potential signature parsing error
 }
 
 // Signature is a key representing a Kubernetes resource
@@ -21,7 +23,7 @@ type Signature struct {
 // Signature computes a signature for a resource, based on its Kind, Version, Namespace & Name
 func (res *Resource) Signature() (*Signature, error) {
 	if res.sig != nil {
-		return res.sig, nil
+		return res.sig, res.sigErr
 	}
 
 	resource := struct {
@@ -44,33 +46,38 @@ func (res *Resource) Signature() (*Signature, error) {
 	res.sig = &Signature{Kind: resource.Kind, Version: resource.APIVersion, Namespace: resource.Metadata.Namespace, Name: name}
 
 	if err != nil { // Exit if there was an error unmarshalling
-		return res.sig, err
+		res.sigErr = err
+		return res.sig, res.sigErr
 	}
 
-	if resource.Kind == "" {
-		return res.sig, fmt.Errorf("missing 'kind' key")
+	if res.sig.Kind == "" {
+		res.sigErr = fmt.Errorf("missing 'kind' key")
+		return res.sig, res.sigErr
 	}
 
-	if resource.APIVersion == "" {
-		return res.sig, fmt.Errorf("missing 'apiVersion' key")
+	if res.sig.Version == "" {
+		res.sigErr = fmt.Errorf("missing 'apiVersion' key")
+		return res.sig, res.sigErr
 	}
 
-	return res.sig, err
+	return res.sig, res.sigErr
 }
 
 func (res *Resource) SignatureFromMap(m map[string]interface{}) (*Signature, error) {
 	if res.sig != nil {
-		return res.sig, nil
+		return res.sig, res.sigErr
 	}
 
 	Kind, ok := m["kind"].(string)
 	if !ok {
-		return res.sig, fmt.Errorf("missing 'kind' key")
+		res.sigErr = fmt.Errorf("missing 'kind' key")
+		return res.sig, res.sigErr
 	}
 
 	APIVersion, ok := m["apiVersion"].(string)
 	if !ok {
-		return res.sig, fmt.Errorf("missing 'apiVersion' key")
+		res.sigErr = fmt.Errorf("missing 'apiVersion' key")
+		return res.sig, res.sigErr
 	}
 
 	var name, ns string
@@ -86,4 +93,29 @@ func (res *Resource) SignatureFromMap(m map[string]interface{}) (*Signature, err
 	// We cache the result to not unmarshall every time we want to access the signature
 	res.sig = &Signature{Kind: Kind, Version: APIVersion, Namespace: ns, Name: name}
 	return res.sig, nil
+}
+
+// Resources returns a list of resources if the resource is of type List, a single resource otherwise
+// See https://github.com/yannh/kubeconform/issues/53
+func (res *Resource) Resources() []Resource {
+	resources := []Resource{}
+	if s, err := res.Signature(); err == nil && strings.ToLower(s.Kind) == "list" {
+		// A single file of type List
+		list := struct {
+			Version string
+			Kind    string
+			Items   []interface{}
+		}{}
+
+		yaml.Unmarshal(res.Bytes, &list)
+
+		for _, item := range list.Items {
+			r := Resource{Path: res.Path}
+			r.Bytes, _ = yaml.Marshal(item)
+			resources = append(resources, r)
+		}
+		return resources
+	}
+
+	return []Resource{*res}
 }

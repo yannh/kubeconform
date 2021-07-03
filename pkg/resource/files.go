@@ -94,8 +94,11 @@ func findResourcesInReader(p string, f io.Reader, resources chan<- Resource, err
 	nRes := 0
 	for scanner.Scan() {
 		if len(scanner.Text()) > 0 {
-			resources <- Resource{Path: p, Bytes: []byte(scanner.Text())}
-			nRes++
+			res := Resource{Path: p, Bytes: []byte(scanner.Text())}
+			for _, subres := range res.Resources() {
+				resources <- subres
+				nRes++
+			}
 		}
 	}
 	if err := scanner.Err(); err != nil {

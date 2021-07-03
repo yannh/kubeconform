@@ -243,3 +243,41 @@ resetCacheFolder() {
   [ "${lines[1]}" == 'ok 1 - fixtures/valid.yaml (ReplicationController)' ]
   [ "${lines[2]}" == '1..1' ]
 }
+
+@test "Pass when parsing a file containing multiple a List" {
+  run bin/kubeconform -summary fixtures/list_valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 6 resources found in 1 file - Valid: 6, Invalid: 0, Errors: 0, Skipped: 0" ]
+}
+
+@test "Pass when parsing a List resource from stdin" {
+  run bash -c "cat fixtures/list_valid.yaml | bin/kubeconform -summary"
+  [ "$status" -eq 0 ]
+  [ "$output" = 'Summary: 6 resources found parsing stdin - Valid: 6, Invalid: 0, Errors: 0, Skipped: 0' ]
+}
+
+@test "Fail when parsing a List that contains an invalid resource" {
+  run bin/kubeconform -summary fixtures/list_invalid.yaml
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" == 'fixtures/list_invalid.yaml - ReplicationController bob is invalid: For field spec.replicas: Invalid type. Expected: [integer,null], given: string' ]
+  [ "${lines[1]}" == 'Summary: 2 resources found in 1 file - Valid: 1, Invalid: 1, Errors: 0, Skipped: 0' ]
+}
+
+@test "Fail when parsing a List that contains an invalid resource from stdin" {
+  run bash -c "cat fixtures/list_invalid.yaml | bin/kubeconform -summary -"
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" == 'stdin - ReplicationController bob is invalid: For field spec.replicas: Invalid type. Expected: [integer,null], given: string' ]
+  [ "${lines[1]}" == 'Summary: 2 resources found parsing stdin - Valid: 1, Invalid: 1, Errors: 0, Skipped: 0' ]
+}
+
+@test "Pass on valid, empty list" {
+  run bin/kubeconform -summary fixtures/list_empty_valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = 'Summary: 0 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 0' ]
+}
+
+@test "Pass on multi-yaml containing one resource, one list" {
+  run bin/kubeconform -summary fixtures/multi_with_list.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = 'Summary: 2 resources found in 1 file - Valid: 2, Invalid: 0, Errors: 0, Skipped: 0' ]
+}

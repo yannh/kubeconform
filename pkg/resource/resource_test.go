@@ -86,3 +86,72 @@ func TestSignatureFromMap(t *testing.T) {
 		}
 	}
 }
+
+func TestResources(t *testing.T) {
+	testCases := []struct {
+		b        string
+		expected int
+	}{
+		{
+			`
+apiVersion: v1
+kind: List
+`,
+			0,
+		},
+		{
+			`
+apiVersion: v1
+kind: List
+Items: []
+`,
+			0,
+		},
+		{
+			`
+apiVersion: v1
+kind: List
+Items:
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    name: "bob"
+  spec:
+    replicas: 2
+`,
+			1,
+		},
+		{
+			`
+apiVersion: v1
+kind: List
+Items:
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    name: "bob"
+  spec:
+    replicas: 2
+- apiVersion: v1
+  kind: ReplicationController
+  metadata:
+    name: "Jim"
+  spec:
+    replicas: 2
+`,
+			2,
+		},
+	}
+
+	for i, testCase := range testCases {
+		res := resource.Resource{
+			Path:  "foo",
+			Bytes: []byte(testCase.b),
+		}
+
+		subres := res.Resources()
+		if len(subres) != testCase.expected {
+			t.Errorf("test %d: expected to find %d resources, found %d", i, testCase.expected, len(subres))
+		}
+	}
+}

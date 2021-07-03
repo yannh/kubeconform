@@ -60,7 +60,10 @@ func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource,
 				break SCAN
 			default:
 			}
-			resources <- Resource{Path: path, Bytes: scanner.Bytes()}
+			res := Resource{Path: path, Bytes: scanner.Bytes()}
+			for _, subres := range res.Resources() {
+				resources <- subres
+			}
 		}
 
 		close(resources)

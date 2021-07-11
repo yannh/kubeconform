@@ -127,10 +127,22 @@ func FromFiles(ctx context.Context, paths []string, ignoreFilePatterns []string)
 	files, errors := findFilesInFolders(ctx, paths, ignoreFilePatterns)
 
 	go func() {
-		maxResourceSize := 4 * 1024 * 1024   // 4MB ought to be enough for everybody
-		buf := make([]byte, maxResourceSize) // We reuse this to avoid multiple large memory allocations
+		maxResourceSize := int64(1 * 1024 * 1024) // 4MB ought to be enough for everybody
+		buf := make([]byte, maxResourceSize)      // We reuse this to avoid multiple large memory allocations
 
 		for p := range files {
+			fi, err := os.Stat(p)
+			if err != nil {
+				errors <- DiscoveryError{p, err}
+				continue
+			}
+			if filesize := fi.Size(); maxResourceSize <= filesize {
+				for maxResourceSize <= filesize {
+					// We increase by factors of 2 every time to avoid allocating too often
+					maxResourceSize *= 2
+				}
+				buf = make([]byte, maxResourceSize) // We reuse this to avoid multiple large memory allocations
+			}
 			findResourcesInFile(p, resources, errors, buf)
 		}
 

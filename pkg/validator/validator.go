@@ -69,7 +69,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 	}
 
 	if opts.KubernetesVersion == "" {
-		opts.KubernetesVersion = "1.18.0"
+		opts.KubernetesVersion = "master"
 	}
 
 	if opts.SkipKinds == nil {

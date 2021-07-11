@@ -63,7 +63,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	c := Config{}
 	c.Files = []string{}
 
-	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "1.18.0", "version of Kubernetes to validate against")
+	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "master", "version of Kubernetes to validate against, e.g.: 1.18.0")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
 	flags.StringVar(&rejectKindsCSV, "reject", "", "comma-separated list of kinds to reject")

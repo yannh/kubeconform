@@ -87,7 +87,7 @@ func New(schemaLocation string, cache string, strict bool, skipTLS bool) (Regist
 	}
 
 	// try to compile the schemaLocation template to ensure it is valid
-	if _, err := schemaPath(schemaLocation, "Deployment", "v1", "1.18.0", true); err != nil {
+	if _, err := schemaPath(schemaLocation, "Deployment", "v1", "master", true); err != nil {
 		return nil, fmt.Errorf("failed initialising schema location registry: %s", err)
 	}
 

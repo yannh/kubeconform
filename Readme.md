@@ -75,7 +75,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -insecure-skip-tls-verify
         disable verification of the server's SSL certificate. This will make your HTTPS connections insecure
   -kubernetes-version string
-        version of Kubernetes to validate against (default "1.18.0")
+        version of Kubernetes to validate against, e.g.: 1.18.0 (default "master")
   -n int
         number of goroutines to run concurrently (default 4)
   -output string

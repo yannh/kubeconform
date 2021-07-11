@@ -49,7 +49,7 @@ func TestFromFlags(t *testing.T) {
 			[]string{},
 			Config{
 				Files:             []string{},
-				KubernetesVersion: "1.18.0",
+				KubernetesVersion: "master",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,
@@ -62,7 +62,7 @@ func TestFromFlags(t *testing.T) {
 			Config{
 				Files:             []string{},
 				Help:              true,
-				KubernetesVersion: "1.18.0",
+				KubernetesVersion: "master",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,
@@ -74,7 +74,7 @@ func TestFromFlags(t *testing.T) {
 			[]string{"-skip", "a,b,c"},
 			Config{
 				Files:             []string{},
-				KubernetesVersion: "1.18.0",
+				KubernetesVersion: "master",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,
@@ -86,7 +86,7 @@ func TestFromFlags(t *testing.T) {
 			[]string{"-summary", "-verbose", "file1", "file2"},
 			Config{
 				Files:             []string{"file1", "file2"},
-				KubernetesVersion: "1.18.0",
+				KubernetesVersion: "master",
 				NumberOfWorkers:   4,
 				OutputFormat:      "text",
 				SchemaLocations:   nil,

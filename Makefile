@@ -2,7 +2,7 @@
 
 RELEASE_VERSION ?= latest
 
-.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image release
+.PHONY: test-build test build build-static docker-test docker-build-static build-bats docker-acceptance docker-image release update-deps
 
 test-build: test build
 
@@ -40,3 +40,7 @@ docker-acceptance: build-bats
 
 release:
 	docker run -e GITHUB_TOKEN -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v0.138 goreleaser release --rm-dist
+
+update-deps:
+	go get -u ./...
+	go mod tidy

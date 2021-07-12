@@ -123,16 +123,7 @@ for crdFile in sys.argv[1:]:
 
             filename_format = os.getenv("FILENAME_FORMAT", "{kind}_{version}")
             filename = ""
-            if "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
-                filename = filename_format.format(
-                    kind=y["spec"]["names"]["kind"],
-                    group=y["spec"]["group"].split(".")[0],
-                    version=y["spec"]["version"],
-                ).lower() + ".json"
-
-                schema = y["spec"]["validation"]["openAPIV3Schema"]
-                write_schema_file(schema, filename)
-            elif "spec" in y and "versions" in y["spec"]:
+            if "spec" in y and "versions" in y["spec"] and y["spec"]["versions"]:
                 for version in y["spec"]["versions"]:
                     if "schema" in version and "openAPIV3Schema" in version["schema"]:
                         filename = filename_format.format(
@@ -143,5 +134,23 @@ for crdFile in sys.argv[1:]:
 
                         schema = version["schema"]["openAPIV3Schema"]
                         write_schema_file(schema, filename)
+                    elif "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
+                        filename = filename_format.format(
+                            kind=y["spec"]["names"]["kind"],
+                            group=y["spec"]["group"].split(".")[0],
+                            version=version["name"],
+                        ).lower() + ".json"
+
+                        schema = y["spec"]["validation"]["openAPIV3Schema"]
+                        write_schema_file(schema, filename)
+            elif "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
+                filename = filename_format.format(
+                    kind=y["spec"]["names"]["kind"],
+                    group=y["spec"]["group"].split(".")[0],
+                    version=y["spec"]["version"],
+                ).lower() + ".json"
+
+                schema = y["spec"]["validation"]["openAPIV3Schema"]
+                write_schema_file(schema, filename)
 
 exit(0)

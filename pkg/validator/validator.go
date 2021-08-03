@@ -225,7 +225,13 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 	for _, reg := range registries {
 		schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
-			return gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
+			schema, err := gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
+
+			// If we got a non-parseable response, we try the next registry
+			if err != nil {
+				continue
+			}
+			return schema, err
 		}
 
 		// If we get a 404, we try the next registry, but we exit if we get a real failure

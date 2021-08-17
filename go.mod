@@ -1,6 +1,6 @@
 module github.com/yannh/kubeconform
 
-go 1.16
+go 1.17
 
 require (
 	github.com/beevik/etree v1.1.0
@@ -9,3 +9,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	sigs.k8s.io/yaml v1.2.0
 )
+
+require github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect

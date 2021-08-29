@@ -17,7 +17,7 @@ local-build-static:
 docker-test:
 	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.17 make local-test
 
-docker-build-static:
+docker-build:
 	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.17 make local-build
 
 docker-build-static:

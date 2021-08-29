@@ -38,6 +38,15 @@ dockers:
       - "--platform=linux/amd64"
     goos: linux
     goarch: amd64
+  - image_templates:
+      - 'ghcr.io/yannh/kubeconform:latest-alpine'
+      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}-alpine'
+      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}-amd64-alpine'
+    dockerfile: Dockerfile-alpine
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    goos: linux
+    goarch: amd64
 
 checksum:
   name_template: 'CHECKSUMS'

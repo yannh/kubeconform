@@ -1,3 +1,4 @@
+project_name: kubeconform
 builds:
   - main: ./cmd/kubeconform
     env:

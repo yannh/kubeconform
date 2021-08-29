@@ -15,7 +15,7 @@ local-build-static:
 
 # These only used for development. Release artifacts and docker images are produced by goreleaser.
 docker-test:
-	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.17 make test
+	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.17 make local-test
 
 docker-build-static:
 	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.17 make local-build

@@ -10,9 +10,10 @@ import (
 	"bufio"
 	"encoding/xml"
 	"fmt"
-	"github.com/yannh/kubeconform/pkg/validator"
 	"io"
 	"time"
+
+	"github.com/yannh/kubeconform/pkg/validator"
 )
 
 type TestSuiteCollection struct {
@@ -105,8 +106,6 @@ func (o *junito) Write(result validator.Result) error {
 		o.suites[result.Resource.Path] = suite
 	}
 
-	suite.Tests++
-
 	sig, _ := result.Resource.Signature()
 	var objectName string
 	if len(sig.Namespace) > 0 {
@@ -121,21 +120,20 @@ func (o *junito) Write(result validator.Result) error {
 	case validator.Valid:
 		o.nValid++
 	case validator.Invalid:
-		suite.Failures++
 		o.nInvalid++
 		failure := TestCaseError{Message: result.Err.Error()}
 		testCase.Failure = append(testCase.Failure, failure)
 	case validator.Error:
-		suite.Errors++
 		o.nErrors++
 		testCase.Error = &TestCaseError{Message: result.Err.Error()}
 	case validator.Skipped:
-		suite.Skipped++
 		testCase.Skipped = &TestCaseSkipped{}
 		o.nSkipped++
 	case validator.Empty:
+		return nil
 	}
 
+	suite.Tests++
 	suite.Cases = append(suite.Cases, testCase)
 
 	return nil

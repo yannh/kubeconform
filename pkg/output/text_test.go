@@ -8,7 +8,7 @@ import (
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
-func TestTapWrite(t *testing.T) {
+func TestTextWrite(t *testing.T) {
 	for _, testCase := range []struct {
 		name        string
 		withSummary bool

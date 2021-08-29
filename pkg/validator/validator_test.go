@@ -1,12 +1,11 @@
 package validator
 
 import (
-       "github.com/yannh/kubeconform/pkg/registry"
-       "testing"
+	"github.com/yannh/kubeconform/pkg/registry"
+	"testing"
 
-       "github.com/yannh/kubeconform/pkg/resource"
+	"github.com/yannh/kubeconform/pkg/resource"
 )
-
 
 type mockRegistry struct {
 	SchemaDownloader func() ([]byte, error)
@@ -22,14 +21,13 @@ func (m mockRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersio
 	return m.SchemaDownloader()
 }
 
-
 func TestValidate(t *testing.T) {
 	for i, testCase := range []struct {
-		name                          string
-		rawResource, schemaRegistry1  []byte
-		schemaRegistry2               []byte
-		ignoreMissingSchema           bool
-		expect                        Status
+		name                         string
+		rawResource, schemaRegistry1 []byte
+		schemaRegistry2              []byte
+		ignoreMissingSchema          bool
+		expect                       Status
 	}{
 		{
 			"valid resource",
@@ -292,11 +290,11 @@ lastName: bar
 	} {
 		val := v{
 			opts: Opts{
-				SkipKinds:   map[string]struct{}{},
-				RejectKinds: map[string]struct{}{},
+				SkipKinds:            map[string]struct{}{},
+				RejectKinds:          map[string]struct{}{},
 				IgnoreMissingSchemas: testCase.ignoreMissingSchema,
 			},
-			schemaCache: nil,
+			schemaCache:    nil,
 			schemaDownload: downloadSchema,
 			regs: []registry.Registry{
 				newMockRegistry(func() ([]byte, error) {

@@ -4,5 +4,5 @@ RUN apk add ca-certificates
 FROM scratch AS kubeconform
 MAINTAINER Yann HAMON <yann@mandragor.org>
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY bin/kubeconform /
+COPY kubeconform /
 ENTRYPOINT ["/kubeconform"]

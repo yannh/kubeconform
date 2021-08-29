@@ -8,22 +8,42 @@ builds:
       - windows
       - linux
       - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
     flags:
       - -trimpath
       - -tags=netgo
       - -a
     ldflags:
       - -extldflags "-static"
+
 archives:
   - format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
-    name_template: "{{ .ProjectName  }}-{{ .Os  }}-{{ .Arch  }}"
+    name_template: "{{ .ProjectName  }}-{{ .Os  }}-{{ .Arch  }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+
+dockers:
+  - image_templates:
+      - 'ghcr.io/yannh/kubeconform:latest'
+      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}'
+      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}-amd64'
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    goos: linux
+    goarch: amd64
+
 checksum:
   name_template: 'CHECKSUMS'
+
 snapshot:
   name_template: "{{ .Tag }}-next"
+
 changelog:
   sort: asc
   filters:

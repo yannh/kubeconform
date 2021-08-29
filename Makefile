@@ -38,8 +38,12 @@ docker-acceptance: build-bats
 	docker run -t bats -p acceptance.bats
 	docker run --network none -t bats -p acceptance-nonetwork.bats
 
+build-single-target:
+	docker run -t -e GOOS=linux -e GOARCH=amd64 -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v0.176.0 build --single-target --skip-post-hooks --rm-dist --snapshot
+	cp dist/kubeconform_linux_amd64/kubeconform bin/
+
 release:
-	docker run -e GITHUB_TOKEN -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v0.138 goreleaser release --rm-dist
+	docker run -e GITHUB_TOKEN -t -v /var/run/docker.sock:/var/run/docker.sock -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v0.176.0 release --rm-dist
 
 update-deps:
 	go get -u ./...

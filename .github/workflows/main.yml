@@ -11,7 +11,7 @@ jobs:
       run: make docker-test
 
     - name: build
-      run: make build-single-target
+      run: make goreleaser-build-static
 
     - name: acceptance-test
       run: make docker-acceptance

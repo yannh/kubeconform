@@ -28,6 +28,7 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 		MaxIdleConns:       100,
 		IdleConnTimeout:    3 * time.Second,
 		DisableCompression: true,
+		Proxy:		    http.ProxyFromEnvironment,
 	}
 
 	if skipTLS {

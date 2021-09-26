@@ -244,7 +244,7 @@ resetCacheFolder() {
   [ "${lines[2]}" == '1..1' ]
 }
 
-@test "Pass when parsing a file containing multiple a List" {
+@test "Pass when parsing a file containing a List" {
   run bin/kubeconform -summary fixtures/list_valid.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 6 resources found in 1 file - Valid: 6, Invalid: 0, Errors: 0, Skipped: 0" ]

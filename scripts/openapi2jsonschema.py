@@ -113,14 +113,20 @@ for crdFile in sys.argv[1:]:
     else:
       f = open(crdFile)
     with f:
+        defs = []
         for y in yaml.load_all(f, Loader=yaml.SafeLoader):
             if y is None:
                 continue
+            if "items" in y:
+                defs.extend(y["items"])
             if "kind" not in y:
                 continue
             if y["kind"] != "CustomResourceDefinition":
                 continue
+            else:
+                defs.append(y)
 
+        for y in defs:
             filename_format = os.getenv("FILENAME_FORMAT", "{kind}_{version}")
             filename = ""
             if "spec" in y and "versions" in y["spec"] and y["spec"]["versions"]:

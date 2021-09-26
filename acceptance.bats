@@ -294,3 +294,9 @@ resetCacheFolder() {
   [ "$status" -eq 0 ]
   [ "$output" = 'Summary: 100000 resources found in 1 file - Valid: 100000, Invalid: 0, Errors: 0, Skipped: 0' ]
 }
+
+@test "Should support very long streams from stdin" {
+  run bash -c "cat fixtures/valid_large.yaml | bin/kubeconform -summary"
+  [ "$status" -eq 0 ]
+  [ "$output" = 'Summary: 100000 resources found parsing stdin - Valid: 100000, Invalid: 0, Errors: 0, Skipped: 0' ]
+}

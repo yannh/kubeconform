@@ -48,9 +48,9 @@ func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource,
 
 	go func() {
 		scanner := bufio.NewScanner(r)
-		const maxResourceSize = 4 * 1024 * 1024 // 4MB ought to be enough for everybody
+		const maxResourceSize = 4 * 1024 * 1024 // Start with 4MB
 		buf := make([]byte, maxResourceSize)
-		scanner.Buffer(buf, maxResourceSize)
+		scanner.Buffer(buf, 256*1024*1024) // Resize up to 256MB
 		scanner.Split(SplitYAMLDocument)
 
 	SCAN:

@@ -91,7 +91,7 @@ func findResourcesInReader(p string, f io.Reader, resources chan<- Resource, err
 	scanner := bufio.NewScanner(f)
 	// We start with a buf that is 4MB, scanner will resize it up to 256MB if needed
 	// https://github.com/golang/go/blob/aeea5bacbf79fb945edbeac6cd7630dd70c4d9ce/src/bufio/scan.go#L191
-	scanner.Buffer(buf, 256*1024*1024*1024)
+	scanner.Buffer(buf, 256*1024*1024)
 	scanner.Split(SplitYAMLDocument)
 	nRes := 0
 	for scanner.Scan() {

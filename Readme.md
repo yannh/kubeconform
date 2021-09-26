@@ -231,6 +231,13 @@ bandwidth costs might be applicable. Since bandwidth from Github Packages within
 Github Container Registry to also be usable for free within Github Actions in the future. If that were not to be the
 case, I might publish the Docker image to a different platform.
 
+### Proxy support
+
+Kubeconform will respect the HTTPS_PROXY variable when downloading schema files.
+
+```
+$ HTTPS_PROXY=proxy.local bin/kubeconform fixtures/valid.yaml
+```
 ### Speed comparison with Kubeval
 
 Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:

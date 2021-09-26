@@ -5,6 +5,7 @@ import yaml
 import json
 import sys
 import os
+import urllib.request
 
 def test_additional_properties():
     for test in iter([{

@@ -22,9 +22,9 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: acceptance-test
+      - name: test
         working-directory: ./scripts
-        run: make docker-acceptance
+        run: make docker-test docker-acceptance
 
   goreleaser:
     runs-on: ubuntu-latest

@@ -288,3 +288,9 @@ resetCacheFolder() {
   [ "$status" -eq 1 ]
   [[ "$output" == *"proxyconnect tcp: dial tcp 127.0.0.1:1234: connect: connection refused"* ]]
 }
+
+@test "Should support large files" {
+  run bin/kubeconform -summary fixtures/valid_large.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = 'Summary: 100000 resources found in 1 file - Valid: 100000, Invalid: 0, Errors: 0, Skipped: 0' ]
+}

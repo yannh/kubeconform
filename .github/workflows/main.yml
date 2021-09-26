@@ -35,6 +35,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # https://github.com/goreleaser/goreleaser-action/issues/56
 
       - name: goreleaser
         run: |

@@ -89,7 +89,9 @@ func findFilesInFolders(ctx context.Context, paths []string, ignoreFilePatterns 
 
 func findResourcesInReader(p string, f io.Reader, resources chan<- Resource, errors chan<- error, buf []byte) {
 	scanner := bufio.NewScanner(f)
-	scanner.Buffer(buf, len(buf))
+	// We start with a buf that is 4MB, scanner will resize it up to 256MB if needed
+	// https://github.com/golang/go/blob/aeea5bacbf79fb945edbeac6cd7630dd70c4d9ce/src/bufio/scan.go#L191
+	scanner.Buffer(buf, 256*1024*1024)
 	scanner.Split(SplitYAMLDocument)
 	nRes := 0
 	for scanner.Scan() {
@@ -127,8 +129,8 @@ func FromFiles(ctx context.Context, paths []string, ignoreFilePatterns []string)
 	files, errors := findFilesInFolders(ctx, paths, ignoreFilePatterns)
 
 	go func() {
-		maxResourceSize := 4 * 1024 * 1024   // 4MB ought to be enough for everybody
-		buf := make([]byte, maxResourceSize) // We reuse this to avoid multiple large memory allocations
+		maxResourceSize := 4 * 1024 * 1024   // This is the initial size - scanner will resize if needed
+		buf := make([]byte, maxResourceSize) // We reuse the same buffer to avoid multiple large memory allocations
 
 		for p := range files {
 			findResourcesInFile(p, resources, errors, buf)

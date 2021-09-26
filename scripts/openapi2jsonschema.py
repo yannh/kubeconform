@@ -1,24 +1,26 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Derived from https://github.com/instrumenta/openapi2jsonschema
 import yaml
 import json
 import sys
 import os
-import urllib.request
 
-def iteritems(d):
-    if hasattr(dict, "iteritems"):
-        return d.iteritems()
-    else:
-        return iter(d.items())
-
+def test_additional_properties():
+    for test in iter([{
+        "input": {"something": {"properties": {}}},
+        "expect": {'something': {'properties': {}, "additionalProperties": False}}
+    },{
+        "input": {"something": {"somethingelse": {}}},
+        "expect": {'something': {'somethingelse': {}}}
+    }]):
+        assert additional_properties(test["input"]) == test["expect"]
 
 def additional_properties(data):
     "This recreates the behaviour of kubectl at https://github.com/kubernetes/kubernetes/blob/225b9119d6a8f03fcbe3cc3d590c261965d928d0/pkg/kubectl/validation/schema.go#L312"
     new = {}
     try:
-        for k, v in iteritems(data):
+        for k, v in iter(data.items()):
             new_v = v
             if isinstance(v, dict):
                 if "properties" in v:
@@ -32,11 +34,20 @@ def additional_properties(data):
     except AttributeError:
         return data
 
+def test_replace_int_or_string():
+    for test in iter([{
+        "input": {"something": {"format": "int-or-string"}},
+        "expect": {'something': {'oneOf': [{'type': 'string'}, {'type': 'integer'}]}}
+    },{
+        "input": {"something": {"format": "string"}},
+        "expect": {"something": {"format": "string"}},
+    }]):
+        assert replace_int_or_string(test["input"]) == test["expect"]
 
 def replace_int_or_string(data):
     new = {}
     try:
-        for k, v in iteritems(data):
+        for k, v in iter(data.items()):
             new_v = v
             if isinstance(v, dict):
                 if "format" in v and v["format"] == "int-or-string":
@@ -54,11 +65,10 @@ def replace_int_or_string(data):
     except AttributeError:
         return data
 
-
 def allow_null_optional_fields(data, parent=None, grand_parent=None, key=None):
     new = {}
     try:
-        for k, v in iteritems(data):
+        for k, v in iter(data.items()):
             new_v = v
             if isinstance(v, dict):
                 new_v = allow_null_optional_fields(v, data, parent, k)
@@ -103,60 +113,63 @@ def write_schema_file(schema, filename):
     print("JSON schema written to {filename}".format(filename=filename))
 
 
-if len(sys.argv) == 0:
-    print("missing file")
-    exit(1)
 
-for crdFile in sys.argv[1:]:
-    if crdFile.startswith("http"):
-      f = urllib.request.urlopen(crdFile)
-    else:
-      f = open(crdFile)
-    with f:
-        defs = []
-        for y in yaml.load_all(f, Loader=yaml.SafeLoader):
-            if y is None:
-                continue
-            if "items" in y:
-                defs.extend(y["items"])
-            if "kind" not in y:
-                continue
-            if y["kind"] != "CustomResourceDefinition":
-                continue
-            else:
-                defs.append(y)
 
-        for y in defs:
-            filename_format = os.getenv("FILENAME_FORMAT", "{kind}_{version}")
-            filename = ""
-            if "spec" in y and "versions" in y["spec"] and y["spec"]["versions"]:
-                for version in y["spec"]["versions"]:
-                    if "schema" in version and "openAPIV3Schema" in version["schema"]:
-                        filename = filename_format.format(
-                            kind=y["spec"]["names"]["kind"],
-                            group=y["spec"]["group"].split(".")[0],
-                            version=version["name"],
-                        ).lower() + ".json"
+if __name__ == "__main__":
+  if len(sys.argv) == 0:
+      print("missing file")
+      exit(1)
 
-                        schema = version["schema"]["openAPIV3Schema"]
-                        write_schema_file(schema, filename)
-                    elif "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
-                        filename = filename_format.format(
-                            kind=y["spec"]["names"]["kind"],
-                            group=y["spec"]["group"].split(".")[0],
-                            version=version["name"],
-                        ).lower() + ".json"
+  for crdFile in sys.argv[1:]:
+      if crdFile.startswith("http"):
+        f = urllib.request.urlopen(crdFile)
+      else:
+        f = open(crdFile)
+      with f:
+          defs = []
+          for y in yaml.load_all(f, Loader=yaml.SafeLoader):
+              if y is None:
+                  continue
+              if "items" in y:
+                  defs.extend(y["items"])
+              if "kind" not in y:
+                  continue
+              if y["kind"] != "CustomResourceDefinition":
+                  continue
+              else:
+                  defs.append(y)
 
-                        schema = y["spec"]["validation"]["openAPIV3Schema"]
-                        write_schema_file(schema, filename)
-            elif "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
-                filename = filename_format.format(
-                    kind=y["spec"]["names"]["kind"],
-                    group=y["spec"]["group"].split(".")[0],
-                    version=y["spec"]["version"],
-                ).lower() + ".json"
+          for y in defs:
+              filename_format = os.getenv("FILENAME_FORMAT", "{kind}_{version}")
+              filename = ""
+              if "spec" in y and "versions" in y["spec"] and y["spec"]["versions"]:
+                  for version in y["spec"]["versions"]:
+                      if "schema" in version and "openAPIV3Schema" in version["schema"]:
+                          filename = filename_format.format(
+                              kind=y["spec"]["names"]["kind"],
+                              group=y["spec"]["group"].split(".")[0],
+                              version=version["name"],
+                          ).lower() + ".json"
 
-                schema = y["spec"]["validation"]["openAPIV3Schema"]
-                write_schema_file(schema, filename)
+                          schema = version["schema"]["openAPIV3Schema"]
+                          write_schema_file(schema, filename)
+                      elif "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
+                          filename = filename_format.format(
+                              kind=y["spec"]["names"]["kind"],
+                              group=y["spec"]["group"].split(".")[0],
+                              version=version["name"],
+                          ).lower() + ".json"
 
-exit(0)
+                          schema = y["spec"]["validation"]["openAPIV3Schema"]
+                          write_schema_file(schema, filename)
+              elif "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
+                  filename = filename_format.format(
+                      kind=y["spec"]["names"]["kind"],
+                      group=y["spec"]["group"].split(".")[0],
+                      version=y["spec"]["version"],
+                  ).lower() + ".json"
+
+                  schema = y["spec"]["validation"]["openAPIV3Schema"]
+                  write_schema_file(schema, filename)
+
+  exit(0)

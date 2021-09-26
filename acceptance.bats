@@ -281,3 +281,10 @@ resetCacheFolder() {
   [ "$status" -eq 0 ]
   [ "$output" = 'Summary: 2 resources found in 1 file - Valid: 2, Invalid: 0, Errors: 0, Skipped: 0' ]
 }
+
+@test "Should support HTTPS_PROXY" {
+  # This only tests that the HTTPS_PROXY variable is picked up and that it tries to use it
+  run bash -c "HTTPS_PROXY=127.0.0.1:1234 bin/kubeconform fixtures/valid.yaml"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"proxyconnect tcp: dial tcp 127.0.0.1:1234: connect: connection refused"* ]]
+}

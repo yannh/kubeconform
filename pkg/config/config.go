@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-var version = "development"
-
 type Config struct {
 	Cache                  string
 	CPUProfileFile         string
@@ -100,10 +98,6 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 
 	if c.Help {
 		flags.Usage()
-	}
-
-	if c.Version {
-		fmt.Println(version)
 	}
 
 	return c, buf.String(), err

@@ -71,6 +71,19 @@ func TestFromFlags(t *testing.T) {
 			},
 		},
 		{
+			[]string{"-v"},
+			Config{
+				Files:             []string{},
+				Version:           true,
+				KubernetesVersion: "master",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   nil,
+				SkipKinds:         map[string]struct{}{},
+				RejectKinds:       map[string]struct{}{},
+			},
+		},
+		{
 			[]string{"-skip", "a,b,c"},
 			Config{
 				Files:             []string{},

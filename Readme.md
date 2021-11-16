@@ -90,6 +90,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
         disallow additional properties not in schema
   -summary
         print a summary at the end (ignored for junit output)
+  -v	show version information
   -verbose
         print results for all resources (ignored for tap and junit output)
 ```

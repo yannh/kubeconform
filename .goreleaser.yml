@@ -20,6 +20,7 @@ builds:
       - -a
     ldflags:
       - -extldflags "-static"
+      - -X main.version={{.Tag}}
 
 archives:
   - format: tar.gz

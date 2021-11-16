@@ -15,6 +15,8 @@ import (
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
+var version = "development"
+
 func processResults(cancel context.CancelFunc, o output.Output, validationResults <-chan validator.Result, exitOnError bool) <-chan bool {
 	success := true
 	result := make(chan bool)
@@ -47,6 +49,9 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 func realMain() int {
 	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
 	if cfg.Help {
+		return 0
+	} else if cfg.Version {
+		fmt.Println(version)
 		return 0
 	} else if out != "" {
 		fmt.Println(out)

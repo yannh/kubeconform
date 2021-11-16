@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var version = "development"
+
 type Config struct {
 	Cache                  string
 	CPUProfileFile         string
@@ -26,6 +28,7 @@ type Config struct {
 	IgnoreMissingSchemas   bool
 	IgnoreFilenamePatterns []string
 	Help                   bool
+	Version                bool
 }
 
 type arrayParam []string
@@ -79,6 +82,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.StringVar(&c.Cache, "cache", "", "cache schemas downloaded via HTTP to this folder")
 	flags.StringVar(&c.CPUProfileFile, "cpu-prof", "", "debug - log CPU profiling to file")
 	flags.BoolVar(&c.Help, "h", false, "show help information")
+	flags.BoolVar(&c.Version, "v", false, "show version information")
 	flags.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", progName)
 
@@ -96,6 +100,10 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 
 	if c.Help {
 		flags.Usage()
+	}
+
+	if c.Version {
+		fmt.Println(version)
 	}
 
 	return c, buf.String(), err

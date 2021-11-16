@@ -20,6 +20,7 @@ builds:
       - -a
     ldflags:
       - -extldflags "-static"
+      - -X github.com/yannh/kubeconform/pkg/config.version={{.Tag}}
 
 archives:
   - format: tar.gz

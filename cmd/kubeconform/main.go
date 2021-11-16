@@ -48,6 +48,8 @@ func realMain() int {
 	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
 	if cfg.Help {
 		return 0
+	} else if cfg.Version {
+		return 0
 	} else if out != "" {
 		fmt.Println(out)
 		return 1

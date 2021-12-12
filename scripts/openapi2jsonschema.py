@@ -17,23 +17,15 @@ def test_additional_properties():
     }]):
         assert additional_properties(test["input"]) == test["expect"]
 
-def additional_properties(data):
+def additional_properties(data, skip=False):
     "This recreates the behaviour of kubectl at https://github.com/kubernetes/kubernetes/blob/225b9119d6a8f03fcbe3cc3d590c261965d928d0/pkg/kubectl/validation/schema.go#L312"
-    new = {}
-    try:
-        for k, v in iter(data.items()):
-            new_v = v
-            if isinstance(v, dict):
-                if "properties" in v:
-                    if "additionalProperties" not in v:
-                        v["additionalProperties"] = False
-                new_v = additional_properties(v)
-            else:
-                new_v = v
-            new[k] = new_v
-        return new
-    except AttributeError:
-        return data
+    if isinstance(data, dict):
+        if "properties" in data and not skip:
+            if "additionalProperties" not in data:
+                data["additionalProperties"] = False
+        for _, v in data.items():
+            additional_properties(v)
+    return data
 
 def test_replace_int_or_string():
     for test in iter([{
@@ -102,14 +94,14 @@ def append_no_duplicates(obj, key, value):
 def write_schema_file(schema, filename):
     schemaJSON = ""
 
-    schema = additional_properties(schema)
+    schema = additional_properties(schema, skip=not os.getenv("DENY_ROOT_ADDITIONAL_PROPERTIES"))
     schema = replace_int_or_string(schema)
     schemaJSON = json.dumps(schema, indent=2)
 
     # Dealing with user input here..
     filename = os.path.basename(filename)
     f = open(filename, "w")
-    f.write(schemaJSON)
+    print(schemaJSON, file=f)
     f.close()
     print("JSON schema written to {filename}".format(filename=filename))
 

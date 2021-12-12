@@ -7093,5 +7093,6 @@
   "required": [
     "spec"
   ],
-  "type": "object"
+  "type": "object",
+  "additionalProperties": false
 }

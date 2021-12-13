@@ -204,6 +204,8 @@ $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-s
 JSON schema written to trainingjob-sagemaker-v1.json
 ```
 
+Some CRD schemas do not have explicit validation for fields implicitly validated by the Kubernetes API like `apiVersion`, `kind`, and `metadata`, thus additional properties are allowed at the root of the JSON schema by default, if this is not desired the `DENY_ROOT_ADDITIONAL_PROPERTIES` environment variable can be set to any non-empty value.
+
 ### Usage as a Github Action
 
 Kubeconform is publishes Docker Images to Github's new Container Registry, ghcr.io. These images

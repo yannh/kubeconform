@@ -40,11 +40,11 @@ func (o *tapo) Write(res validator.Result) error {
 	switch res.Status {
 	case validator.Valid:
 		sig, _ := res.Resource.Signature()
-		fmt.Fprintf(o.w, "ok %d - %s (%s)\n", o.index, res.Resource.Path, sig.Kind)
+		fmt.Fprintf(o.w, "ok %d - %s (%s)\n", o.index, res.Resource.Path, sig.QualifiedName())
 
 	case validator.Invalid:
 		sig, _ := res.Resource.Signature()
-		fmt.Fprintf(o.w, "not ok %d - %s (%s): %s\n", o.index, res.Resource.Path, sig.Kind, res.Err.Error())
+		fmt.Fprintf(o.w, "not ok %d - %s (%s): %s\n", o.index, res.Resource.Path, sig.QualifiedName(), res.Err.Error())
 
 	case validator.Empty:
 		fmt.Fprintf(o.w, "ok %d - %s (empty)\n", o.index, res.Resource.Path)
@@ -53,7 +53,8 @@ func (o *tapo) Write(res validator.Result) error {
 		fmt.Fprintf(o.w, "not ok %d - %s: %s\n", o.index, res.Resource.Path, res.Err.Error())
 
 	case validator.Skipped:
-		fmt.Fprintf(o.w, "ok %d #skip - %s\n", o.index, res.Resource.Path)
+		sig, _ := res.Resource.Signature()
+		fmt.Fprintf(o.w, "ok %d - %s (%s) # skip\n", o.index, res.Resource.Path, sig.QualifiedName())
 	}
 
 	return nil

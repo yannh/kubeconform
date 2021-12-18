@@ -119,3 +119,8 @@ func (res *Resource) Resources() []Resource {
 
 	return []Resource{*res}
 }
+
+// QualifiedName returns a string for a signature in the format version/kind/namespace/name
+func (sig *Signature) QualifiedName() string {
+	return fmt.Sprintf("%s/%s/%s/%s", sig.Version, sig.Kind, sig.Namespace, sig.Name)
+}

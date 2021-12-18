@@ -36,7 +36,7 @@ metadata:
 					Err:    nil,
 				},
 			},
-			"TAP version 13\nok 1 - deployment.yml (Deployment)\n1..1\n",
+			"TAP version 13\nok 1 - deployment.yml (apps/v1/Deployment//my-app)\n1..1\n",
 		},
 		{
 			"a single deployment, verbose, with summary",
@@ -57,7 +57,7 @@ metadata:
 					Err:    nil,
 				},
 			},
-			"TAP version 13\nok 1 - deployment.yml (Deployment)\n1..1\n",
+			"TAP version 13\nok 1 - deployment.yml (apps/v1/Deployment//my-app)\n1..1\n",
 		},
 	} {
 		w := new(bytes.Buffer)

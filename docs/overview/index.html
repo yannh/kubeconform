@@ -1,0 +1,23 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=author content="Yann Hamon"><link rel=stylesheet type=text/css href=/css/style.css><link rel=stylesheet type=text/css href=/css/prism.css><title>Kubeconform - Fast Kubernetes manifests validation! | Overview</title></head><body><div id=main-container><div id=header><ul id=navigation><li><a href=/about>About</a></li><li><a href=/docs/installation/>Docs</a></li><li><a href=/>Home</a></li></ul><h1>Kubeconform</h1><h2>A fast Kubernetes manifests validator</h2></div><div id=content><ul id=menu><li><a href=http://kubeconform.mandragor.org/docs/overview/>Overview</a></li><li><a href=http://kubeconform.mandragor.org/docs/installation/>Installation</a></li><li><a href=http://kubeconform.mandragor.org/docs/usage/>Usage</a></li><li><a href=http://kubeconform.mandragor.org/docs/crd-support/>Custom Resources support</a></li><li><a href=http://kubeconform.mandragor.org/docs/json-schema-conversion/>OpenAPI to JSON Schema conversion</a></li><li><a href=http://kubeconform.mandragor.org/docs/usage-as-github-action/>Github Action</a></li><li><a href=http://kubeconform.mandragor.org/docs/using-as-a-go-module/>Kubeconform as a Go module</a></li></ul><div id=main><div class=navig><a href=http://kubeconform.mandragor.org/docs/installation/ id=next>Installation ></a></div><div id=content-text><h1>Overview</h1><p>Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes
+configuration!</p><p>It is inspired by, contains code from and is designed to stay close to
+<a href=https://github.com/instrumenta/kubeval>Kubeval</a>, but with the following improvements:</p><ul><li><strong>high performance</strong>: will validate & download manifests over multiple routines, caching
+downloaded files in memory</li><li>configurable list of <strong>remote, or local schemas locations</strong>, enabling validating Kubernetes
+custom resources (CRDs) and offline validation capabilities</li><li>uses by default a <a href=https://github.com/yannh/kubernetes-json-schema>self-updating fork</a> of the schemas registry maintained
+by the <a href=https://github.com/instrumenta/kubernetes-json-schema>kubernetes-json-schema</a> project - which guarantees
+up-to-date <strong>schemas for all recent versions of Kubernetes</strong>.</li></ul><h3 id=a-small-overview-of-kubernetes-manifest-validation>A small overview of Kubernetes manifest validation</h3><p>Kubernetes&rsquo;s API is described using the <a href=https://www.openapis.org>OpenAPI (formerly swagger) specification</a>,
+in a <a href=https://github.com/kubernetes/kubernetes/blob/master/api/openapi-spec/swagger.json>file</a> checked into
+the main Kubernetes repository.</p><p>Because of the state of the tooling to perform validation against OpenAPI schemas, projects usually convert
+the OpenAPI schemas to <a href=https://json-schema.org/>JSON schemas</a> first. Kubeval relies on
+<a href=https://github.com/instrumenta/openapi2jsonschema>instrumenta/OpenApi2JsonSchema</a> to convert Kubernetes' Swagger file
+and break it down into multiple JSON schemas, stored in github at
+<a href=https://github.com/instrumenta/kubernetes-json-schema>instrumenta/kubernetes-json-schema</a> and published on
+<a href=https://kubernetesjsonschema.dev/>kubernetesjsonschema.dev</a>.</p><p>Kubeconform relies on <a href=https://github.com/yannh/kubernetes-json-schema/>a fork of kubernetes-json-schema</a>
+that is more aggressively kept up-to-date, and contains schemas for all recent versions of Kubernetes.</p><h3 id=limits-of-kubeconform-validation>Limits of Kubeconform validation</h3><p>Kubeconform, similarly to kubeval, only validates manifests using the OpenAPI specifications. In some
+cases, the Kubernetes controllers might perform additional validation - so that manifests passing kubeval
+validation would still error when being deployed. See for example these bugs against kubeval:
+<a href=https://github.com/instrumenta/kubeval/issues/253>#253</a>
+<a href=https://github.com/instrumenta/kubeval/issues/256>#256</a>
+<a href=https://github.com/instrumenta/kubeval/issues/257>#257</a>
+<a href=https://github.com/instrumenta/kubeval/issues/259>#259</a>. The validation logic mentioned in these
+bug reports is not part of Kubernetes' OpenAPI spec, and therefore kubeconform/kubeval will not detect the
+configuration errors.</p></div><div class=navig><a href=http://kubeconform.mandragor.org/docs/installation/ id=next>Installation ></a></div><script defer src=/js/prism.js></script></div></div><div id=footer>Website powered by <a href=https://gohugo.io/>Hugo</a></div></div><script defer src=/js/prism.js></script></body></html>

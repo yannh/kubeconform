@@ -25,3 +25,4 @@ jobs:
         with:
           publish_dir: ./site/public
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          cname: kubeconform.mandragor.org

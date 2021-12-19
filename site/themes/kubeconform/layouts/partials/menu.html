@@ -1,0 +1,5 @@
+<ul id="menu">
+    {{ range (where .Site.RegularPages.ByTitle "Section" "docs" ).ByWeight }}
+    <li><a href="{{.Permalink}}">{{.Title}}</a></li>
+    {{ end }}
+</ul>

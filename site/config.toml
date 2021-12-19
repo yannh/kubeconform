@@ -1,0 +1,6 @@
+baseURL = 'http://kubeconform.mandragor.org/'
+languageCode = 'en-us'
+title = 'Kubeconform - Fast Kubernetes manifests validation!'
+theme = 'kubeconform'
+contentDir = "content"
+staticDir = ["static"]

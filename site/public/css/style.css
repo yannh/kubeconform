@@ -1,0 +1,204 @@
+
+/* Colors */
+body  { background-color: white; }
+a     { color: black }
+hr { border-color: #ddd; }
+#header, #footer { background-color: #002036; color: white }
+
+@media (prefers-color-scheme: dark) {
+}
+
+/* Font sizes */
+body { font-size: 1.2rem; line-height: 1.7rem; text-size-adjust: 100%; }
+h1   { font-size: 2.3rem; line-height: 3.2rem; font-weight: 400 }
+h2   { font-size: 1.8rem; line-height: 2.3rem; font-weight: 400 }
+h3   { font-size: 1.5rem; line-height: 1.8rem; font-weight: 300 }
+
+#header h1 { font-size: 3rem; line-height: 3.3rem; font-weight: 500; margin-top: 0.2em; margin-left: 30px }
+#header h2 { font-size: 1.3rem; line-height: 1.5rem; font-weight: 300; font-style: italic; margin: 0 0 0.5em 30px}
+
+/* We default all margins/paddings to 0 */
+* { margin: 0; padding: 0 }
+a { text-decoration: none }
+#content-text a { text-decoration: underline }
+#content-text a:hover { text-decoration: none }
+p {
+    font-weight: 400;
+    margin-bottom: 16px;
+}
+
+h2   {
+    font-weight: 500;
+    margin: 3rem 0 0.8rem 0;
+}
+
+h3   {
+    font-weight: 500;
+    margin: 1.5rem 0 1.5rem 0;
+}
+pre {
+    margin: 1rem 0 1rem 0
+}
+
+#main-container {
+    padding: 0;
+    font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-feature-settings: "kern", "liga";
+    width: 100%;
+    background-color: white;
+}
+
+hr {
+    height: 1px;
+    margin: 3rem 0 3rem 0;
+    clear: both;
+}
+
+#header, #footer {
+    width: 100%;
+    clear: both;
+}
+
+#header {
+    padding: 0.5em 0 0.5em 0em;
+}
+
+#menu {
+    background-color: #ddd;
+    padding: 1em
+}
+
+#content {
+    display:flex;
+}
+
+#menu {
+    flex: 15;
+    min-width: 15%;
+    padding: 2em
+}
+
+#main {
+    flex: 85;
+    min-width: 0;
+}
+
+#main h1 {
+    padding-bottom: 1em;
+}
+
+pre {
+    overflow: scroll;
+    min-width: 0
+}
+
+#footer {
+    padding: 0.5em 0;
+    text-align: center;
+    color: white;
+    font-size: smaller;
+}
+
+#footer a {
+    font-style: italic;
+    color: white;
+    text-decoration: underline;
+}
+
+#navigation {
+    float: right;
+    padding-right: 2em;
+}
+
+#navigation li {
+    display: block;
+    width: 100px;
+    float: right;
+    padding-top: 0.2em;
+    text-align: center;
+    font-weight: bold;
+    font-size: smaller;
+}
+
+#navigation li a{
+    color: white
+}
+
+#navigation li a:hover{
+    text-decoration: underline;
+}
+
+#motto {
+    text-align: center;
+    font-style: italic;
+    font-size: 1.1em;
+    margin: 2em auto 2em auto;
+}
+
+#demo{
+    font-size: smaller;
+    margin: 2em auto 2em auto;
+    border-radius: 1em;
+    display: table;
+    overflow: scroll;
+}
+
+#kc-pros {
+    display: flex;
+    flex-flow: row wrap;
+    margin: 0 auto;
+    width: 60%;
+}
+
+#kc-pros > div {
+    flex-basis: 50%;
+}
+
+#kc-pros h2 {
+    font-size: 1.2em;
+    line-height: 1.2em;
+    padding: 0 5% 0.3em 5%;
+}
+
+#kc-pros p {
+    font-size: 0.9em;
+    padding: 0 5% 2em 5%;
+}
+
+#get {
+    display: table;
+    border: 1px solid black;
+    padding: 0.5em 2em;
+    border-radius: 0.8em;
+    clear: both;
+    margin: 3em auto 5em auto;
+    background-color: #0594cb;
+    color: white;
+    text-align: center;
+}
+
+#get:active {
+    background-color: #002036;
+}
+
+.navig {
+    display: flex;
+    flex-flow: row wrap;
+    margin: 0 auto;
+}
+
+.navig > a {
+    flex-basis: 50%;
+    text-align: center;
+    background-color: #eee;
+    padding: 0.4em 0;
+    font-size: smaller
+}
+
+#content-text {
+    padding: 2em;
+}
+
+#main ul {
+    margin: 1em 0 2em 3em;
+}

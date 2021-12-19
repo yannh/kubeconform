@@ -1,0 +1,27 @@
+{{ define "main" }}
+
+<div class="navig">
+    {{ with .PrevInSection }}
+    <a href="{{ .Permalink }}" id="prev">&lt; {{ .Title }}</a>
+    {{ end }}
+    {{ with .NextInSection }}
+    <a href="{{ .Permalink }}" id="next">{{ .Title }} &gt;</a>
+    {{ end }}
+</div>
+
+<div id="content-text">
+<h1>{{ .Title }}</h1>
+{{ .Content }}
+</div>
+
+<div class="navig">
+    {{ with .PrevInSection }}
+    <a href="{{ .Permalink }}" id="prev">&lt; {{ .Title }}</a>
+    {{ end }}
+    {{ with .NextInSection }}
+    <a href="{{ .Permalink }}" id="next">{{ .Title }} &gt;</a>
+    {{ end }}
+</div>
+
+<script defer src="/js/prism.js"></script>
+{{ end }}

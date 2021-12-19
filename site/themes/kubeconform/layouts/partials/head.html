@@ -1,0 +1,9 @@
+<head>
+    <meta charset="utf-8">
+    <meta name="author" content="Yann Hamon">
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    {{- $title := print .Site.Title " | " .Title -}}
+    {{- if .IsHome }}{{ $title = .Site.Title }}{{ end -}}
+    <link rel="stylesheet" type="text/css" href="/css/prism.css">
+    <title>{{ $title }}</title>
+</head>

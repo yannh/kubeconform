@@ -1,0 +1,21 @@
+# theme.toml template for a Hugo theme
+# See https://github.com/gohugoio/hugoThemes#themetoml for an example
+
+name = "localhost"
+license = "MIT"
+licenselink = "https://github.com/yannh/kubeconform/themes/kubeconform/LICENSE"
+description = "Hugo template for kubeconform"
+homepage = "http://github.com/yannh/kubeconform/site/theme/kubeconform/"
+tags = []
+features = []
+min_version = "0.0.1"
+
+[author]
+  name = ""
+  homepage = ""
+
+# If porting an existing theme
+[original]
+  name = ""
+  homepage = ""
+  repo = ""

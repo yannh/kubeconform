@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Lambda@edge on Kubeconform - Fast Kubernetes manifests validation!</title>
+    <link>http://localhost/tags/lambdaedge/</link>
+    <description>Recent content in Lambda@edge on Kubeconform - Fast Kubernetes manifests validation!</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 02 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost/tags/lambdaedge/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>The execution model of AWS Lambda@edge with Cloudfront&#39;s two- and three-tiered architecture</title>
+      <link>http://localhost/installation/</link>
+      <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>http://localhost/installation/</guid>
+      <description>Installation</description>
+    </item>
+    
+  </channel>
+</rss>

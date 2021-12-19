@@ -1,0 +1,32 @@
+{{ define "main" }}
+
+<p id="motto">Validate your Kubernetes manifests instead of deploying broken configuration</p>
+
+<pre id="demo"><code class="language-bash">$ kubeconform -summary myapp/deployment.yaml
+Summary: 5 resources found in 1 file - Valid: 5, Invalid: 0, Errors: 0, Skipped: 0
+</code></pre>
+
+<a href="/docs/installation/" id="get">
+    Get Started!
+</a>
+
+<div id="kc-pros">
+    <div>
+        <h2>Easy-to-use</h2>
+        <p>Single binary, super-easy installation for Windows, Mac & Linux. It takes seconds to get started.</p>
+    </div>
+    <div>
+        <h2>Lightning fast</h2>
+        <p>Kubeconform makes heavy use of Golang's concurrency capabilities, and will spread its workload across multiple cores.</pa>
+    </div>
+    <div>
+        <h2>Support for Kubernetes CRDs</h2>
+        <p>Validate ALL your Kubernetes resources with Kubeconform's CRD support</p>
+    </div>
+    <div>
+        <h2>Flexible</h2>
+        <p>With support for JSON, Junit, TAP output, and leveraging the easy-to-use Docker image, you can run Kubeconform in any CI system.</p>
+    </div>
+</div>
+
+{{ end }}

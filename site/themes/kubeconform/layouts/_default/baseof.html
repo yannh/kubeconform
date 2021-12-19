@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    {{- partial "head.html" . -}}
+    <body>
+    <div id="main-container">
+      {{- partial "header.html" . -}}
+      <div id="content">
+          {{- if eq .Section "docs" -}}
+          {{- partial "menu.html" . -}}
+          {{- end -}}
+          <div id="main">
+              {{- block "main" . }}{{- end }}
+          </div>
+      </div>
+      {{- partial "footer.html" . -}}
+    </div>
+    <script defer src="/js/prism.js"></script>
+    </body>
+</html>

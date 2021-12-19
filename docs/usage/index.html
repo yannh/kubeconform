@@ -1,0 +1,67 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=author content="Yann Hamon"><link rel=stylesheet type=text/css href=/css/style.css><link rel=stylesheet type=text/css href=/css/prism.css><title>Kubeconform - Fast Kubernetes manifests validation! | Usage</title></head><body><div id=main-container><div id=header><ul id=navigation><li><a href=/about>About</a></li><li><a href=/docs/installation/>Docs</a></li><li><a href=/>Home</a></li></ul><h1>Kubeconform</h1><h2>A fast Kubernetes manifests validator</h2></div><div id=content><ul id=menu><li><a href=http://kubeconform.mandragor.org/docs/installation/>Installation</a></li><li><a href=http://kubeconform.mandragor.org/docs/usage/>Usage</a></li><li><a href=http://kubeconform.mandragor.org/docs/crd-support/>Custom Resources support</a></li><li><a href=http://kubeconform.mandragor.org/docs/usage-as-github-action/>Github Action</a></li><li><a href=http://kubeconform.mandragor.org/docs/using-as-a-go-module/>Kubeconform as a Go module</a></li><li><a href=http://kubeconform.mandragor.org/docs/json-schema-conversion/>Conversion of CRD to JSON Schema</a></li></ul><div id=main><div class=navig><a href=http://kubeconform.mandragor.org/docs/crd-support/ id=prev>&lt; Custom Resources support</a>
+<a href=http://kubeconform.mandragor.org/docs/installation/ id=next>Installation ></a></div><div id=content-text><h1>Usage</h1><pre><code class=language-bash>$ ./bin/kubeconform -h
+Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
+  -cache string
+        cache schemas downloaded via HTTP to this folder
+  -cpu-prof string
+        debug - log CPU profiling to file
+  -exit-on-error
+        immediately stop execution when the first error is encountered
+  -h    show help information
+  -ignore-filename-pattern value
+        regular expression specifying paths to ignore (can be specified multiple times)
+  -ignore-missing-schemas
+        skip files with missing schemas instead of failing
+  -insecure-skip-tls-verify
+        disable verification of the server's SSL certificate. This will make your HTTPS connections insecure
+  -kubernetes-version string
+        version of Kubernetes to validate against, e.g.: 1.18.0 (default "master")
+  -n int
+        number of goroutines to run concurrently (default 4)
+  -output string
+        output format - json, junit, tap, text (default "text")
+  -reject string
+        comma-separated list of kinds to reject
+  -schema-location value
+        override schemas location search path (can be specified multiple times)
+  -skip string
+        comma-separated list of kinds to ignore
+  -strict
+        disallow additional properties not in schema
+  -summary
+        print a summary at the end (ignored for junit output)
+  -v	show version information
+  -verbose
+        print results for all resources (ignored for tap and junit output)
+</code></pre><h3 id=validating-a-single-valid-file>Validating a single, valid file</h3><pre><code class=language-bash>$ ./bin/kubeconform fixtures/valid.yaml
+$ echo $?
+0
+</code></pre><h3 id=validating-a-single-invalid-file-setting-output-to-json-and-printing-a-summary>Validating a single invalid file, setting output to json, and printing a summary</h3><pre><code class=language-bash>$ ./bin/kubeconform -summary -output json fixtures/invalid.yaml
+{
+  "resources": [
+    {
+      "filename": "fixtures/invalid.yaml",
+      "kind": "ReplicationController",
+      "version": "v1",
+      "status": "INVALID",
+      "msg": "Additional property templates is not allowed - Invalid type. Expected: [integer,null], given: string"
+    }
+  ],
+  "summary": {
+    "valid": 0,
+    "invalid": 1,
+    "errors": 0,
+    "skipped": 0
+  }
+}
+$ echo $?
+1
+</code></pre><h3 id=passing-manifests-via-stdin>Passing manifests via Stdin</h3><pre><code class=language-bash>cat fixtures/valid.yaml  | ./bin/kubeconform -summary
+Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+</code></pre><h3 id=validating-a-folder-increasing-the-number-of-parallel-workers>Validating a folder, increasing the number of parallel workers</h3><pre><code class=language-bash>$ ./bin/kubeconform -summary -n 16 fixtures
+fixtures/crd_schema.yaml - CustomResourceDefinition trainingjobs.sagemaker.aws.amazon.com failed validation: could not find schema for CustomResourceDefinition
+fixtures/invalid.yaml - ReplicationController bob is invalid: Invalid type. Expected: [integer,null], given: string
+[...]
+Summary: 65 resources found in 34 files - Valid: 55, Invalid: 2, Errors: 8 Skipped: 0
+</code></pre></div><div class=navig><a href=http://kubeconform.mandragor.org/docs/crd-support/ id=prev>&lt; Custom Resources support</a>
+<a href=http://kubeconform.mandragor.org/docs/installation/ id=next>Installation ></a></div><script defer src=/js/prism.js></script></div></div><div id=footer>Website powered by <a href=https://gohugo.io/>Hugo</a></div></div><script defer src=/js/prism.js></script></body></html>

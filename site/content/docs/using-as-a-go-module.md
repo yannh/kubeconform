@@ -3,7 +3,7 @@ title: "Kubeconform as a Go module"
 date: 2021-07-02T00:00:00Z
 draft: false
 tags: ["Kubeconform", "Usage"]
-weight: 5
+weight: 7
 ---
 
 **Warning**: This is a work-in-progress, the interface is not yet considered stable. Feedback is encouraged.

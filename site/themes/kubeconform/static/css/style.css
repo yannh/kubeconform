@@ -9,13 +9,13 @@ hr { border-color: #ddd; }
 }
 
 /* Font sizes */
-body { font-size: 1.2rem; line-height: 1.7rem; text-size-adjust: 100%; }
-h1   { font-size: 2.3rem; line-height: 3.2rem; font-weight: 400 }
-h2   { font-size: 1.8rem; line-height: 2.3rem; font-weight: 400 }
-h3   { font-size: 1.5rem; line-height: 1.8rem; font-weight: 300 }
+body { font-size: 1.4rem; line-height: 1.9rem; text-size-adjust: 100%; }
+h1   { font-size: 2.7rem; line-height: 3.8rem; font-weight: 400 }
+h2   { font-size: 2rem; line-height: 2.5rem; font-weight: 400 }
+h3   { font-size: 1.7rem; line-height: 2rem; font-weight: 300 }
 
-#header h1 { font-size: 3rem; line-height: 3.3rem; font-weight: 500; margin-top: 0.2em; margin-left: 30px }
-#header h2 { font-size: 1.3rem; line-height: 1.5rem; font-weight: 300; font-style: italic; margin: 0 0 0.5em 30px}
+#header h1 { font-size: 4rem; line-height: 4.5rem; font-weight: 500; margin-top: 0.2em; margin-left: 30px }
+#header h2 { font-size: 1.7rem; line-height: 2.2rem; font-weight: 300; font-style: italic; margin: 0 0 0.5em 30px}
 
 /* We default all margins/paddings to 0 */
 * { margin: 0; padding: 0 }
@@ -131,7 +131,7 @@ pre {
 #motto {
     text-align: center;
     font-style: italic;
-    font-size: 1.1em;
+    font-size: 1.4em;
     margin: 2em auto 2em auto;
 }
 
@@ -155,13 +155,13 @@ pre {
 }
 
 #kc-pros h2 {
-    font-size: 1.2em;
+    font-size: 1.4em;
     line-height: 1.2em;
     padding: 0 5% 0.3em 5%;
 }
 
 #kc-pros p {
-    font-size: 0.9em;
+    font-size: 1.1em;
     padding: 0 5% 2em 5%;
 }
 

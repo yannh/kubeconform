@@ -3,7 +3,7 @@ title: "Installation"
 date: 2021-07-02T00:00:00Z
 draft: false
 tags: ["Kubeconform", "Installation"]
-weight: 1
+weight: 2
 ---
 
 ## Linux
@@ -26,7 +26,3 @@ Kubeconform is available to install using [Homebrew](https://brew.sh/):
 ## Windows
 
 Download the latest release from our [release page](https://github.com/yannh/kubeconform/releases).
-
-
-
-You can also download the latest version from the [release page](https://github.com/yannh/kubeconform/releases).

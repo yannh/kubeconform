@@ -27,6 +27,16 @@
     </item>
     
     <item>
+      <title>OpenAPI to JSON Schema conversion</title>
+      <link>http://kubeconform.mandragor.org/docs/json-schema-conversion/</link>
+      <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>http://kubeconform.mandragor.org/docs/json-schema-conversion/</guid>
+      <description>Kubeconform uses JSON schemas to validate Kubernetes resources. For custom resources, the CustomResourceDefinition first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions to JSON schema. Here is an example how to use it:
+#!/bin/bash $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml JSON schema written to trainingjob_v1.json  The FILENAME_FORMAT environment variable can be used to change the output file name (Available variables: kind, group, version) (Default: {kind}_{version}).</description>
+    </item>
+    
+    <item>
       <title>Github Action</title>
       <link>http://kubeconform.mandragor.org/docs/usage-as-github-action/</link>
       <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
@@ -45,16 +55,6 @@ name: kubeconform on: push jobs: kubeconform: runs-on: ubuntu-latest steps: - na
       <description>Warning: This is a work-in-progress, the interface is not yet considered stable. Feedback is encouraged.
 Kubeconform contains a package that can be used as a library. An example of usage can be found in examples/main.go
 Additional documentation on pkg.go.dev</description>
-    </item>
-    
-    <item>
-      <title>Conversion of CRD to JSON Schema</title>
-      <link>http://kubeconform.mandragor.org/docs/json-schema-conversion/</link>
-      <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
-      
-      <guid>http://kubeconform.mandragor.org/docs/json-schema-conversion/</guid>
-      <description>Kubeconform uses JSON schemas to validate Kubernetes resources. For custom resources, the CustomResourceDefinition first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions to JSON schema. Here is an example how to use it:
-#!/bin/bash $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml JSON schema written to trainingjob_v1.json  The FILENAME_FORMAT environment variable can be used to change the output file name (Available variables: kind, group, version) (Default: {kind}_{version}).</description>
     </item>
     
   </channel>

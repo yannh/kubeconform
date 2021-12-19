@@ -1,10 +1,10 @@
 {{ define "main" }}
 
 <div class="navig">
-    {{ with .PrevInSection }}
+    {{ with .NextInSection }} <!-- Prev & Next are switched in this version of Hugo -->
     <a href="{{ .Permalink }}" id="prev">&lt; {{ .Title }}</a>
     {{ end }}
-    {{ with .NextInSection }}
+    {{ with .PrevInSection }}
     <a href="{{ .Permalink }}" id="next">{{ .Title }} &gt;</a>
     {{ end }}
 </div>
@@ -15,10 +15,10 @@
 </div>
 
 <div class="navig">
-    {{ with .PrevInSection }}
+    {{ with .NextInSection }} <!-- Prev & Next are switched in this version of Hugo -->
     <a href="{{ .Permalink }}" id="prev">&lt; {{ .Title }}</a>
     {{ end }}
-    {{ with .NextInSection }}
+    {{ with .PrevInSection }}
     <a href="{{ .Permalink }}" id="next">{{ .Title }} &gt;</a>
     {{ end }}
 </div>

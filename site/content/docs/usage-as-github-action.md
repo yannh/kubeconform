@@ -3,7 +3,7 @@ title: "Github Action"
 date: 2021-07-02T00:00:00Z
 draft: false
 tags: ["Kubeconform", "Usage"]
-weight: 4
+weight: 6
 ---
 
 Kubeconform is publishes Docker Images to Github's new Container Registry, ghcr.io. These images

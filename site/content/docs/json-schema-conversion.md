@@ -1,8 +1,9 @@
 ---
-title: "Conversion of CRD to JSON Schema"
+title: "OpenAPI to JSON Schema conversion"
 date: 2021-07-02T00:00:00Z
 draft: false
 tags: ["Kubeconform", "Usage"]
+weight: 5
 ---
 
 Kubeconform uses JSON schemas to validate Kubernetes resources. For custom resources, the CustomResourceDefinition

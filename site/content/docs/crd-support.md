@@ -3,7 +3,7 @@ title: "Custom Resources support"
 date: 2021-07-02T00:00:00Z
 draft: false
 tags: ["Kubeconform", "Usage"]
-weight: 3
+weight: 4
 ---
 
 When the `-schema-location` parameter is not used, or set to "default", kubeconform will default to downloading

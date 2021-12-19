@@ -8,6 +8,17 @@
     <language>en-us</language>
     <lastBuildDate>Fri, 02 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="http://kubeconform.mandragor.org/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Overview</title>
+      <link>http://kubeconform.mandragor.org/docs/overview/</link>
+      <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>http://kubeconform.mandragor.org/docs/overview/</guid>
+      <description>Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes configuration!
+It is inspired by, contains code from and is designed to stay close to Kubeval, but with the following improvements:
+ high performance: will validate &amp;amp; download manifests over multiple routines, caching downloaded files in memory configurable list of remote, or local schemas locations, enabling validating Kubernetes custom resources (CRDs) and offline validation capabilities uses by default a self-updating fork of the schemas registry maintained by the kubernetes-json-schema project - which guarantees up-to-date schemas for all recent versions of Kubernetes.</description>
+    </item>
+    
+    <item>
       <title>Installation</title>
       <link>http://kubeconform.mandragor.org/docs/installation/</link>
       <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
@@ -16,8 +27,7 @@
       <description>Linux Download the latest release from our release page.
 For example, for Linux on x86_64 architecture:
 curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xvzf - &amp;&amp; \ sudo mv kubeconform /usr/local/bin/  MacOs Kubeconform is available to install using Homebrew: $ brew install kubeconform 
-Windows Download the latest release from our release page.
-You can also download the latest version from the release page.</description>
+Windows Download the latest release from our release page.</description>
     </item>
     
     <item>
@@ -37,6 +47,16 @@ You can also download the latest version from the release page.</description>
       <guid>http://kubeconform.mandragor.org/docs/crd-support/</guid>
       <description>When the -schema-location parameter is not used, or set to &amp;ldquo;default&amp;rdquo;, kubeconform will default to downloading schemas from https://github.com/yannh/kubernetes-json-schema. Kubeconform however supports passing one, or multiple, schemas locations - HTTP(s) URLs, or local filesystem paths, in which case it will lookup for schema definitions in each of them, in order, stopping as soon as a matching file is found.
  If the -schema-location value does not end with &amp;lsquo;.json&amp;rsquo;, Kubeconform will assume filenames / a file structure identical to that of kubernetesjsonschema.</description>
+    </item>
+    
+    <item>
+      <title>OpenAPI to JSON Schema conversion</title>
+      <link>http://kubeconform.mandragor.org/docs/json-schema-conversion/</link>
+      <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
+      
+      <guid>http://kubeconform.mandragor.org/docs/json-schema-conversion/</guid>
+      <description>Kubeconform uses JSON schemas to validate Kubernetes resources. For custom resources, the CustomResourceDefinition first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions to JSON schema. Here is an example how to use it:
+#!/bin/bash $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml JSON schema written to trainingjob_v1.json  The FILENAME_FORMAT environment variable can be used to change the output file name (Available variables: kind, group, version) (Default: {kind}_{version}).</description>
     </item>
     
     <item>
@@ -69,16 +89,6 @@ Additional documentation on pkg.go.dev</description>
       <description>Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes configuration!
 It is inspired by, contains code from and is designed to stay close to Kubeval, but with the following improvements:
  high performance: will validate &amp;amp; download manifests over multiple routines, caching downloaded files in memory configurable list of remote, or local schemas locations, enabling validating Kubernetes custom resources (CRDs) and offline validation capabilities uses by default a self-updating fork of the schemas registry maintained by the kubernetes-json-schema project - which guarantees up-to-date schemas for all recent versions of Kubernetes.</description>
-    </item>
-    
-    <item>
-      <title>Conversion of CRD to JSON Schema</title>
-      <link>http://kubeconform.mandragor.org/docs/json-schema-conversion/</link>
-      <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
-      
-      <guid>http://kubeconform.mandragor.org/docs/json-schema-conversion/</guid>
-      <description>Kubeconform uses JSON schemas to validate Kubernetes resources. For custom resources, the CustomResourceDefinition first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions to JSON schema. Here is an example how to use it:
-#!/bin/bash $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml JSON schema written to trainingjob_v1.json  The FILENAME_FORMAT environment variable can be used to change the output file name (Available variables: kind, group, version) (Default: {kind}_{version}).</description>
     </item>
     
   </channel>

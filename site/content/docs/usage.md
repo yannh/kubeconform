@@ -3,7 +3,7 @@ title: "Usage"
 date: 2021-07-02T00:00:00Z
 draft: false
 tags: ["Kubeconform", "Usage"]
-weight: 2
+weight: 3
 ---
 
 {{< prism >}}$ ./bin/kubeconform -h

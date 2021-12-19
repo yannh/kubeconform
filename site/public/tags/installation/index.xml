@@ -16,8 +16,7 @@
       <description>Linux Download the latest release from our release page.
 For example, for Linux on x86_64 architecture:
 curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xvzf - &amp;&amp; \ sudo mv kubeconform /usr/local/bin/  MacOs Kubeconform is available to install using Homebrew: $ brew install kubeconform 
-Windows Download the latest release from our release page.
-You can also download the latest version from the release page.</description>
+Windows Download the latest release from our release page.</description>
     </item>
     
   </channel>

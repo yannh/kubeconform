@@ -1,52 +1,37 @@
-<!DOCTYPE html>
-<html><head>
-    <meta charset="utf-8">
-    <meta name="author" content="Yann Hamon">
-    <link rel="stylesheet" type="text/css" href="/css/style.css"><link rel="stylesheet" type="text/css" href="/css/prism.css">
-    <title>Kubeconform - Fast Kubernetes manifests validation! | Usage</title>
+<!doctype html><html><head>
+<meta charset=utf-8>
+<meta name=author content="Yann Hamon">
+<link rel=stylesheet type=text/css href=/css/style.css><link rel=stylesheet type=text/css href=/css/prism.css>
+<title>Kubeconform - Fast Kubernetes manifests validation! | Usage</title>
 </head>
 <body>
-    <div id="main-container"><div id="header">
-    <ul id="navigation">
-       <li><a href="/about">About</a></li>
-       <li><a href="/docs/installation/">Docs</a></li>
-       <li><a href="/">Home</a></li>
-    </ul>
-    <h1>Kubeconform</h1>
-    <h2>A fast Kubernetes manifests validator</h2>
-</div>
-<div id="content"><ul id="menu">
-    
-    <li><a href="http://kubeconform.mandragor.org/docs/overview/">Overview</a></li>
-    
-    <li><a href="http://kubeconform.mandragor.org/docs/installation/">Installation</a></li>
-    
-    <li><a href="http://kubeconform.mandragor.org/docs/usage/">Usage</a></li>
-    
-    <li><a href="http://kubeconform.mandragor.org/docs/crd-support/">Custom Resources support</a></li>
-    
-    <li><a href="http://kubeconform.mandragor.org/docs/json-schema-conversion/">OpenAPI to JSON Schema conversion</a></li>
-    
-    <li><a href="http://kubeconform.mandragor.org/docs/usage-as-github-action/">Github Action</a></li>
-    
-    <li><a href="http://kubeconform.mandragor.org/docs/using-as-a-go-module/">Kubeconform as a Go module</a></li>
-    
+<div id=main-container><div id=header>
+<ul id=navigation>
+<li><a href=/about>About</a></li>
+<li><a href=https://github.com/yannh/kubeconform/>Github</a></li>
+<li><a href=/docs/installation/>Docs</a></li>
+<li><a href=/>Home</a></li>
 </ul>
-<div id="main">
-
-<div class="navig">
-     
-    <a href="http://kubeconform.mandragor.org/docs/installation/" id="prev">&lt; Installation</a>
-    
-    
-    <a href="http://kubeconform.mandragor.org/docs/crd-support/" id="next">Custom Resources support &gt;</a>
-    
+<h1>Kubeconform</h1>
+<h2>A fast Kubernetes manifests validator</h2>
 </div>
-
-<div id="content-text">
+<div id=content><ul id=menu>
+<li><a href=http://kubeconform.mandragor.org/docs/overview/>Overview</a></li>
+<li><a href=http://kubeconform.mandragor.org/docs/installation/>Installation</a></li>
+<li><a href=http://kubeconform.mandragor.org/docs/usage/>Usage</a></li>
+<li><a href=http://kubeconform.mandragor.org/docs/crd-support/>Custom Resources support</a></li>
+<li><a href=http://kubeconform.mandragor.org/docs/json-schema-conversion/>OpenAPI to JSON Schema conversion</a></li>
+<li><a href=http://kubeconform.mandragor.org/docs/usage-as-github-action/>Github Action</a></li>
+<li><a href=http://kubeconform.mandragor.org/docs/using-as-a-go-module/>Kubeconform as a Go module</a></li>
+</ul>
+<div id=main>
+<div class=navig>
+<a href=http://kubeconform.mandragor.org/docs/installation/ id=prev>&lt; Installation</a>
+<a href=http://kubeconform.mandragor.org/docs/crd-support/ id=next>Custom Resources support ></a>
+</div>
+<div id=content-text>
 <h1>Usage</h1>
-
-<pre><code class="language-bash">$ ./bin/kubeconform -h
+<pre><code class=language-bash>$ ./bin/kubeconform -h
 Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -cache string
         cache schemas downloaded via HTTP to this folder
@@ -81,15 +66,13 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -verbose
         print results for all resources (ignored for tap and junit output)
 </code></pre>
-<h3 id="validating-a-single-valid-file">Validating a single, valid file</h3>
-
-<pre><code class="language-bash">$ ./bin/kubeconform fixtures/valid.yaml
+<h3 id=validating-a-single-valid-file>Validating a single, valid file</h3>
+<pre><code class=language-bash>$ ./bin/kubeconform fixtures/valid.yaml
 $ echo $?
 0
 </code></pre>
-<h3 id="validating-a-single-invalid-file-setting-output-to-json-and-printing-a-summary">Validating a single invalid file, setting output to json, and printing a summary</h3>
-
-<pre><code class="language-bash">$ ./bin/kubeconform -summary -output json fixtures/invalid.yaml
+<h3 id=validating-a-single-invalid-file-setting-output-to-json-and-printing-a-summary>Validating a single invalid file, setting output to json, and printing a summary</h3>
+<pre><code class=language-bash>$ ./bin/kubeconform -summary -output json fixtures/invalid.yaml
 {
   "resources": [
     {
@@ -110,38 +93,28 @@ $ echo $?
 $ echo $?
 1
 </code></pre>
-<h3 id="passing-manifests-via-stdin">Passing manifests via Stdin</h3>
-
-<pre><code class="language-bash">cat fixtures/valid.yaml  | ./bin/kubeconform -summary
+<h3 id=passing-manifests-via-stdin>Passing manifests via Stdin</h3>
+<pre><code class=language-bash>cat fixtures/valid.yaml  | ./bin/kubeconform -summary
 Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 </code></pre>
-<h3 id="validating-a-folder-increasing-the-number-of-parallel-workers">Validating a folder, increasing the number of parallel workers</h3>
-
-<pre><code class="language-bash">$ ./bin/kubeconform -summary -n 16 fixtures
+<h3 id=validating-a-folder-increasing-the-number-of-parallel-workers>Validating a folder, increasing the number of parallel workers</h3>
+<pre><code class=language-bash>$ ./bin/kubeconform -summary -n 16 fixtures
 fixtures/crd_schema.yaml - CustomResourceDefinition trainingjobs.sagemaker.aws.amazon.com failed validation: could not find schema for CustomResourceDefinition
 fixtures/invalid.yaml - ReplicationController bob is invalid: Invalid type. Expected: [integer,null], given: string
 [...]
 Summary: 65 resources found in 34 files - Valid: 55, Invalid: 2, Errors: 8 Skipped: 0
 </code></pre>
-
 </div>
-
-<div class="navig">
-     
-    <a href="http://kubeconform.mandragor.org/docs/installation/" id="prev">&lt; Installation</a>
-    
-    
-    <a href="http://kubeconform.mandragor.org/docs/crd-support/" id="next">Custom Resources support &gt;</a>
-    
+<div class=navig>
+<a href=http://kubeconform.mandragor.org/docs/installation/ id=prev>&lt; Installation</a>
+<a href=http://kubeconform.mandragor.org/docs/crd-support/ id=next>Custom Resources support ></a>
 </div>
-
-<script defer src="/js/prism.js"></script>
-
-          </div>
-      </div><div id="footer">
-    Website powered by <a href="https://gohugo.io/">Hugo</a>
+<script defer src=/js/prism.js></script>
+</div>
+</div><div id=footer>
+Website powered by <a href=https://gohugo.io/>Hugo</a>
 </div>
 </div>
-    <script defer src="/js/prism.js"></script>
-    </body>
+<script defer src=/js/prism.js></script>
+</body>
 </html>

@@ -6,8 +6,8 @@ tags: ["Kubeconform", "Overview"]
 weight: 1
 ---
 
-Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes
-configuration!
+Kubeconform is a Kubernetes manifests validation tool, and checks whether your Kubernetes manifests
+are valid, according to Kubernetes resources definitions.
 
 It is inspired by, contains code from and is designed to stay close to
 [Kubeval](https://github.com/instrumenta/kubeval), but with the following improvements:
@@ -18,6 +18,7 @@ It is inspired by, contains code from and is designed to stay close to
 * uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
   by the [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) project - which guarantees
   up-to-date **schemas for all recent versions of Kubernetes**.
+* improved logging: support for more formats (Tap, Junit, JSON).
 
 ### A small overview of Kubernetes manifest validation
 

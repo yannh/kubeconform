@@ -1,23 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Installation on Kubeconform - Fast Kubernetes manifests validation!</title>
-    <link>http://kubeconform.mandragor.org/tags/installation/</link>
-    <description>Recent content in Installation on Kubeconform - Fast Kubernetes manifests validation!</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Fri, 02 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="http://kubeconform.mandragor.org/tags/installation/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Installation</title>
-      <link>http://kubeconform.mandragor.org/docs/installation/</link>
-      <pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate>
-      
-      <guid>http://kubeconform.mandragor.org/docs/installation/</guid>
-      <description>Linux Download the latest release from our release page.
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Installation on Kubeconform - Fast Kubernetes manifests validation!</title><link>http://kubeconform.mandragor.org/tags/installation/</link><description>Recent content in Installation on Kubeconform - Fast Kubernetes manifests validation!</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Fri, 02 Jul 2021 00:00:00 +0000</lastBuildDate><atom:link href="http://kubeconform.mandragor.org/tags/installation/index.xml" rel="self" type="application/rss+xml"/><item><title>Installation</title><link>http://kubeconform.mandragor.org/docs/installation/</link><pubDate>Fri, 02 Jul 2021 00:00:00 +0000</pubDate><guid>http://kubeconform.mandragor.org/docs/installation/</guid><description>Linux Download the latest release from our release page.
 For example, for Linux on x86_64 architecture:
-curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xvzf - &amp;&amp; \ sudo mv kubeconform /usr/local/bin/  MacOs Kubeconform is available to install using Homebrew: $ brew install kubeconform 
-Windows Download the latest release from our release page.</description>
-    </item>
-    
-  </channel>
-</rss>
+curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xvzf - &amp;&amp; \ sudo mv kubeconform /usr/local/bin/ MacOs Kubeconform is available to install using Homebrew: $ brew install kubeconform
+Windows Download the latest release from our release page.</description></item></channel></rss>

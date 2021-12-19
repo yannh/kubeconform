@@ -63,11 +63,6 @@ hr {
     padding: 0.5em 0 0.5em 0em;
 }
 
-#menu {
-    background-color: #ddd;
-    padding: 1em
-}
-
 #content {
     display:flex;
 }
@@ -75,8 +70,24 @@ hr {
 #menu {
     flex: 15;
     min-width: 15%;
-    padding: 2em
+    background-color: #ddd;
+    padding: 2em;
 }
+
+#menu li {
+    line-height: 1.9rem;
+    padding-bottom: 0.6rem;
+}
+
+#menu li::marker {
+    font-size: smaller;
+}
+
+#menu li a:hover {
+    text-decoration: underline;
+}
+
+
 
 #main {
     flex: 85;

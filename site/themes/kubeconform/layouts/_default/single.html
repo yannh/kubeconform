@@ -3,9 +3,13 @@
 <div class="navig">
     {{ with .NextInSection }} <!-- Prev & Next are switched in this version of Hugo -->
     <a href="{{ .Permalink }}" id="prev">&lt; {{ .Title }}</a>
+    {{ else }}
+    <a href="#" id="prev"></a>
     {{ end }}
     {{ with .PrevInSection }}
     <a href="{{ .Permalink }}" id="next">{{ .Title }} &gt;</a>
+    {{ else }}
+    <a href="#" id="prev"></a>
     {{ end }}
 </div>
 
@@ -17,9 +21,13 @@
 <div class="navig">
     {{ with .NextInSection }} <!-- Prev & Next are switched in this version of Hugo -->
     <a href="{{ .Permalink }}" id="prev">&lt; {{ .Title }}</a>
+    {{ else }}
+    <a href="#" id="prev"></a>
     {{ end }}
     {{ with .PrevInSection }}
     <a href="{{ .Permalink }}" id="next">{{ .Title }} &gt;</a>
+    {{ else }}
+    <a href="#" id="prev"></a>
     {{ end }}
 </div>
 

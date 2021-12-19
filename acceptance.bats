@@ -240,7 +240,7 @@ resetCacheFolder() {
   run bin/kubeconform -output tap fixtures/valid.yaml
   [ "$status" -eq 0 ]
   [ "${lines[0]}" == 'TAP version 13' ]
-  [ "${lines[1]}" == 'ok 1 - fixtures/valid.yaml (ReplicationController)' ]
+  [ "${lines[1]}" == 'ok 1 - fixtures/valid.yaml (v1/ReplicationController//bob)' ]
   [ "${lines[2]}" == '1..1' ]
 }
 

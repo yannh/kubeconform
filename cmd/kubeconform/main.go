@@ -49,13 +49,13 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 func realMain() int {
 	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
 	if out != "" {
-		out := os.Stderr
+		o := os.Stderr
 		errCode := 1
 		if cfg.Help {
-			out = os.Stdout
+			o = os.Stdout
 			errCode = 0
 		}
-		fmt.Fprintln(out, out)
+		fmt.Fprintln(o, out)
 		return errCode
 	}
 

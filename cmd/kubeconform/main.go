@@ -48,15 +48,23 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 
 func realMain() int {
 	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
-	if cfg.Help {
-		return 0
-	} else if cfg.Version {
+	if out != "" {
+		out := os.Stderr
+		errCode := 1
+		if cfg.Help {
+			out = os.Stdout
+			errCode = 0
+		}
+		fmt.Fprintln(out, out)
+		return errCode
+	}
+
+	if cfg.Version {
 		fmt.Println(version)
 		return 0
-	} else if out != "" {
-		fmt.Println(out)
-		return 1
-	} else if err != nil {
+	}
+
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
 		return 1
 	}

@@ -1,8 +1,9 @@
 package validator
 
 import (
-	"github.com/yannh/kubeconform/pkg/registry"
 	"testing"
+
+	"github.com/yannh/kubeconform/pkg/registry"
 
 	"github.com/yannh/kubeconform/pkg/resource"
 )

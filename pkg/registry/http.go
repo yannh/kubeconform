@@ -80,7 +80,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error while downloading schema - received HTTP status %d", resp.StatusCode)
+		return nil, fmt.Errorf("error while downloading schema at %s - received HTTP status %d", url, resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

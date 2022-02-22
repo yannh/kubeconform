@@ -62,6 +62,22 @@ func TestDownloadSchema(t *testing.T) {
 			fmt.Errorf("no schema found"),
 		},
 		{
+			"getting 503",
+			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
+				return &http.Response{
+					StatusCode: http.StatusServiceUnavailable,
+					Body:       ioutil.NopCloser(strings.NewReader("http response mock body")),
+				}, nil
+			}),
+			"http://kubernetesjson.dev",
+			true,
+			"Deployment",
+			"v1",
+			"1.18.0",
+			nil,
+			fmt.Errorf("error while downloading schema at http://kubernetesjson.dev - received HTTP status 503"),
+		},
+		{
 			"200",
 			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
 				return &http.Response{

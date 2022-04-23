@@ -56,7 +56,7 @@ func splitCSV(csvStr string) map[string]struct{} {
 func FromFlags(progName string, args []string) (Config, string, error) {
 	var schemaLocationsParam, ignoreFilenamePatterns arrayParam
 	var skipKindsCSV, rejectKindsCSV string
-	flags := flag.NewFlagSet(progName, flag.ExitOnError)
+	flags := flag.NewFlagSet(progName, flag.ContinueOnError)
 	var buf bytes.Buffer
 	flags.SetOutput(&buf)
 

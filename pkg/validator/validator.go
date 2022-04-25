@@ -28,9 +28,10 @@ const (
 
 // Result contains the details of the result of a resource validation
 type Result struct {
-	Resource resource.Resource
-	Err      error
-	Status   Status
+	Resource         resource.Resource
+	Err              error
+	Status           Status
+	GoJSONSchemaErrs []gojsonschema.ResultError
 }
 
 // Validator exposes multiple methods to validate your Kubernetes resources.
@@ -175,7 +176,9 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 	}
 
 	msg := ""
+	gojsonschemaErrs := make([]gojsonschema.ResultError, 0, 2)
 	for _, errMsg := range results.Errors() {
+		gojsonschemaErrs = append(gojsonschemaErrs, errMsg)
 		if msg != "" {
 			msg += " - "
 		}
@@ -183,7 +186,7 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		msg += fmt.Sprintf("For field %s: %s", details["field"].(string), errMsg.Description())
 	}
 
-	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg)}
+	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg), GoJSONSchemaErrs: gojsonschemaErrs}
 }
 
 // ValidateWithContext validates resources found in r

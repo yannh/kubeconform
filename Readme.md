@@ -35,6 +35,9 @@ and break it down into multiple JSON schemas, stored in github at
 Kubeconform relies on [a fork of kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema/)
 that is more aggressively kept up-to-date, and contains schemas for all recent versions of Kubernetes.
 
+![Architecture diagram](https://raw.githubusercontent.com/royhadad/kubeconform/add_architecture_diagram/architecture_diagram_lightmode.png#gh-light-mode-only)
+![Architecture diagram](https://raw.githubusercontent.com/royhadad/kubeconform/add_architecture_diagram/architecture_diagram_darkmode.png#gh-dark-mode-only)
+
 ### Limits of Kubeconform validation
 
 Kubeconform, similarly to kubeval, only validates manifests using the OpenAPI specifications. In some

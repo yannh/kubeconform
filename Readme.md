@@ -209,7 +209,7 @@ Some CRD schemas do not have explicit validation for fields implicitly validated
 
 ### Usage as a Github Action
 
-Kubeconform is publishes Docker Images to Github's new Container Registry, ghcr.io. These images
+Kubeconform publishes Docker Images to Github's new Container Registry, ghcr.io. These images
 can be used directly in a Github Action, once logged in using a [_Github Token_](https://github.blog/changelog/2021-03-24-packages-container-registry-now-supports-github_token/).
 
 Example:

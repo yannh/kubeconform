@@ -57,6 +57,16 @@ $ brew install kubeconform
 
 You can also download the latest version from the [release page](https://github.com/yannh/kubeconform/releases).
 
+Another way of installation is via Golang's package manager:
+
+```bash
+# With a specific version tag
+$ go install github.com/yannh/kubeconform/cmd/kubeconform@v0.4.13
+
+# Latest version
+$ go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+```
+
 ### Usage
 
 ```

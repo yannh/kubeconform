@@ -11,6 +11,12 @@ resetCacheFolder() {
   [ "${lines[0]}" == 'Usage: bin/kubeconform [OPTION]... [FILE OR FOLDER]...' ]
 }
 
+@test "Fail and display help when using an incorrect flag" {
+  run bin/kubeconform -xyz
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" == 'flag provided but not defined: -xyz' ]
+}
+
 @test "Pass when parsing a valid Kubernetes config YAML file" {
   run bin/kubeconform -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]

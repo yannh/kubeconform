@@ -61,12 +61,14 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 		StrictSuffix                string
 		ResourceKind                string
 		ResourceAPIVersion          string
+		Group                       string
 		KindSuffix                  string
 	}{
 		normalisedVersion,
 		strictSuffix,
 		strings.ToLower(resourceKind),
 		groupParts[len(groupParts)-1],
+		groupParts[0],
 		kindSuffix,
 	}
 

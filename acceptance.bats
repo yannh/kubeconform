@@ -138,6 +138,16 @@ resetCacheFolder() {
   [ "$status" -eq 1 ]
 }
 
+@test "Fail when parsing a config with duplicate properties and strict set" {
+  run bin/kubeconform -strict -kubernetes-version 1.16.0 fixtures/duplicate_property.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Pass when parsing a config with duplicate properties and strict NOT set" {
+  run bin/kubeconform -kubernetes-version 1.16.0 fixtures/duplicate_property.yaml
+  [ "$status" -eq 0 ]
+}
+
 @test "Pass when using a valid, preset -schema-location" {
   run bin/kubeconform -schema-location default fixtures/valid.yaml
   [ "$status" -eq 0 ]

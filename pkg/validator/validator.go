@@ -112,7 +112,12 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 	}
 
 	var r map[string]interface{}
-	if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
+	unmarshaller := yaml.Unmarshal
+	if val.opts.Strict {
+		unmarshaller = yaml.UnmarshalStrict
+	}
+
+	if err := unmarshaller(res.Bytes, &r); err != nil {
 		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
 	}
 

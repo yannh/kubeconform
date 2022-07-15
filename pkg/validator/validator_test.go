@@ -27,6 +27,7 @@ func TestValidate(t *testing.T) {
 		rawResource, schemaRegistry1 []byte
 		schemaRegistry2              []byte
 		ignoreMissingSchema          bool
+		strict                       bool
 		expect                       Status
 	}{
 		{
@@ -59,6 +60,7 @@ lastName: bar
   "required": ["firstName", "lastName"]
 }`),
 			nil,
+			false,
 			false,
 			Valid,
 		},
@@ -93,6 +95,7 @@ lastName: bar
 }`),
 			nil,
 			false,
+			false,
 			Invalid,
 		},
 		{
@@ -125,7 +128,60 @@ firstName: foo
 }`),
 			nil,
 			false,
+			false,
 			Invalid,
+		},
+		{
+			"key \"firstName\" already set in map",
+			[]byte(`
+kind: name
+apiVersion: v1
+firstName: foo
+firstName: bar
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string"
+    },
+    "firstName": {
+      "type": "string"
+    }
+  },
+  "required": ["firstName"]
+}`),
+			nil,
+			false,
+			true,
+			Error,
+		},
+		{
+			"key firstname already set in map in non-strict mode",
+			[]byte(`
+kind: name
+apiVersion: v1
+firstName: foo
+firstName: bar
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string"
+    },
+    "firstName": {
+      "type": "string"
+    }
+  },
+  "required": ["firstName"]
+}`),
+			nil,
+			false,
+			false,
+			Valid,
 		},
 		{
 			"resource has invalid yaml",
@@ -160,6 +216,7 @@ lastName: bar
   "required": ["firstName", "lastName"]
 }`),
 			nil,
+			false,
 			false,
 			Error,
 		},
@@ -197,6 +254,7 @@ lastName: bar
   "required": ["firstName", "lastName"]
 }`),
 			false,
+			false,
 			Valid,
 		},
 		{
@@ -233,6 +291,7 @@ lastName: bar
  "required": ["firstName", "lastName"]
 }`),
 			false,
+			false,
 			Valid,
 		},
 		{
@@ -246,6 +305,7 @@ lastName: bar
 			nil,
 			nil,
 			true,
+			false,
 			Skipped,
 		},
 		{
@@ -258,6 +318,7 @@ lastName: bar
 `),
 			nil,
 			nil,
+			false,
 			false,
 			Error,
 		},
@@ -272,6 +333,7 @@ lastName: bar
 			[]byte(`<html>error page</html>`),
 			[]byte(`<html>error page</html>`),
 			true,
+			false,
 			Skipped,
 		},
 		{
@@ -285,6 +347,7 @@ lastName: bar
 			[]byte(`<html>error page</html>`),
 			[]byte(`<html>error page</html>`),
 			false,
+			false,
 			Error,
 		},
 	} {
@@ -293,6 +356,7 @@ lastName: bar
 				SkipKinds:            map[string]struct{}{},
 				RejectKinds:          map[string]struct{}{},
 				IgnoreMissingSchemas: testCase.ignoreMissingSchema,
+				Strict:               testCase.strict,
 			},
 			schemaCache:    nil,
 			schemaDownload: downloadSchema,
@@ -306,7 +370,11 @@ lastName: bar
 			},
 		}
 		if got := val.ValidateResource(resource.Resource{Bytes: testCase.rawResource}); got.Status != testCase.expect {
-			t.Errorf("%d - expected %d, got %d: %s", i, testCase.expect, got.Status, got.Err.Error())
+			if got.Err != nil {
+				t.Errorf("%d - expected %d, got %d: %s", i, testCase.expect, got.Status, got.Err.Error())
+			} else {
+				t.Errorf("%d - expected %d, got %d", i, testCase.expect, got.Status)
+			}
 		}
 	}
 }

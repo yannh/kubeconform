@@ -194,6 +194,7 @@ Here are the variables you can use in -schema-location:
  * *StrictSuffix* - "-strict" or "" depending on whether validation is running in strict mode or not
  * *ResourceKind* - Kind of the Kubernetes Resource
  * *ResourceAPIVersion* - Version of API used for the resource - "v1" in "apiVersion: monitoring.coreos.com/v1"
+ * *Group* - the group name as stated in this resource's definition - "monitoring.coreos.com" in "apiVersion: monitoring.coreos.com/v1"
  * *KindSuffix* - suffix computed from apiVersion - for compatibility with Kubeval schema registries
 
 ### Converting an OpenAPI file to a JSON Schema

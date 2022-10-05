@@ -48,8 +48,8 @@ type TestSuite struct {
 type TestCase struct {
 	XMLName   xml.Name         `xml:"testcase"`
 	Name      string           `xml:"name,attr"`
-	Time      int              `xml:"time,attr"`
 	ClassName string           `xml:"classname,attr"`
+	Time      int              `xml:"time,attr"`
 	Skipped   *TestCaseSkipped `xml:"skipped,omitempty"`
 	Error     *TestCaseError   `xml:"error,omitempty"`
 	Failure   []TestCaseError  `xml:"failure,omitempty"`

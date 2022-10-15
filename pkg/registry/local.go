@@ -56,6 +56,8 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 		return nil, err
 	}
 
-	log.Printf("using schema found at %s", schemaFile)
+	if r.debug {
+		log.Printf("using schema found at %s", schemaFile)
+	}
 	return content, nil
 }

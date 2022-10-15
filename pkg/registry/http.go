@@ -108,7 +108,9 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		return nil, errors.New(msg)
 	}
 
-	log.Printf("using schema found at %s", url)
+	if r.debug {
+		log.Printf("using schema found at %s", url)
+	}
 
 	if r.cache != nil {
 		if err := r.cache.Set(resourceKind, resourceAPIVersion, k8sVersion, body); err != nil {

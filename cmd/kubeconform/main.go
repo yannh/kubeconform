@@ -97,9 +97,10 @@ func realMain() int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-
-	v, err := validator.New(cfg.SchemaLocations, validator.Opts{
+	var v validator.Validator
+	v, err = validator.New(cfg.SchemaLocations, validator.Opts{
 		Cache:                cfg.Cache,
+		Debug:                cfg.Debug,
 		SkipTLS:              cfg.SkipTLS,
 		SkipKinds:            cfg.SkipKinds,
 		RejectKinds:          cfg.RejectKinds,

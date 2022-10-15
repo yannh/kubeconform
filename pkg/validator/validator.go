@@ -43,6 +43,7 @@ type Validator interface {
 // Opts contains a set of options for the validator.
 type Opts struct {
 	Cache                string              // Cache schemas downloaded via HTTP to this folder
+	Debug                bool                // Debug infos will be print here
 	SkipTLS              bool                // skip TLS validation when downloading from an HTTP Schema Registry
 	SkipKinds            map[string]struct{} // List of resource Kinds to ignore
 	RejectKinds          map[string]struct{} // List of resource Kinds to reject
@@ -61,7 +62,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
-		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS)
+		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS, opts.Debug)
 		if err != nil {
 			return nil, err
 		}
@@ -249,11 +250,3 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 
 	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
 }
-
-// From kubeval - let's see if absolutely necessary
-// func init () {
-// 	gojsonschema.FormatCheckers.Add("int64", ValidFormat{})
-// 	gojsonschema.FormatCheckers.Add("byte", ValidFormat{})
-// 	gojsonschema.FormatCheckers.Add("int32", ValidFormat{})
-// 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
-// }

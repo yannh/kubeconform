@@ -2,8 +2,10 @@ package registry
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -21,9 +23,10 @@ type SchemaRegistry struct {
 	schemaPathTemplate string
 	cache              cache.Cache
 	strict             bool
+	debug              bool
 }
 
-func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool, skipTLS bool) (*SchemaRegistry, error) {
+func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool, skipTLS bool, debug bool) (*SchemaRegistry, error) {
 	reghttp := &http.Transport{
 		MaxIdleConns:       100,
 		IdleConnTimeout:    3 * time.Second,
@@ -53,6 +56,7 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 		schemaPathTemplate: schemaPathTemplate,
 		cache:              filecache,
 		strict:             strict,
+		debug:              debug,
 	}, nil
 }
 
@@ -71,21 +75,41 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 
 	resp, err := r.c.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed downloading schema at %s: %s", url, err)
+		msg := fmt.Sprintf("failed downloading schema at %s: %s", url, err)
+		if r.debug {
+			log.Println(msg)
+		}
+		return nil, errors.New(msg)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, newNotFoundError(fmt.Errorf("no schema found"))
+		msg := fmt.Sprintf("could not find schema at %s", url)
+		if r.debug {
+			log.Print(msg)
+		}
+		return nil, newNotFoundError(errors.New(msg))
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error while downloading schema at %s - received HTTP status %d", url, resp.StatusCode)
+		msg := fmt.Sprintf("error while downloading schema at %s - received HTTP status %d", url, resp.StatusCode)
+		if r.debug {
+			log.Print(msg)
+		}
+		return nil, fmt.Errorf(msg)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed downloading schema at %s: %s", url, err)
+		msg := fmt.Sprintf("failed parsing schema from %s: %s", url, err)
+		if r.debug {
+			log.Print(msg)
+		}
+		return nil, errors.New(msg)
+	}
+
+	if r.debug {
+		log.Printf("using schema found at %s", url)
 	}
 
 	if r.cache != nil {

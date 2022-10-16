@@ -81,7 +81,7 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 	return buf.String(), nil
 }
 
-func New(schemaLocation string, cache string, strict bool, skipTLS bool) (Registry, error) {
+func New(schemaLocation string, cache string, strict bool, skipTLS bool, debug bool) (Registry, error) {
 	if schemaLocation == "default" {
 		schemaLocation = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 	} else if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of our fork of kubernetes-json-schema
@@ -94,8 +94,8 @@ func New(schemaLocation string, cache string, strict bool, skipTLS bool) (Regist
 	}
 
 	if strings.HasPrefix(schemaLocation, "http") {
-		return newHTTPRegistry(schemaLocation, cache, strict, skipTLS)
+		return newHTTPRegistry(schemaLocation, cache, strict, skipTLS, debug)
 	}
 
-	return newLocalRegistry(schemaLocation, strict)
+	return newLocalRegistry(schemaLocation, strict, debug)
 }

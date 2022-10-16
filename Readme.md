@@ -76,6 +76,8 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
         cache schemas downloaded via HTTP to this folder
   -cpu-prof string
         debug - log CPU profiling to file
+  -debug
+        print debug information
   -exit-on-error
         immediately stop execution when the first error is encountered
   -h    show help information

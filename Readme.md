@@ -257,6 +257,12 @@ bandwidth costs might be applicable. Since bandwidth from Github Packages within
 Github Container Registry to also be usable for free within Github Actions in the future. If that were not to be the
 case, I might publish the Docker image to a different platform.
 
+### Usage in MegaLinter
+
+kubeconform is [natively included](https://megalinter.github.io/beta/descriptors/kubernetes_kubeconform/) within the **89** linters of [**MegaLinter**](https://megalinter.github.io/)
+
+To install MegaLinter, just run `npx mega-linter-runner --install` in your repository, or follow [installations instructions](https://megalinter.github.io/beta/installation/)
+
 ### Proxy support
 
 Kubeconform will respect the HTTPS_PROXY variable when downloading schema files.

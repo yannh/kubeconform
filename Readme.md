@@ -257,6 +257,22 @@ bandwidth costs might be applicable. Since bandwidth from Github Packages within
 Github Container Registry to also be usable for free within Github Actions in the future. If that were not to be the
 case, I might publish the Docker image to a different platform.
 
+### Usage in Gitlab-CI
+
+The Kubeconform Docker image can be used in Gitlab-CI. Here is an example of a Gitlab-CI job:
+
+```
+lint-kubeconform:
+  stage: validate
+  image:
+    name: ghcr.io/yannh/kubeconform:latest-alpine
+    entrypoint: [""]
+  script:
+  - kubeconform
+```
+
+See [issue 106](https://github.com/yannh/kubeconform/issues/106) for more details.
+
 ### Proxy support
 
 Kubeconform will respect the HTTPS_PROXY variable when downloading schema files.

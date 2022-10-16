@@ -48,8 +48,7 @@ metadata:
 			},
 			"<testsuites name=\"kubeconform\" time=\"\" tests=\"1\" failures=\"0\" disabled=\"0\" errors=\"0\">\n" +
 				"  <testsuite name=\"deployment.yml\" id=\"1\" tests=\"1\" failures=\"0\" errors=\"0\" disabled=\"0\" skipped=\"0\">\n" +
-				"    <properties></properties>\n" +
-				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\"></testcase>\n" +
+				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\" time=\"\"></testcase>\n" +
 				"  </testsuite>\n" +
 				"</testsuites>\n",
 		},
@@ -82,8 +81,7 @@ metadata:
 			},
 			"<testsuites name=\"kubeconform\" time=\"\" tests=\"1\" failures=\"0\" disabled=\"0\" errors=\"0\">\n" +
 				"  <testsuite name=\"deployment.yml\" id=\"1\" tests=\"1\" failures=\"0\" errors=\"0\" disabled=\"0\" skipped=\"0\">\n" +
-				"    <properties></properties>\n" +
-				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\"></testcase>\n" +
+				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\" time=\"\"></testcase>\n" +
 				"  </testsuite>\n" +
 				"</testsuites>\n",
 		},

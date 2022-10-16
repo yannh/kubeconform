@@ -48,6 +48,7 @@ type TestCase struct {
 	XMLName   xml.Name         `xml:"testcase"`
 	Name      string           `xml:"name,attr"`
 	ClassName string           `xml:"classname,attr"`
+	Time      int              `xml:"time,attr"` // Optional, but for Buildkite support  https://github.com/yannh/kubeconform/issues/127
 	Skipped   *TestCaseSkipped `xml:"skipped,omitempty"`
 	Error     *TestCaseError   `xml:"error,omitempty"`
 	Failure   []TestCaseError  `xml:"failure,omitempty"`

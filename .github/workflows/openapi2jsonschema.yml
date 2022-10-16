@@ -29,4 +29,4 @@ jobs:
         with:
           context: "./scripts"
           push: true
-          tags: "openapi2jsonschema:latest"
+          tags: "kubeconform/openapi2jsonschema:latest"

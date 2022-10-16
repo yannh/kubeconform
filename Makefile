@@ -40,3 +40,6 @@ release:
 update-deps:
 	go get -u ./...
 	go mod tidy
+
+update-junit-xsd:
+	curl https://raw.githubusercontent.com/junit-team/junit5/main/platform-tests/src/test/resources/jenkins-junit.xsd > fixtures/junit.xsd

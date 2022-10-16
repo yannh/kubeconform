@@ -33,16 +33,15 @@ type Property struct {
 }
 
 type TestSuite struct {
-	XMLName    xml.Name    `xml:"testsuite"`
-	Properties []*Property `xml:"properties>property,omitempty"`
-	Cases      []TestCase  `xml:"testcase"`
-	Name       string      `xml:"name,attr"`
-	Id         int         `xml:"id,attr"`
-	Tests      int         `xml:"tests,attr"`
-	Failures   int         `xml:"failures,attr"`
-	Errors     int         `xml:"errors,attr"`
-	Disabled   int         `xml:"disabled,attr"`
-	Skipped    int         `xml:"skipped,attr"`
+	XMLName  xml.Name   `xml:"testsuite"`
+	Cases    []TestCase `xml:"testcase"`
+	Name     string     `xml:"name,attr"`
+	Id       int        `xml:"id,attr"`
+	Tests    int        `xml:"tests,attr"`
+	Failures int        `xml:"failures,attr"`
+	Errors   int        `xml:"errors,attr"`
+	Disabled int        `xml:"disabled,attr"`
+	Skipped  int        `xml:"skipped,attr"`
 }
 
 type TestCase struct {
@@ -100,8 +99,7 @@ func (o *junito) Write(result validator.Result) error {
 			Name:  result.Resource.Path,
 			Id:    o.id,
 			Tests: 0, Failures: 0, Errors: 0, Disabled: 0, Skipped: 0,
-			Cases:      make([]TestCase, 0),
-			Properties: make([]*Property, 0),
+			Cases: make([]TestCase, 0),
 		}
 		o.suites[result.Resource.Path] = suite
 	}

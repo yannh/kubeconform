@@ -316,3 +316,10 @@ resetCacheFolder() {
   [ "$status" -eq 0 ]
   [ "$output" = 'Summary: 100000 resources found parsing stdin - Valid: 100000, Invalid: 0, Errors: 0, Skipped: 0' ]
 }
+
+@test "JUnit output can be validated against the Junit schema definition" {
+  run bash -c "bin/kubeconform -output junit -summary fixtures/valid.yaml > output.xml"
+  [ "$status" -eq 0 ]
+  run xmllint --noout --schema fixtures/junit.xsd output.xml
+  [ "$status" -eq 0 ]
+}

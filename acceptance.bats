@@ -218,6 +218,18 @@ resetCacheFolder() {
   [ "$output" = "fixtures/valid.yaml - bob ReplicationController skipped" ]
 }
 
+@test "Skip when parsing a resource with a GVK to skip" {
+  run bin/kubeconform -verbose -skip v1/ReplicationController fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/valid.yaml - bob ReplicationController skipped" ]
+}
+
+@test "Do not skip when parsing a resource with a GVK to skip, where the Kind matches but not the version" {
+  run bin/kubeconform -verbose -skip v2/ReplicationController fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/valid.yaml - ReplicationController bob is valid" ]
+}
+
 @test "Fail when parsing a resource from a kind to reject" {
   run bin/kubeconform -verbose -reject ReplicationController fixtures/valid.yaml
   [ "$status" -eq 1 ]

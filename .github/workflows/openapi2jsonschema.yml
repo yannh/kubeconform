@@ -16,6 +16,9 @@ jobs:
         working-directory: ./scripts
         run: make docker-test docker-acceptance
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
@@ -24,15 +27,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: ./scripts
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          context: "{{defaultContext}}:scripts"
+          push: true
+          tags: "openapi2jsonschema:latest"

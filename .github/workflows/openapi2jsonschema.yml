@@ -1,4 +1,4 @@
-name: ci
+name: openapi2jsonschema
 on: push
 
 env:

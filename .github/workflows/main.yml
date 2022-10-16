@@ -1,4 +1,4 @@
-name: ci
+name: kubeconform
 on: push
 jobs:
   kubeconform-test:

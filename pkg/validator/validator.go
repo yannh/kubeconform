@@ -98,12 +98,23 @@ type v struct {
 // ValidateResource validates a single resource. This allows to validate
 // large resource streams using multiple Go Routines.
 func (val *v) ValidateResource(res resource.Resource) Result {
+	// For backward compatibility reasons when determining whether
+	// a resource should be skipped or rejected we use both
+	// the GVK encoding of the resource signatures (the recommended method
+	// for skipping/rejecting resources) and the raw Kind.
+
 	skip := func(signature resource.Signature) bool {
+		if _, ok := val.opts.SkipKinds[signature.GroupVersionKind()]; ok {
+			return ok
+		}
 		_, ok := val.opts.SkipKinds[signature.Kind]
 		return ok
 	}
 
 	reject := func(signature resource.Signature) bool {
+		if _, ok := val.opts.RejectKinds[signature.GroupVersionKind()]; ok {
+			return ok
+		}
 		_, ok := val.opts.RejectKinds[signature.Kind]
 		return ok
 	}

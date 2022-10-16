@@ -20,6 +20,18 @@ type Signature struct {
 	Kind, Version, Namespace, Name string
 }
 
+// GroupVersionKind returns a string with the GVK encoding of a resource signature.
+// This encoding slightly differs from the Kubernetes upstream implementation
+// in order to be suitable for being used in the kubeconform command-line arguments.
+func (sig *Signature) GroupVersionKind() string {
+	return fmt.Sprintf("%s/%s", sig.Version, sig.Kind)
+}
+
+// QualifiedName returns a string for a signature in the format version/kind/namespace/name
+func (sig *Signature) QualifiedName() string {
+	return fmt.Sprintf("%s/%s/%s/%s", sig.Version, sig.Kind, sig.Namespace, sig.Name)
+}
+
 // Signature computes a signature for a resource, based on its Kind, Version, Namespace & Name
 func (res *Resource) Signature() (*Signature, error) {
 	if res.sig != nil {
@@ -118,9 +130,4 @@ func (res *Resource) Resources() []Resource {
 	}
 
 	return []Resource{*res}
-}
-
-// QualifiedName returns a string for a signature in the format version/kind/namespace/name
-func (sig *Signature) QualifiedName() string {
-	return fmt.Sprintf("%s/%s/%s/%s", sig.Version, sig.Kind, sig.Namespace, sig.Name)
 }

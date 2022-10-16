@@ -65,8 +65,8 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 
 	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "master", "version of Kubernetes to validate against, e.g.: 1.18.0")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
-	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds to ignore")
-	flags.StringVar(&rejectKindsCSV, "reject", "", "comma-separated list of kinds to reject")
+	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds or GVKs to ignore")
+	flags.StringVar(&rejectKindsCSV, "reject", "", "comma-separated list of kinds or GVKs to reject")
 	flags.BoolVar(&c.Debug, "debug", false, "print debug information")
 	flags.BoolVar(&c.ExitOnError, "exit-on-error", false, "immediately stop execution when the first error is encountered")
 	flags.BoolVar(&c.IgnoreMissingSchemas, "ignore-missing-schemas", false, "skip files with missing schemas instead of failing")

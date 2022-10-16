@@ -19,6 +19,7 @@ jobs:
         working-directory: ./scripts
         run: make docker-test docker-acceptance
 
+      # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
         with:

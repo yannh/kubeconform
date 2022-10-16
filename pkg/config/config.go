@@ -9,7 +9,6 @@ import (
 
 type Config struct {
 	Cache                  string
-	CPUProfileFile         string
 	Debug                  bool
 	ExitOnError            bool
 	Files                  []string
@@ -79,7 +78,6 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources (ignored for tap and junit output)")
 	flags.BoolVar(&c.SkipTLS, "insecure-skip-tls-verify", false, "disable verification of the server's SSL certificate. This will make your HTTPS connections insecure")
 	flags.StringVar(&c.Cache, "cache", "", "cache schemas downloaded via HTTP to this folder")
-	flags.StringVar(&c.CPUProfileFile, "cpu-prof", "", "debug - log CPU profiling to file")
 	flags.BoolVar(&c.Help, "h", false, "show help information")
 	flags.BoolVar(&c.Version, "v", false, "show version information")
 	flags.Usage = func() {

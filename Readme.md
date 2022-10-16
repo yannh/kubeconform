@@ -74,8 +74,6 @@ $ ./bin/kubeconform -h
 Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -cache string
         cache schemas downloaded via HTTP to this folder
-  -cpu-prof string
-        debug - log CPU profiling to file
   -debug
         print debug information
   -exit-on-error
@@ -103,7 +101,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
         disallow additional properties not in schema or duplicated keys
   -summary
         print a summary at the end (ignored for junit output)
-  -v	show version information
+  -v    show version information
   -verbose
         print results for all resources (ignored for tap and junit output)
 ```

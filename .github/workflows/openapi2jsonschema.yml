@@ -1,8 +1,5 @@
 name: ci
-on:
-  push:
-    paths:
-      - scripts/**
+on: push
 
 env:
   REGISTRY: ghcr.io

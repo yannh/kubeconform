@@ -1,0 +1,34 @@
+name: ci
+on:
+  push:
+    paths:
+      - scripts/**
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: openapi2jsonschema
+
+jobs:
+  openapi2jsonschema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: test
+        working-directory: ./scripts
+        run: make docker-test docker-acceptance
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: ./scripts
+          push: true
+          tags: latest

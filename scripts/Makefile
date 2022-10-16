@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-# This is really early days
+.PHONY: test build-python-bats docker-test docker-acceptance build-image
 
 test: build-python-bats docker-test docker-acceptance
 
@@ -12,3 +12,6 @@ docker-test: build-python-bats
 
 docker-acceptance: build-python-bats
 	docker run --entrypoint "/usr/bin/bats" -t python-bats /code/acceptance.bats
+
+build-image: docker-test docker-acceptance
+	docker build -t openapi2jsonschema -f Dockerfile .

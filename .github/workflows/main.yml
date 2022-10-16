@@ -16,16 +16,6 @@ jobs:
     - name: acceptance-test
       run: make docker-acceptance
 
-  openapi2jsonschema-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: test
-        working-directory: ./scripts
-        run: make docker-test docker-acceptance
-
   goreleaser:
     runs-on: ubuntu-latest
     needs:

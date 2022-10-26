@@ -8,5 +8,5 @@ LABEL org.opencontainers.image.authors="yann@mandragor.org" \
       org.opencontainers.image.url="https://github.com/yannh/kubeconform/"
 MAINTAINER Yann HAMON <yann@mandragor.org>
 RUN apk add ca-certificates
-COPY kubeconform /
-ENTRYPOINT ["/kubeconform"]
+COPY kubeconform ./usr/bin/kubeconform
+ENTRYPOINT ["kubeconform"]

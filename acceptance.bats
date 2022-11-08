@@ -11,6 +11,12 @@ resetCacheFolder() {
   [ "${lines[0]}" == 'Usage: bin/kubeconform [OPTION]... [FILE OR FOLDER]...' ]
 }
 
+@test "Fail and display help when using an incorrect flag" {
+  run bin/kubeconform -xyz
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" == 'flag provided but not defined: -xyz' ]
+}
+
 @test "Pass when parsing a valid Kubernetes config YAML file" {
   run bin/kubeconform -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]
@@ -132,6 +138,16 @@ resetCacheFolder() {
   [ "$status" -eq 1 ]
 }
 
+@test "Fail when parsing a config with duplicate properties and strict set" {
+  run bin/kubeconform -strict -kubernetes-version 1.16.0 fixtures/duplicate_property.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Pass when parsing a config with duplicate properties and strict NOT set" {
+  run bin/kubeconform -kubernetes-version 1.16.0 fixtures/duplicate_property.yaml
+  [ "$status" -eq 0 ]
+}
+
 @test "Pass when using a valid, preset -schema-location" {
   run bin/kubeconform -schema-location default fixtures/valid.yaml
   [ "$status" -eq 0 ]
@@ -200,6 +216,18 @@ resetCacheFolder() {
   run bin/kubeconform -verbose -skip ReplicationController fixtures/valid.yaml
   [ "$status" -eq 0 ]
   [ "$output" = "fixtures/valid.yaml - bob ReplicationController skipped" ]
+}
+
+@test "Skip when parsing a resource with a GVK to skip" {
+  run bin/kubeconform -verbose -skip v1/ReplicationController fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/valid.yaml - bob ReplicationController skipped" ]
+}
+
+@test "Do not skip when parsing a resource with a GVK to skip, where the Kind matches but not the version" {
+  run bin/kubeconform -verbose -skip v2/ReplicationController fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "fixtures/valid.yaml - ReplicationController bob is valid" ]
 }
 
 @test "Fail when parsing a resource from a kind to reject" {
@@ -299,4 +327,11 @@ resetCacheFolder() {
   run bash -c "cat fixtures/valid_large.yaml | bin/kubeconform -summary"
   [ "$status" -eq 0 ]
   [ "$output" = 'Summary: 100000 resources found parsing stdin - Valid: 100000, Invalid: 0, Errors: 0, Skipped: 0' ]
+}
+
+@test "JUnit output can be validated against the Junit schema definition" {
+  run bash -c "bin/kubeconform -output junit -summary fixtures/valid.yaml > output.xml"
+  [ "$status" -eq 0 ]
+  run xmllint --noout --schema fixtures/junit.xsd output.xml
+  [ "$status" -eq 0 ]
 }

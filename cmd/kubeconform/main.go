@@ -69,8 +69,9 @@ func realMain() int {
 		return 1
 	}
 
-	if cfg.CPUProfileFile != "" {
-		f, err := os.Create(cfg.CPUProfileFile)
+	cpuProfileFile := os.Getenv("KUBECONFORM_CPUPROFILE_FILE")
+	if cpuProfileFile != "" {
+		f, err := os.Create(cpuProfileFile)
 		if err != nil {
 			log.Fatal("could not create CPU profile: ", err)
 		}
@@ -97,9 +98,10 @@ func realMain() int {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
-
-	v, err := validator.New(cfg.SchemaLocations, validator.Opts{
+	var v validator.Validator
+	v, err = validator.New(cfg.SchemaLocations, validator.Opts{
 		Cache:                cfg.Cache,
+		Debug:                cfg.Debug,
 		SkipTLS:              cfg.SkipTLS,
 		SkipKinds:            cfg.SkipKinds,
 		RejectKinds:          cfg.RejectKinds,

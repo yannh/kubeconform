@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
@@ -23,7 +23,7 @@ func NewOnDiskCache(cache string) Cache {
 }
 
 func cachePath(folder, resourceKind, resourceAPIVersion, k8sVersion string) string {
-	hash := md5.Sum([]byte(fmt.Sprintf("%s-%s-%s", resourceKind, resourceAPIVersion, k8sVersion)))
+	hash := sha256.Sum256([]byte(fmt.Sprintf("%s-%s-%s", resourceKind, resourceAPIVersion, k8sVersion)))
 	return path.Join(folder, hex.EncodeToString(hash[:]))
 }
 

@@ -43,6 +43,7 @@ type Validator interface {
 // Opts contains a set of options for the validator.
 type Opts struct {
 	Cache                string              // Cache schemas downloaded via HTTP to this folder
+	Debug                bool                // Debug infos will be print here
 	SkipTLS              bool                // skip TLS validation when downloading from an HTTP Schema Registry
 	SkipKinds            map[string]struct{} // List of resource Kinds to ignore
 	RejectKinds          map[string]struct{} // List of resource Kinds to reject
@@ -61,7 +62,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
-		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS)
+		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS, opts.Debug)
 		if err != nil {
 			return nil, err
 		}
@@ -97,12 +98,23 @@ type v struct {
 // ValidateResource validates a single resource. This allows to validate
 // large resource streams using multiple Go Routines.
 func (val *v) ValidateResource(res resource.Resource) Result {
+	// For backward compatibility reasons when determining whether
+	// a resource should be skipped or rejected we use both
+	// the GVK encoding of the resource signatures (the recommended method
+	// for skipping/rejecting resources) and the raw Kind.
+
 	skip := func(signature resource.Signature) bool {
+		if _, ok := val.opts.SkipKinds[signature.GroupVersionKind()]; ok {
+			return ok
+		}
 		_, ok := val.opts.SkipKinds[signature.Kind]
 		return ok
 	}
 
 	reject := func(signature resource.Signature) bool {
+		if _, ok := val.opts.RejectKinds[signature.GroupVersionKind()]; ok {
+			return ok
+		}
 		_, ok := val.opts.RejectKinds[signature.Kind]
 		return ok
 	}
@@ -112,7 +124,12 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 	}
 
 	var r map[string]interface{}
-	if err := yaml.Unmarshal(res.Bytes, &r); err != nil {
+	unmarshaller := yaml.Unmarshal
+	if val.opts.Strict {
+		unmarshaller = yaml.UnmarshalStrict
+	}
+
+	if err := unmarshaller(res.Bytes, &r); err != nil {
 		return Result{Resource: res, Status: Error, Err: fmt.Errorf("error unmarshalling resource: %s", err)}
 	}
 
@@ -244,11 +261,3 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 
 	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
 }
-
-// From kubeval - let's see if absolutely necessary
-// func init () {
-// 	gojsonschema.FormatCheckers.Add("int64", ValidFormat{})
-// 	gojsonschema.FormatCheckers.Add("byte", ValidFormat{})
-// 	gojsonschema.FormatCheckers.Add("int32", ValidFormat{})
-// 	gojsonschema.FormatCheckers.Add("int-or-string", ValidFormat{})
-// }

@@ -59,7 +59,7 @@ func TestDownloadSchema(t *testing.T) {
 			"v1",
 			"1.18.0",
 			nil,
-			fmt.Errorf("no schema found"),
+			fmt.Errorf("could not find schema at http://kubernetesjson.dev"),
 		},
 		{
 			"getting 503",

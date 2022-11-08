@@ -16,7 +16,7 @@ It is inspired by, contains code from and is designed to stay close to
  * configurable list of **remote, or local schemas locations**, enabling validating Kubernetes
    custom resources (CRDs) and offline validation capabilities
  * uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
-   by the [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) project - which guarantees
+   by the kubernetes-json-schema project - which guarantees
    up-to-date **schemas for all recent versions of Kubernetes**.
 
 ### A small overview of Kubernetes manifest validation
@@ -57,6 +57,16 @@ $ brew install kubeconform
 
 You can also download the latest version from the [release page](https://github.com/yannh/kubeconform/releases).
 
+Another way of installation is via Golang's package manager:
+
+```bash
+# With a specific version tag
+$ go install github.com/yannh/kubeconform/cmd/kubeconform@v0.4.13
+
+# Latest version
+$ go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+```
+
 ### Usage
 
 ```
@@ -64,8 +74,8 @@ $ ./bin/kubeconform -h
 Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -cache string
         cache schemas downloaded via HTTP to this folder
-  -cpu-prof string
-        debug - log CPU profiling to file
+  -debug
+        print debug information
   -exit-on-error
         immediately stop execution when the first error is encountered
   -h    show help information
@@ -82,16 +92,16 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -output string
         output format - json, junit, tap, text (default "text")
   -reject string
-        comma-separated list of kinds to reject
+        comma-separated list of kinds or GVKs to reject
   -schema-location value
         override schemas location search path (can be specified multiple times)
   -skip string
-        comma-separated list of kinds to ignore
+        comma-separated list of kinds or GVKs to ignore
   -strict
-        disallow additional properties not in schema
+        disallow additional properties not in schema or duplicated keys
   -summary
         print a summary at the end (ignored for junit output)
-  -v	show version information
+  -v    show version information
   -verbose
         print results for all resources (ignored for tap and junit output)
 ```
@@ -133,6 +143,17 @@ $ echo $?
 ```
 cat fixtures/valid.yaml  | ./bin/kubeconform -summary
 Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+```
+
+* Validating a file, ignoring its resource using both Kind, and GVK (Group, Version, Kind) notations
+```
+# This will ignore ReplicationController for all apiVersions
+./bin/kubeconform -summary -skip ReplicationController fixtures/valid.yaml
+Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 1
+
+# This will ignore ReplicationController only for apiVersion v1
+$ ./bin/kubeconform -summary -skip v1/ReplicationController fixtures/valid.yaml
+Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 1
 ```
 
 * Validating a folder, increasing the number of parallel workers
@@ -184,6 +205,7 @@ Here are the variables you can use in -schema-location:
  * *StrictSuffix* - "-strict" or "" depending on whether validation is running in strict mode or not
  * *ResourceKind* - Kind of the Kubernetes Resource
  * *ResourceAPIVersion* - Version of API used for the resource - "v1" in "apiVersion: monitoring.coreos.com/v1"
+ * *Group* - the group name as stated in this resource's definition - "monitoring.coreos.com" in "apiVersion: monitoring.coreos.com/v1"
  * *KindSuffix* - suffix computed from apiVersion - for compatibility with Kubeval schema registries
 
 ### Converting an OpenAPI file to a JSON Schema
@@ -209,7 +231,7 @@ Some CRD schemas do not have explicit validation for fields implicitly validated
 
 ### Usage as a Github Action
 
-Kubeconform is publishes Docker Images to Github's new Container Registry, ghcr.io. These images
+Kubeconform publishes Docker Images to Github's new Container Registry, ghcr.io. These images
 can be used directly in a Github Action, once logged in using a [_Github Token_](https://github.blog/changelog/2021-03-24-packages-container-registry-now-supports-github_token/).
 
 Example:
@@ -234,6 +256,22 @@ _Note on pricing_: Kubeconform relies on Github Container Registry which is curr
 bandwidth costs might be applicable. Since bandwidth from Github Packages within Github Actions is free, I expect
 Github Container Registry to also be usable for free within Github Actions in the future. If that were not to be the
 case, I might publish the Docker image to a different platform.
+
+### Usage in Gitlab-CI
+
+The Kubeconform Docker image can be used in Gitlab-CI. Here is an example of a Gitlab-CI job:
+
+```
+lint-kubeconform:
+  stage: validate
+  image:
+    name: ghcr.io/yannh/kubeconform:latest-alpine
+    entrypoint: [""]
+  script:
+  - kubeconform
+```
+
+See [issue 106](https://github.com/yannh/kubeconform/issues/106) for more details.
 
 ### Proxy support
 

@@ -37,20 +37,20 @@ sys	0m1,069s
 
 ## Table of contents
 
-* [A small overview of Kubernetes manifest validation](https://github.com/yannh/kubeconform#a-small-overview-of-kubernetes-manifest-validation)
-  * [Limits of Kubeconform validation](https://github.com/yannh/kubeconform#Limits-of-Kubeconform-validation)
-* [Installation](https://github.com/yannh/kubeconform#Installation)
-* [Usage](https://github.com/yannh/kubeconform#Usage)
-  * [Usage examples](https://github.com/yannh/kubeconform#Usage-examples)
-  * [Proxy support](https://github.com/yannh/kubeconform#Proxy-support)
-* [Overriding schemas location](https://github.com/yannh/kubeconform#Overriding-schemas-location)
-  * [CustomResourceDefinition (CRD) Support](https://github.com/yannh/kubeconform#CustomResourceDefinition-(CRD)-Support)
-  * [OpenShift schema Support](https://github.com/yannh/kubeconform#OpenShift-schema-Support)
-* [Integrating Kubeconform in the CI](https://github.com/yannh/kubeconform#Integrating-Kubeconform-in-the-CI)
-  * [Github Workflow](https://github.com/yannh/kubeconform#Github-Workflow)
-  * [Gitlab-CI](https://github.com/yannh/kubeconform#Gitlab-CI)
-* [Using kubeconform as a Go Module](https://github.com/yannh/kubeconform#Using-kubeconform-as-a-Go-Module)
-* [Credits](https://github.com/yannh/kubeconform#Credits)
+* [A small overview of Kubernetes manifest validation](#a-small-overview-of-kubernetes-manifest-validation)
+  * [Limits of Kubeconform validation](#Limits-of-Kubeconform-validation)
+* [Installation](#Installation)
+* [Usage](#Usage)
+  * [Usage examples](#Usage-examples)
+  * [Proxy support](#Proxy-support)
+* [Overriding schemas location](#Overriding-schemas-location)
+  * [CustomResourceDefinition (CRD) Support](#CustomResourceDefinition-(CRD)-Support)
+  * [OpenShift schema Support](#OpenShift-schema-Support)
+* [Integrating Kubeconform in the CI](#Integrating-Kubeconform-in-the-CI)
+  * [Github Workflow](#Github-Workflow)
+  * [Gitlab-CI](#Gitlab-CI)
+* [Using kubeconform as a Go Module](#Using-kubeconform-as-a-Go-Module)
+* [Credits](#Credits)
 
 ## A small overview of Kubernetes manifest validation
 
@@ -274,7 +274,7 @@ $ kubeconform -schema-location default -schema-location 'schemas/{{ .ResourceKin
 You can validate Openshift manifests using a custom schema location. Set the OpenShift version (v3.10.0-4.1.0) to validate
 against using `-kubernetes-version`.
 
-```bash
+```
 kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
 Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 ```

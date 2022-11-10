@@ -6,8 +6,7 @@
 [![Go Report card](https://goreportcard.com/badge/github.com/yannh/kubeconform)](https://goreportcard.com/report/github.com/yannh/kubeconform)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/yannh/kubeconform/pkg/validator)](https://pkg.go.dev/github.com/yannh/kubeconform/pkg/validator)
 
-Kubeconform is a Kubernetes manifests validation tool. Build it into your CI to validate your Kubernetes
-configuration!
+`Kubeconform` is a Kubernetes manifest validation tool. Incorporate it into your CI, or use it locally to validate your Kubernetes configuration!
 
 It is inspired by, contains code from and is designed to stay close to
 [Kubeval](https://github.com/instrumenta/kubeval), but with the following improvements:
@@ -18,8 +17,42 @@ It is inspired by, contains code from and is designed to stay close to
  * uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
    by the kubernetes-json-schema project - which guarantees
    up-to-date **schemas for all recent versions of Kubernetes**.
+   
+<details><summary><h4>Speed comparison with Kubeval</h4></summary><p>
+Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:
+   
+```bash
+$ time kubeconform -ignore-missing-schemas -n 8 -summary  preview staging production
+Summary: 50714 resources found in 35139 files - Valid: 27334, Invalid: 0, Errors: 0 Skipped: 23380
+real	0m6,710s
+user	0m38,701s
+sys	0m1,161s
+$ time kubeval -d preview,staging,production --ignore-missing-schemas --quiet
+[... Skipping output]
+real	0m35,336s
+user	0m0,717s
+sys	0m1,069s
+```
+</p></details>
 
-### A small overview of Kubernetes manifest validation
+## Table of contents
+
+* [A small overview of Kubernetes manifest validation](https://github.com/yannh/kubeconform#a-small-overview-of-kubernetes-manifest-validation)
+  * [Limits of Kubeconform validation](https://github.com/yannh/kubeconform#Limits-of-Kubeconform-validation)
+* [Installation](https://github.com/yannh/kubeconform#Installation)
+* [Usage](https://github.com/yannh/kubeconform#Usage)
+  * [Usage examples](https://github.com/yannh/kubeconform#Usage-examples)
+  * [Proxy support](https://github.com/yannh/kubeconform#Proxy-support)
+* [Overriding schemas location](https://github.com/yannh/kubeconform#Overriding-schemas-location)
+  * [CustomResourceDefinition (CRD) Support](https://github.com/yannh/kubeconform#CustomResourceDefinition-(CRD)-Support)
+  * [OpenShift schema Support](https://github.com/yannh/kubeconform#OpenShift-schema-Support)
+* [Integrating Kubeconform in the CI](https://github.com/yannh/kubeconform#Integrating-Kubeconform-in-the-CI)
+  * [Github Workflow](https://github.com/yannh/kubeconform#Github-Workflow)
+  * [Gitlab-CI](https://github.com/yannh/kubeconform#Gitlab-CI)
+* [Using kubeconform as a Go Module](https://github.com/yannh/kubeconform#Using-kubeconform-as-a-Go-Module)
+* [Credits](https://github.com/yannh/kubeconform#Credits)
+
+## A small overview of Kubernetes manifest validation
 
 Kubernetes's API is described using the [OpenAPI (formerly swagger) specification](https://www.openapis.org),
 in a [file](https://github.com/kubernetes/kubernetes/blob/master/api/openapi-spec/swagger.json) checked into
@@ -32,22 +65,14 @@ and break it down into multiple JSON schemas, stored in github at
 [instrumenta/kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) and published on
 [kubernetesjsonschema.dev](https://kubernetesjsonschema.dev/).
 
-Kubeconform relies on [a fork of kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema/)
-that is more aggressively kept up-to-date, and contains schemas for all recent versions of Kubernetes.
+`Kubeconform` relies on [a fork of kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema/)
+that is more meticulously kept up-to-date, and contains schemas for all recent versions of Kubernetes.
 
 ### Limits of Kubeconform validation
 
-Kubeconform, similarly to kubeval, only validates manifests using the OpenAPI specifications. In some
-cases, the Kubernetes controllers might perform additional validation - so that manifests passing kubeval
-validation would still error when being deployed. See for example these bugs against kubeval:
-[#253](https://github.com/instrumenta/kubeval/issues/253)
-[#256](https://github.com/instrumenta/kubeval/issues/256)
-[#257](https://github.com/instrumenta/kubeval/issues/257)
-[#259](https://github.com/instrumenta/kubeval/issues/259). The validation logic mentioned in these
-bug reports is not part of Kubernetes' OpenAPI spec, and therefore kubeconform/kubeval will not detect the
-configuration errors.
+`Kubeconform`, similar to `kubeval`, only validates manifests using the official Kubernetes OpenAPI specifications. The Kubernetes controllers still perform additional server-side validations that are not part of the OpenAPI specifications. Those server-side validations are not covered by `Kubeconform` (examples: [#65](https://github.com/yannh/kubeconform/issues/65), [#122](https://github.com/yannh/kubeconform/issues/122), [#142](https://github.com/yannh/kubeconform/issues/142)). You can use a 3rd-party tool or the `kubectl --dry-run=server` command to fill the missing (validation) gap.
 
-### Installation
+## Installation
 
 If you are a [Homebrew](https://brew.sh/) user, you can install by running:
 
@@ -67,10 +92,10 @@ $ go install github.com/yannh/kubeconform/cmd/kubeconform@v0.4.13
 $ go install github.com/yannh/kubeconform/cmd/kubeconform@latest
 ```
 
-### Usage
+## Usage
 
 ```
-$ ./bin/kubeconform -h
+$ kubeconform -h
 Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -cache string
         cache schemas downloaded via HTTP to this folder
@@ -84,7 +109,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -ignore-missing-schemas
         skip files with missing schemas instead of failing
   -insecure-skip-tls-verify
-        disable verification of the server's SSL certificate. This will make your HTTPS connections insecure
+        disable verification of the server\'s SSL certificate. This will make your HTTPS connections insecure
   -kubernetes-version string
         version of Kubernetes to validate against, e.g.: 1.18.0 (default "master")
   -n int
@@ -109,15 +134,15 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
 ### Usage examples
 
 * Validating a single, valid file
-```
-$ ./bin/kubeconform fixtures/valid.yaml
+```bash
+$ kubeconform fixtures/valid.yaml
 $ echo $?
 0
 ```
 
 * Validating a single invalid file, setting output to json, and printing a summary
-```
-$ ./bin/kubeconform -summary -output json fixtures/invalid.yaml
+```bash
+$ kubeconform -summary -output json fixtures/invalid.yaml
 {
   "resources": [
     {
@@ -140,7 +165,7 @@ $ echo $?
 ```
 
 * Passing manifests via Stdin
-```
+```bash
 cat fixtures/valid.yaml  | ./bin/kubeconform -summary
 Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 ```
@@ -148,78 +173,83 @@ Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skippe
 * Validating a file, ignoring its resource using both Kind, and GVK (Group, Version, Kind) notations
 ```
 # This will ignore ReplicationController for all apiVersions
-./bin/kubeconform -summary -skip ReplicationController fixtures/valid.yaml
+$ kubeconform -summary -skip ReplicationController fixtures/valid.yaml
 Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 1
 
 # This will ignore ReplicationController only for apiVersion v1
-$ ./bin/kubeconform -summary -skip v1/ReplicationController fixtures/valid.yaml
+$ kubeconform -summary -skip v1/ReplicationController fixtures/valid.yaml
 Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 1
 ```
 
 * Validating a folder, increasing the number of parallel workers
 ```
-$ ./bin/kubeconform -summary -n 16 fixtures
+$ kubeconform -summary -n 16 fixtures
 fixtures/crd_schema.yaml - CustomResourceDefinition trainingjobs.sagemaker.aws.amazon.com failed validation: could not find schema for CustomResourceDefinition
 fixtures/invalid.yaml - ReplicationController bob is invalid: Invalid type. Expected: [integer,null], given: string
 [...]
 Summary: 65 resources found in 34 files - Valid: 55, Invalid: 2, Errors: 8 Skipped: 0
 ```
 
-### Overriding schemas location - CRD and Openshift support
+### Proxy support
 
-When the `-schema-location` parameter is not used, or set to "default", kubeconform will default to downloading
-schemas from `https://github.com/yannh/kubernetes-json-schema`. Kubeconform however supports passing one, or multiple,
+`Kubeconform` will respect the **HTTPS_PROXY** variable when downloading schema files.
+
+```bash
+$ HTTPS_PROXY=proxy.local bin/kubeconform fixtures/valid.yaml
+```
+
+## Overriding schemas location
+
+When the `-schema-location` parameter is not used, or set to `default`, kubeconform will default to downloading
+schemas from https://github.com/yannh/kubernetes-json-schema. Kubeconform however supports passing one, or multiple,
 schemas locations - HTTP(s) URLs, or local filesystem paths, in which case it will lookup for schema definitions
 in each of them, in order, stopping as soon as a matching file is found.
 
- * If the -schema-location value does not end with '.json', Kubeconform will assume filenames / a file
- structure identical to that of kubernetesjsonschema.dev or github.com/yannh/kubernetes-json-schema.
- * if the -schema-location value ends with '.json' - Kubeconform assumes the value is a Go templated
- string that indicates how to search for JSON schemas.
-* the -schema-location value of "default" is an alias for https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json.
-Both following command lines are equivalent:
-```
-$ ./bin/kubeconform fixtures/valid.yaml
-$ ./bin/kubeconform -schema-location default fixtures/valid.yaml
-$ ./bin/kubeconform -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
-```
+ * If the `-schema-location` value does not end with `.json`, Kubeconform will assume filenames / a file
+ structure identical to that of [kubernetesjsonschema.dev](https://kubernetesjsonschema.dev/) or [yannh/kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema).
+ * if the `-schema-location` value ends with `.json` - Kubeconform assumes the value is a **Go templated
+ string** that indicates how to search for JSON schemas.
+* the `-schema-location` value of `default` is an alias for `https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json`.
 
-To support validating CRDs, we need to convert OpenAPI files to JSON schema, storing the JSON schemas
-in a local folder - for example schemas. Then we specify this folder as an additional registry to lookup:
-
+**The following command lines are equivalent:**
+```bash
+$ kubeconform fixtures/valid.yaml
+$ kubeconform -schema-location default fixtures/valid.yaml
+$ kubeconform -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json' fixtures/valid.yaml
 ```
-# If the resource Kind is not found in kubernetesjsonschema.dev, also lookup in the schemas/ folder for a matching file
-$ ./bin/kubeconform -schema-location default -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
-```
-
-You can validate Openshift manifests using a custom schema location. Set the OpenShift version to validate
-against using -kubernetes-version.
-
-```
-bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
-Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
-```
-
 Here are the variables you can use in -schema-location:
  * *NormalizedKubernetesVersion* - Kubernetes Version, prefixed by v
  * *StrictSuffix* - "-strict" or "" depending on whether validation is running in strict mode or not
  * *ResourceKind* - Kind of the Kubernetes Resource
  * *ResourceAPIVersion* - Version of API used for the resource - "v1" in "apiVersion: monitoring.coreos.com/v1"
  * *Group* - the group name as stated in this resource's definition - "monitoring.coreos.com" in "apiVersion: monitoring.coreos.com/v1"
- * *KindSuffix* - suffix computed from apiVersion - for compatibility with Kubeval schema registries
+ * *KindSuffix* - suffix computed from apiVersion - for compatibility with `Kubeval` schema registries
 
-### Converting an OpenAPI file to a JSON Schema
+### CustomResourceDefinition (CRD) Support
 
-Kubeconform uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition
+Because Custom Resources (CR) are not native Kubernetes objects, they are not included in the default schema.  
+If your CRs are present in [Datree's CRDs-catalog](https://github.com/datreeio/CRDs-catalog), you can specify this project as an additional registry to lookup:
+  
+```bash
+# Look in the CRDs-catalog for the desired schema/s
+$ kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' [MANIFEST]
+```
+
+If your CRs are not present in the CRDs-catalog, you will need to manually pull the CRDs manifests from your cluster and convert the `OpenAPI.spec` to JSON schema format.
+
+<details><summary>Converting an OpenAPI file to a JSON Schema</summary>
+<p>
+
+`Kubeconform` uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition
 first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions
 to JSON schema. Here is an example how to use it:
 
-```
-$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+```bash
+$ python ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
 JSON schema written to trainingjob_v1.json
 ```
 
-The `FILENAME_FORMAT` environment variable can be used to change the output file name (Available variables: `kind`, `group`, `version`) (Default: `{kind}_{version}`).
+By default, the file name output format is `{kind}_{version}`. The `FILENAME_FORMAT` environment variable can be used to change the output file name (Available variables: `kind`, `group`, `version`):
 
 ```
 $ export FILENAME_FORMAT='{kind}-{group}-{version}'
@@ -227,15 +257,37 @@ $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-s
 JSON schema written to trainingjob-sagemaker-v1.json
 ```
 
-Some CRD schemas do not have explicit validation for fields implicitly validated by the Kubernetes API like `apiVersion`, `kind`, and `metadata`, thus additional properties are allowed at the root of the JSON schema by default, if this is not desired the `DENY_ROOT_ADDITIONAL_PROPERTIES` environment variable can be set to any non-empty value.
+After converting your CRDs to JSON schema files, you can use `kubeconform` to validate your CRs against them:
 
-### Usage as a Github Action
+```
+# If the resource Kind is not found in deafult, also lookup in the schemas/ folder for a matching file
+$ kubeconform -schema-location default -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
+```
 
-Kubeconform publishes Docker Images to Github's new Container Registry, ghcr.io. These images
+ℹ️ Datree's [CRD Extractor](https://github.com/datreeio/CRDs-catalog#crd-extractor) is a utility that can be used instead of this manual process.
+
+</p>
+</details>
+
+### OpenShift schema Support
+
+You can validate Openshift manifests using a custom schema location. Set the OpenShift version (v3.10.0-4.1.0) to validate
+against using `-kubernetes-version`.
+
+```bash
+kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
+Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
+```
+
+## Integrating Kubeconform in the CI
+
+`Kubeconform` publishes Docker Images to Github's new Container Registry (ghcr.io). These images
 can be used directly in a Github Action, once logged in using a [_Github Token_](https://github.blog/changelog/2021-03-24-packages-container-registry-now-supports-github_token/).
 
+### Github Workflow
+
 Example:
-```
+```yaml
 name: kubeconform
 on: push
 jobs:
@@ -257,11 +309,11 @@ bandwidth costs might be applicable. Since bandwidth from Github Packages within
 Github Container Registry to also be usable for free within Github Actions in the future. If that were not to be the
 case, I might publish the Docker image to a different platform.
 
-### Usage in Gitlab-CI
+### Gitlab-CI
 
 The Kubeconform Docker image can be used in Gitlab-CI. Here is an example of a Gitlab-CI job:
 
-```
+```yaml
 lint-kubeconform:
   stage: validate
   image:
@@ -273,44 +325,16 @@ lint-kubeconform:
 
 See [issue 106](https://github.com/yannh/kubeconform/issues/106) for more details.
 
-### Proxy support
-
-Kubeconform will respect the HTTPS_PROXY variable when downloading schema files.
-
-```
-$ HTTPS_PROXY=proxy.local bin/kubeconform fixtures/valid.yaml
-```
-### Speed comparison with Kubeval
-
-Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:
-
-```
-$ time kubeconform -ignore-missing-schemas -n 8 -summary  preview staging production
-Summary: 50714 resources found in 35139 files - Valid: 27334, Invalid: 0, Errors: 0 Skipped: 23380
-
-real	0m6,710s
-user	0m38,701s
-sys	0m1,161s
-
-$ time kubeval -d preview,staging,production --ignore-missing-schemas --quiet
-[... Skipping output]
-
-real	0m35,336s
-user	0m0,717s
-sys	0m1,069s
-
-```
-
-### Using kubeconform as a Go Module
+## Using kubeconform as a Go Module
 
 **Warning**: This is a work-in-progress, the interface is not yet considered stable. Feedback is encouraged.
 
-Kubeconform contains a package that can be used as a library.
+`Kubeconform` contains a package that can be used as a library.
 An example of usage can be found in [examples/main.go](examples/main.go)
 
 Additional documentation on [pkg.go.dev](https://pkg.go.dev/github.com/yannh/kubeconform/pkg/validator)
 
-### Credits
+## Credits
 
  * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and
  [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) projects ❤️

@@ -260,7 +260,7 @@ JSON schema written to trainingjob-sagemaker-v1.json
 After converting your CRDs to JSON schema files, you can use `kubeconform` to validate your CRs against them:
 
 ```
-# If the resource Kind is not found in deafult, also lookup in the schemas/ folder for a matching file
+# If the resource Kind is not found in default, also lookup in the schemas/ folder for a matching file
 $ kubeconform -schema-location default -schema-location 'schemas/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/custom-resource.yaml
 ```
 

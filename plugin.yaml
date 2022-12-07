@@ -1,0 +1,14 @@
+name: kubeconform
+version: 0.5.0
+usage: Kubernetes manifest validation tool for Helm charts
+description: Kubernetes manifest validation tool for Helm charts
+ignoreFlags: false
+command: >-
+  $HELM_PLUGIN_DIR/scripts/helm/plugin_wrapper.py
+hooks:
+  install: >-
+    cd $HELM_PLUGIN_DIR;
+    ./scripts/helm/plugin_binloader.sh
+  update: >-
+    cd $HELM_PLUGIN_DIR;
+    HELM_PLUGIN_UPDATE=1 ./scripts/helm/plugin_binloader.sh

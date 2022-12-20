@@ -307,12 +307,15 @@ def parse_config(filename):
     return args
 
 
-def get_values_files(values_dir, values_pattern):
+def get_values_files(values_dir, values_pattern, chart_dir=None):
     values_files = []
 
-    # Get values files
     if os.path.isdir(values_dir):
+        # Get values files from a specific path
         values_files = glob(os.path.join(values_dir, values_pattern))
+    elif chart_dir is not None and os.path.isdir(os.path.join(chart_dir, values_dir)):
+        # Get values files from the chart directory
+        values_files = glob(os.path.join(chart_dir, values_dir, values_pattern))
 
     return values_files
 
@@ -336,11 +339,17 @@ def run_helm_dependecy_build(args):
                 for d in data["dependencies"]:
                     if not (
                         "name" in d
-                        and "version" in d
-                        and os.path.isfile(
-                            os.path.join(
-                                charts_dir, "%s-%s.tgz" % (d["name"], d["version"])
+                        and (
+                            (
+                                "version" in d
+                                and os.path.isfile(
+                                    os.path.join(
+                                        charts_dir,
+                                        "%s-%s.tgz" % (d["name"], d["version"]),
+                                    )
+                                )
                             )
+                            or os.path.islink(os.path.join(charts_dir, d["name"]))
                         )
                     ):
                         # Dependency missing, let's get it
@@ -529,6 +538,7 @@ def main():
     values_files = get_values_files(
         args["wrapper"].values_dir,
         args["wrapper"].values_pattern,
+        args["helm_tmpl"][-1],
     )
 
     # Run tests

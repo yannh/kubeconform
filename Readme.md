@@ -49,6 +49,7 @@ sys	0m1,069s
 * [Integrating Kubeconform in the CI](#Integrating-Kubeconform-in-the-CI)
   * [Github Workflow](#Github-Workflow)
   * [Gitlab-CI](#Gitlab-CI)
+* [Helm charts](#helm-charts)
 * [Using kubeconform as a Go Module](#Using-kubeconform-as-a-Go-Module)
 * [Credits](#Credits)
 
@@ -324,6 +325,13 @@ lint-kubeconform:
 ```
 
 See [issue 106](https://github.com/yannh/kubeconform/issues/106) for more details.
+
+## Helm charts
+
+There is a 3rd party [repository](https://github.com/jtyr/kubeconform-helm) that
+allows to use `kubeconform` to test [Helm charts](https://helm.sh) in the form of
+a [Helm plugin](https://helm.sh/docs/topics/plugins/) and [`pre-commit`
+hook](https://pre-commit.com/).
 
 ## Using kubeconform as a Go Module
 

@@ -49,7 +49,8 @@ type Opts struct {
 	RejectKinds          map[string]struct{} // List of resource Kinds to reject
 	KubernetesVersion    string              // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
 	Strict               bool                // thros an error if resources contain undocumented fields
-	IgnoreMissingSchemas bool                // skip a resource if no schema for that resource can be found
+	Delims               string
+	IgnoreMissingSchemas bool // skip a resource if no schema for that resource can be found
 }
 
 // New returns a new Validator
@@ -62,7 +63,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
-		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS, opts.Debug)
+		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS, opts.Debug, opts.Delims)
 		if err != nil {
 			return nil, err
 		}

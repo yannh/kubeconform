@@ -12,20 +12,22 @@ type LocalRegistry struct {
 	pathTemplate string
 	strict       bool
 	debug        bool
+	delims       string
 }
 
 // NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
-func newLocalRegistry(pathTemplate string, strict bool, debug bool) (*LocalRegistry, error) {
+func newLocalRegistry(pathTemplate string, strict bool, debug bool, delims string) (*LocalRegistry, error) {
 	return &LocalRegistry{
 		pathTemplate,
 		strict,
 		debug,
+		delims,
 	}, nil
 }
 
 // DownloadSchema retrieves the schema from a file for the resource
 func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
-	schemaFile, err := schemaPath(r.pathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
+	schemaFile, err := schemaPath(r.pathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict, r.delims)
 	if err != nil {
 		return []byte{}, nil
 	}

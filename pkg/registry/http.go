@@ -24,9 +24,10 @@ type SchemaRegistry struct {
 	cache              cache.Cache
 	strict             bool
 	debug              bool
+	delims             string
 }
 
-func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool, skipTLS bool, debug bool) (*SchemaRegistry, error) {
+func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool, skipTLS bool, debug bool, delims string) (*SchemaRegistry, error) {
 	reghttp := &http.Transport{
 		MaxIdleConns:       100,
 		IdleConnTimeout:    3 * time.Second,
@@ -57,12 +58,13 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 		cache:              filecache,
 		strict:             strict,
 		debug:              debug,
+		delims:             delims,
 	}, nil
 }
 
 // DownloadSchema downloads the schema for a particular resource from an HTTP server
 func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
-	url, err := schemaPath(r.schemaPathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
+	url, err := schemaPath(r.schemaPathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict, r.delims)
 	if err != nil {
 		return nil, err
 	}

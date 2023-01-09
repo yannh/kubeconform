@@ -102,6 +102,8 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
         cache schemas downloaded via HTTP to this folder
   -debug
         print debug information
+  -delims string
+        the delims for go template parsing
   -exit-on-error
         immediately stop execution when the first error is encountered
   -h    show help information
@@ -211,6 +213,7 @@ in each of them, in order, stopping as soon as a matching file is found.
  * if the `-schema-location` value ends with `.json` - Kubeconform assumes the value is a **Go templated
  string** that indicates how to search for JSON schemas.
 * the `-schema-location` value of `default` is an alias for `https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json`.
+* the `-delims` could use an alternative delims when parsing the URL. Such as, when you pass `-delims=[[,,]]`, then it could parse `https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/[[.NormalizedKubernetesVersion]]-standalone[[.StrictSuffix]]/[[.ResourceKind]][[.KindSuffix]].json`
 
 **The following command lines are equivalent:**
 ```bash

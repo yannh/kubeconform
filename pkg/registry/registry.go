@@ -32,7 +32,7 @@ func newNotFoundError(err error) *NotFoundError {
 func (e *NotFoundError) Error() string   { return e.err.Error() }
 func (e *NotFoundError) Retryable() bool { return false }
 
-func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool) (string, error) {
+func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool, delims string) (string, error) {
 	normalisedVersion := k8sVersion
 	if normalisedVersion != "master" {
 		normalisedVersion = "v" + normalisedVersion
@@ -51,7 +51,15 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 		kindSuffix += "-" + strings.ToLower(groupParts[1])
 	}
 
-	tmpl, err := template.New("tpl").Parse(tpl)
+	tmpl := template.New("tpl")
+
+	// in case of some special cases
+	delimsPairs := strings.Split(delims, ",")
+	if len(delimsPairs) == 2 {
+		tmpl = tmpl.Delims(delimsPairs[0], delimsPairs[1])
+	}
+
+	tmpl, err := tmpl.Parse(tpl)
 	if err != nil {
 		return "", err
 	}
@@ -81,7 +89,7 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 	return buf.String(), nil
 }
 
-func New(schemaLocation string, cache string, strict bool, skipTLS bool, debug bool) (Registry, error) {
+func New(schemaLocation string, cache string, strict bool, skipTLS bool, debug bool, delims string) (Registry, error) {
 	if schemaLocation == "default" {
 		schemaLocation = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 	} else if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of our fork of kubernetes-json-schema
@@ -89,13 +97,13 @@ func New(schemaLocation string, cache string, strict bool, skipTLS bool, debug b
 	}
 
 	// try to compile the schemaLocation template to ensure it is valid
-	if _, err := schemaPath(schemaLocation, "Deployment", "v1", "master", true); err != nil {
+	if _, err := schemaPath(schemaLocation, "Deployment", "v1", "master", true, delims); err != nil {
 		return nil, fmt.Errorf("failed initialising schema location registry: %s", err)
 	}
 
 	if strings.HasPrefix(schemaLocation, "http") {
-		return newHTTPRegistry(schemaLocation, cache, strict, skipTLS, debug)
+		return newHTTPRegistry(schemaLocation, cache, strict, skipTLS, debug, delims)
 	}
 
-	return newLocalRegistry(schemaLocation, strict, debug)
+	return newLocalRegistry(schemaLocation, strict, debug, delims)
 }

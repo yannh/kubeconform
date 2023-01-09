@@ -108,6 +108,7 @@ func realMain() int {
 		KubernetesVersion:    cfg.KubernetesVersion,
 		Strict:               cfg.Strict,
 		IgnoreMissingSchemas: cfg.IgnoreMissingSchemas,
+		Delims:               cfg.Delims,
 	})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

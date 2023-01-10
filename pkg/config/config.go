@@ -91,7 +91,14 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	c.RejectKinds = splitCSV(rejectKindsCSV)
 	c.IgnoreFilenamePatterns = ignoreFilenamePatterns
 	c.SchemaLocations = schemaLocationsParam
-	c.Files = flags.Args()
+	files := flags.Args()
+	for _, file := range files {
+		if strings.Contains(file, ",") {
+			c.Files = append(c.Files, strings.Split(file, ",")...)
+		} else {
+			c.Files = append(c.Files, file)
+		}
+	}
 
 	if c.Help {
 		flags.Usage()

@@ -165,6 +165,11 @@ $ echo $?
 1
 ```
 
+* Validating mutiple files with a single flag
+```bash
+kubeconform fixtures/valid.yaml,fixtures/valid_version.yaml
+```
+
 * Passing manifests via Stdin
 ```bash
 cat fixtures/valid.yaml  | ./bin/kubeconform -summary

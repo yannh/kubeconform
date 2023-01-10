@@ -129,6 +129,18 @@ func TestFromFlags(t *testing.T) {
 				Verbose:              true,
 			},
 		},
+		{
+			[]string{"file1,file2,file3"},
+			Config{
+				Files:             []string{"file1", "file2", "file3"},
+				KubernetesVersion: "master",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   nil,
+				SkipKinds:         map[string]struct{}{},
+				RejectKinds:       map[string]struct{}{},
+			},
+		},
 	}
 
 	for i, testCase := range testCases {

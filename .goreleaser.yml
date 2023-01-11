@@ -5,6 +5,7 @@ builds:
       - CGO_ENABLED=0
       - GOFLAGS = -mod=vendor
       - GO111MODULE = on
+      - GIT_OWNER = yannh
     goos:
       - windows
       - linux
@@ -31,18 +32,18 @@ archives:
 
 dockers:
   - image_templates:
-      - 'ghcr.io/yannh/kubeconform:latest'
-      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}'
-      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}-amd64'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-amd64'
     dockerfile: Dockerfile
     build_flag_templates:
       - "--platform=linux/amd64"
     goos: linux
     goarch: amd64
   - image_templates:
-      - 'ghcr.io/yannh/kubeconform:latest-alpine'
-      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}-alpine'
-      - 'ghcr.io/yannh/kubeconform:{{ .Tag }}-amd64-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-amd64-alpine'
     dockerfile: Dockerfile-alpine
     build_flag_templates:
       - "--platform=linux/amd64"

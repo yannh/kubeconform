@@ -35,7 +35,7 @@ goreleaser-build-static:
 	cp dist/kubeconform_linux_amd64_v1/kubeconform bin/
 
 release:
-	docker run -e GITHUB_TOKEN -t -v /var/run/docker.sock:/var/run/docker.sock -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v1.11.5 release --rm-dist
+	docker run -e GITHUB_TOKEN -e GIT_OWNER -t -v /var/run/docker.sock:/var/run/docker.sock -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v1.11.5 release --rm-dist
 
 update-deps:
 	go get -u ./...

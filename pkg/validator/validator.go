@@ -180,8 +180,7 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 
 	err = schema.Validate(r)
 	if err != nil {
-		// This error can only happen if the Object to validate is poorly formed. There's no hope of saving this one
-		return Result{Resource: res, Status: Error, Err: fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)}
+		return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)}
 	}
 
 	return Result{Resource: res, Status: Valid}

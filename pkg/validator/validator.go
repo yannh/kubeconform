@@ -229,7 +229,6 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 			schema, err := jsonschema.CompileString(path, string(schemaBytes))
 			// If we got a non-parseable response, we try the next registry
 			if err != nil {
-				fmt.Printf("TOTO %s\n", err)
 				continue
 			}
 			return schema, err

@@ -1,6 +1,6 @@
-# github.com/beevik/etree v1.1.0
-## explicit
-github.com/beevik/etree
+# github.com/santhosh-tekuri/jsonschema/v5 v5.1.1
+## explicit; go 1.15
+github.com/santhosh-tekuri/jsonschema/v5
 # github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb
 ## explicit
 github.com/xeipuuv/gojsonpointer
@@ -11,8 +11,8 @@ github.com/xeipuuv/gojsonreference
 ## explicit
 github.com/xeipuuv/gojsonschema
 # gopkg.in/yaml.v2 v2.4.0
-## explicit
+## explicit; go 1.15
 gopkg.in/yaml.v2
 # sigs.k8s.io/yaml v1.2.0
-## explicit
+## explicit; go 1.12
 sigs.k8s.io/yaml

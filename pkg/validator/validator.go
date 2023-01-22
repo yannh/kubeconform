@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"io"
 
+	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"
-
-	"github.com/xeipuuv/gojsonschema"
 	"sigs.k8s.io/yaml"
 )
 
@@ -91,7 +90,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 type v struct {
 	opts           Opts
 	schemaCache    cache.Cache
-	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error)
+	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*jsonschema.Schema, error)
 	regs           []registry.Registry
 }
 
@@ -151,13 +150,13 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 	}
 
 	cached := false
-	var schema *gojsonschema.Schema
+	var schema *jsonschema.Schema
 
 	if val.schemaCache != nil {
 		s, err := val.schemaCache.Get(sig.Kind, sig.Version, val.opts.KubernetesVersion)
 		if err == nil {
 			cached = true
-			schema = s.(*gojsonschema.Schema)
+			schema = s.(*jsonschema.Schema)
 		}
 	}
 
@@ -179,28 +178,13 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
 	}
 
-	resourceLoader := gojsonschema.NewGoLoader(r)
-
-	results, err := schema.Validate(resourceLoader)
+	err = schema.Validate(r)
 	if err != nil {
 		// This error can only happen if the Object to validate is poorly formed. There's no hope of saving this one
 		return Result{Resource: res, Status: Error, Err: fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)}
 	}
 
-	if results.Valid() {
-		return Result{Resource: res, Status: Valid}
-	}
-
-	msg := ""
-	for _, errMsg := range results.Errors() {
-		if msg != "" {
-			msg += " - "
-		}
-		details := errMsg.Details()
-		msg += fmt.Sprintf("For field %s: %s", details["field"].(string), errMsg.Description())
-	}
-
-	return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("%s", msg)}
+	return Result{Resource: res, Status: Valid}
 }
 
 // ValidateWithContext validates resources found in r
@@ -235,17 +219,17 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 	return val.ValidateWithContext(context.Background(), filename, r)
 }
 
-func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*gojsonschema.Schema, error) {
+func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
 	var err error
 	var schemaBytes []byte
 
 	for _, reg := range registries {
 		schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
-			schema, err := gojsonschema.NewSchema(gojsonschema.NewBytesLoader(schemaBytes))
-
+			schema, err := jsonschema.CompileString(fmt.Sprintf("%s%s%s", kind, version, k8sVersion), string(schemaBytes))
 			// If we got a non-parseable response, we try the next registry
 			if err != nil {
+				fmt.Printf("TOTO %s\n", err)
 				continue
 			}
 			return schema, err

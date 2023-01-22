@@ -61,15 +61,15 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 }
 
 // DownloadSchema downloads the schema for a particular resource from an HTTP server
-func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
+func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, []byte, error) {
 	url, err := schemaPath(r.schemaPathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	if r.cache != nil {
 		if b, err := r.cache.Get(resourceKind, resourceAPIVersion, k8sVersion); err == nil {
-			return b.([]byte), nil
+			return url, b.([]byte), nil
 		}
 	}
 
@@ -79,7 +79,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		if r.debug {
 			log.Println(msg)
 		}
-		return nil, errors.New(msg)
+		return url, nil, errors.New(msg)
 	}
 	defer resp.Body.Close()
 
@@ -88,7 +88,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		if r.debug {
 			log.Print(msg)
 		}
-		return nil, newNotFoundError(errors.New(msg))
+		return url, nil, newNotFoundError(errors.New(msg))
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -96,7 +96,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		if r.debug {
 			log.Print(msg)
 		}
-		return nil, fmt.Errorf(msg)
+		return url, nil, fmt.Errorf(msg)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -105,7 +105,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		if r.debug {
 			log.Print(msg)
 		}
-		return nil, errors.New(msg)
+		return url, nil, errors.New(msg)
 	}
 
 	if r.debug {
@@ -114,9 +114,9 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 
 	if r.cache != nil {
 		if err := r.cache.Set(resourceKind, resourceAPIVersion, k8sVersion, body); err != nil {
-			return nil, fmt.Errorf("failed writing schema to cache: %s", err)
+			return url, nil, fmt.Errorf("failed writing schema to cache: %s", err)
 		}
 	}
 
-	return body, nil
+	return url, body, nil
 }

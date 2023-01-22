@@ -221,11 +221,12 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
 	var err error
 	var schemaBytes []byte
+	var path string
 
 	for _, reg := range registries {
-		schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
+		path, schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
-			schema, err := jsonschema.CompileString(fmt.Sprintf("%s%s%s", kind, version, k8sVersion), string(schemaBytes))
+			schema, err := jsonschema.CompileString(path, string(schemaBytes))
 			// If we got a non-parseable response, we try the next registry
 			if err != nil {
 				fmt.Printf("TOTO %s\n", err)

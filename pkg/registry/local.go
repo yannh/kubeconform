@@ -24,10 +24,10 @@ func newLocalRegistry(pathTemplate string, strict bool, debug bool) (*LocalRegis
 }
 
 // DownloadSchema retrieves the schema from a file for the resource
-func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
+func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, []byte, error) {
 	schemaFile, err := schemaPath(r.pathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
 	if err != nil {
-		return []byte{}, nil
+		return schemaFile, []byte{}, nil
 	}
 	f, err := os.Open(schemaFile)
 	if err != nil {
@@ -36,14 +36,14 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 			if r.debug {
 				log.Print(msg)
 			}
-			return nil, newNotFoundError(errors.New(msg))
+			return schemaFile, nil, newNotFoundError(errors.New(msg))
 		}
 
 		msg := fmt.Sprintf("failed to open schema at %s: %s", schemaFile, err)
 		if r.debug {
 			log.Print(msg)
 		}
-		return nil, errors.New(msg)
+		return schemaFile, nil, errors.New(msg)
 	}
 
 	defer f.Close()
@@ -53,11 +53,11 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 		if r.debug {
 			log.Print(msg)
 		}
-		return nil, err
+		return schemaFile, nil, err
 	}
 
 	if r.debug {
 		log.Printf("using schema found at %s", schemaFile)
 	}
-	return content, nil
+	return schemaFile, content, nil
 }

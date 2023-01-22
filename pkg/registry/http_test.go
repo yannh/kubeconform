@@ -100,7 +100,7 @@ func TestDownloadSchema(t *testing.T) {
 			strict:             testCase.strict,
 		}
 
-		res, err := reg.DownloadSchema(testCase.resourceKind, testCase.resourceAPIVersion, testCase.k8sversion)
+		_, res, err := reg.DownloadSchema(testCase.resourceKind, testCase.resourceAPIVersion, testCase.k8sversion)
 		if err == nil || testCase.expectErr == nil {
 			if err != testCase.expectErr {
 				t.Errorf("during test '%s': expected error, got:\n%s\n%s\n", testCase.name, testCase.expectErr, err)

@@ -9,16 +9,16 @@ import (
 )
 
 type mockRegistry struct {
-	SchemaDownloader func() ([]byte, error)
+	SchemaDownloader func() (string, []byte, error)
 }
 
-func newMockRegistry(f func() ([]byte, error)) *mockRegistry {
+func newMockRegistry(f func() (string, []byte, error)) *mockRegistry {
 	return &mockRegistry{
 		SchemaDownloader: f,
 	}
 }
 
-func (m mockRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) ([]byte, error) {
+func (m mockRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, []byte, error) {
 	return m.SchemaDownloader()
 }
 
@@ -362,11 +362,11 @@ lastName: bar
 			schemaCache:    nil,
 			schemaDownload: downloadSchema,
 			regs: []registry.Registry{
-				newMockRegistry(func() ([]byte, error) {
-					return testCase.schemaRegistry1, nil
+				newMockRegistry(func() (string, []byte, error) {
+					return "", testCase.schemaRegistry1, nil
 				}),
-				newMockRegistry(func() ([]byte, error) {
-					return testCase.schemaRegistry2, nil
+				newMockRegistry(func() (string, []byte, error) {
+					return "", testCase.schemaRegistry2, nil
 				}),
 			},
 		}

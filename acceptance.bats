@@ -154,7 +154,12 @@ resetCacheFolder() {
 }
 
 @test "Pass when using a valid HTTP -schema-location" {
-  run bin/kubeconform -schema-location 'https://kubernetesjsonschema.dev/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+  run bin/kubeconform -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Pass when using non-standalone schemas" {
+  run bin/kubeconform -summary -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{{ .NormalizedKubernetesVersion }}{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
   [ "$status" -eq 0 ]
 }
 
@@ -252,7 +257,7 @@ resetCacheFolder() {
 
 @test "Fail when no schema found, ensure 404 is not cached on disk" {
   resetCacheFolder
-  run bin/kubeconform -cache cache -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/doesnotexist.json' fixtures/valid.yaml
+  run bin/kubeconform -cache cache -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/doesnotexist.json' fixtures/valid.yaml
   [ "$status" -eq 1 ]
   [ "$output" == 'fixtures/valid.yaml - ReplicationController bob failed validation: could not find schema for ReplicationController' ]
   [ "`ls cache/ | wc -l`" -eq 0 ]

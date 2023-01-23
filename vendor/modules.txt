@@ -1,6 +1,7 @@
 # github.com/santhosh-tekuri/jsonschema/v5 v5.1.1
 ## explicit; go 1.15
 github.com/santhosh-tekuri/jsonschema/v5
+github.com/santhosh-tekuri/jsonschema/v5/httploader
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
 gopkg.in/yaml.v2

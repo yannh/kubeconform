@@ -7,6 +7,7 @@ import (
 	"io"
 
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
+	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/registry"
 	"github.com/yannh/kubeconform/pkg/resource"

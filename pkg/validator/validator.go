@@ -3,6 +3,7 @@ package validator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -30,6 +31,7 @@ const (
 type Result struct {
 	Resource resource.Resource
 	Err      error
+	ErrPaths []string
 	Status   Status
 }
 
@@ -181,7 +183,20 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 
 	err = schema.Validate(r)
 	if err != nil {
-		return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)}
+		errPaths := []string{}
+		var e *jsonschema.ValidationError
+		if errors.As(err, &e) {
+			for _, cause := range e.Causes {
+				errPaths = append(errPaths, cause.KeywordLocation)
+			}
+		}
+
+		return Result{
+			Resource: res,
+			Status:   Invalid,
+			Err:      fmt.Errorf("problem validating schema. Check JSON formatting: %s", err),
+			ErrPaths: errPaths,
+		}
 	}
 
 	return Result{Resource: res, Status: Valid}

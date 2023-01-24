@@ -1,14 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"strings"
 	"sync"
 
+	"github.com/GoogleContainerTools/kpt-functions-sdk/go/fn"
 	"github.com/yannh/kubeconform/pkg/config"
 	"github.com/yannh/kubeconform/pkg/output"
 	"github.com/yannh/kubeconform/pkg/resource"
@@ -44,6 +47,26 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 	}()
 
 	return result
+}
+
+func parseStdin(stdin *os.File) *strings.Reader {
+	var content string
+
+	// Read all stdin lines.
+	scanner := bufio.NewScanner(stdin)
+	for scanner.Scan() {
+		content += fmt.Sprintln(scanner.Text())
+	}
+
+	// Check if the stdin input is ResourceList.
+	rl, err := fn.ParseResourceList([]byte(content))
+	// If it's ResourceList, use the items as the new content.
+	if err == nil {
+		content = rl.Items.String()
+	}
+
+	// Convert the content which is type "string" to a "Reader" again.
+	return strings.NewReader(content)
 }
 
 func realMain() int {
@@ -121,7 +144,7 @@ func realMain() int {
 	var resourcesChan <-chan resource.Resource
 	var errors <-chan error
 	if useStdin {
-		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
+		resourcesChan, errors = resource.FromStream(ctx, "stdin", parseStdin(os.Stdin))
 	} else {
 		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns)
 	}

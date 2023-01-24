@@ -1,0 +1,17 @@
+apiVersion: config.kubernetes.io/v1
+kind: ResourceList
+metadata:
+  name: krm-function-input
+items:
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: foo
+  data:
+    val: foo
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: bar
+  data:
+    val: bar

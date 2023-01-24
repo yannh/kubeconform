@@ -3,6 +3,7 @@ package validator
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -26,11 +27,21 @@ const (
 	Empty          // resource is empty. Note: is triggered for files starting with a --- separator.
 )
 
+type ValidationError struct {
+	Path    string
+	Message string
+}
+
+func (ve *ValidationError) Error() string {
+	return ve.Message
+}
+
 // Result contains the details of the result of a resource validation
 type Result struct {
-	Resource resource.Resource
-	Err      error
-	Status   Status
+	Resource         resource.Resource
+	Err              error
+	Status           Status
+	ValidationErrors []ValidationError
 }
 
 // Validator exposes multiple methods to validate your Kubernetes resources.
@@ -181,7 +192,23 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 
 	err = schema.Validate(r)
 	if err != nil {
-		return Result{Resource: res, Status: Invalid, Err: fmt.Errorf("problem validating schema. Check JSON formatting: %s", err)}
+		validationErrors := []ValidationError{}
+		var e *jsonschema.ValidationError
+		if errors.As(err, &e) {
+			for _, ve := range e.Causes {
+				validationErrors = append(validationErrors, ValidationError{
+					Path:    ve.KeywordLocation,
+					Message: ve.Message,
+				})
+			}
+
+		}
+		return Result{
+			Resource:         res,
+			Status:           Invalid,
+			Err:              fmt.Errorf("problem validating schema. Check JSON formatting: %s", err),
+			ValidationErrors: validationErrors,
+		}
 	}
 
 	return Result{Resource: res, Status: Valid}

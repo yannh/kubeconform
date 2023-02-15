@@ -128,7 +128,7 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
   -schema-location value
         override schemas location search path (can be specified multiple times)
   -skip string
-        comma-separated list of kinds or GVKs to ignore
+        comma-separated list of kinds, api versions or GVKs to ignore
   -strict
         disallow additional properties not in schema or duplicated keys
   -summary
@@ -177,7 +177,7 @@ cat fixtures/valid.yaml  | ./bin/kubeconform -summary
 Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 ```
 
-* Validating a file, ignoring its resource using both Kind, and GVK (Group, Version, Kind) notations
+* Validating a file, ignoring its resource using Kind, GVK (Group, Version, Kind), and Version notations
 ```
 # This will ignore ReplicationController for all apiVersions
 $ kubeconform -summary -skip ReplicationController fixtures/valid.yaml
@@ -185,6 +185,10 @@ Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 
 
 # This will ignore ReplicationController only for apiVersion v1
 $ kubeconform -summary -skip v1/ReplicationController fixtures/valid.yaml
+Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 1
+
+# This will ignore any resource with apiVersion v1
+$ kubeconform -summary -skip v1 fixtures/valid.yaml
 Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 1
 ```
 

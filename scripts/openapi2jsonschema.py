@@ -6,6 +6,9 @@ import json
 import sys
 import os
 import urllib.request
+if 'DISABLE_SSL_CERT_VALIDATION' in os.environ:
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 def test_additional_properties():
     for test in iter([{

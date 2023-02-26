@@ -9,12 +9,13 @@ import (
 )
 
 type oresult struct {
-	Filename string `json:"filename"`
-	Kind     string `json:"kind"`
-	Name     string `json:"name"`
-	Version  string `json:"version"`
-	Status   string `json:"status"`
-	Msg      string `json:"msg"`
+	Filename         string                      `json:"filename"`
+	Kind             string                      `json:"kind"`
+	Name             string                      `json:"name"`
+	Version          string                      `json:"version"`
+	Status           string                      `json:"status"`
+	Msg              string                      `json:"msg"`
+	ValidationErrors []validator.ValidationError `json:"validationErrors,omitempty"`
 }
 
 type jsono struct {
@@ -49,11 +50,15 @@ func (o *jsono) Write(result validator.Result) error {
 		o.nValid++
 	case validator.Invalid:
 		st = "statusInvalid"
-		msg = result.Err.Error()
+		if result.Err != nil {
+			msg = result.Err.Error()
+		}
 		o.nInvalid++
 	case validator.Error:
 		st = "statusError"
-		msg = result.Err.Error()
+		if result.Err != nil {
+			msg = result.Err.Error()
+		}
 		o.nErrors++
 	case validator.Skipped:
 		st = "statusSkipped"
@@ -63,7 +68,15 @@ func (o *jsono) Write(result validator.Result) error {
 
 	if o.verbose || (result.Status != validator.Valid && result.Status != validator.Skipped && result.Status != validator.Empty) {
 		sig, _ := result.Resource.Signature()
-		o.results = append(o.results, oresult{Filename: result.Resource.Path, Kind: sig.Kind, Name: sig.Name, Version: sig.Version, Status: st, Msg: msg})
+		o.results = append(o.results, oresult{
+			Filename:         result.Resource.Path,
+			Kind:             sig.Kind,
+			Name:             sig.Name,
+			Version:          sig.Version,
+			Status:           st,
+			Msg:              msg,
+			ValidationErrors: result.ValidationErrors,
+		})
 	}
 
 	return nil

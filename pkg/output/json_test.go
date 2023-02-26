@@ -95,6 +95,60 @@ metadata:
 }
 `,
 		},
+		{
+			"a single invalid deployment, verbose, with summary",
+			true,
+			false,
+			true,
+			[]validator.Result{
+				{
+					Resource: resource.Resource{
+						Path: "deployment.yml",
+						Bytes: []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "my-app"
+`),
+					},
+					Status: validator.Invalid,
+					Err: &validator.ValidationError{
+						Path: "foo",
+						Msg:  "bar",
+					},
+					ValidationErrors: []validator.ValidationError{
+						{
+							Path: "foo",
+							Msg:  "bar",
+						},
+					},
+				},
+			},
+			`{
+  "resources": [
+    {
+      "filename": "deployment.yml",
+      "kind": "Deployment",
+      "name": "my-app",
+      "version": "apps/v1",
+      "status": "statusInvalid",
+      "msg": "bar",
+      "validationErrors": [
+        {
+          "path": "foo",
+          "msg": "bar"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "valid": 0,
+    "invalid": 1,
+    "errors": 0,
+    "skipped": 0
+  }
+}
+`,
+		},
 	} {
 		w := new(bytes.Buffer)
 		o := jsonOutput(w, testCase.withSummary, testCase.isStdin, testCase.verbose)

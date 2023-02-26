@@ -50,11 +50,15 @@ func (o *jsono) Write(result validator.Result) error {
 		o.nValid++
 	case validator.Invalid:
 		st = "statusInvalid"
-		msg = result.Err.Error()
+		if result.Err != nil {
+			msg = result.Err.Error()
+		}
 		o.nInvalid++
 	case validator.Error:
 		st = "statusError"
-		msg = result.Err.Error()
+		if result.Err != nil {
+			msg = result.Err.Error()
+		}
 		o.nErrors++
 	case validator.Skipped:
 		st = "statusSkipped"

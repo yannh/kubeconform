@@ -28,12 +28,12 @@ const (
 )
 
 type ValidationError struct {
-	Path    string
-	Message string
+	Path string `json:"path"`
+	Msg  string `json:"msg"`
 }
 
 func (ve *ValidationError) Error() string {
-	return ve.Message
+	return ve.Msg
 }
 
 // Result contains the details of the result of a resource validation
@@ -197,8 +197,8 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		if errors.As(err, &e) {
 			for _, ve := range e.Causes {
 				validationErrors = append(validationErrors, ValidationError{
-					Path:    ve.KeywordLocation,
-					Message: ve.Message,
+					Path: ve.KeywordLocation,
+					Msg:  ve.Message,
 				})
 			}
 

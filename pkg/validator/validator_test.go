@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/yannh/kubeconform/pkg/registry"
@@ -377,5 +378,60 @@ lastName: bar
 				t.Errorf("%d - expected %d, got %d", i, testCase.expect, got.Status)
 			}
 		}
+	}
+}
+
+func TestValidationErrors(t *testing.T) {
+	rawResource := []byte(`
+kind: name
+apiVersion: v1
+firstName: foo
+age: not a number
+`)
+
+	schema := []byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string"
+    },
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "age": {
+      "description": "Age in years",
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": ["firstName", "lastName"]
+}`)
+
+	expectedErrors := []ValidationError{
+		{Path: "", Msg: "missing properties: 'lastName'"},
+		{Path: "/age", Msg: "expected integer, but got string"},
+	}
+
+	val := v{
+		opts: Opts{
+			SkipKinds:   map[string]struct{}{},
+			RejectKinds: map[string]struct{}{},
+		},
+		schemaCache:    nil,
+		schemaDownload: downloadSchema,
+		regs: []registry.Registry{
+			newMockRegistry(func() (string, []byte, error) {
+				return "", schema, nil
+			}),
+		},
+	}
+
+	got := val.ValidateResource(resource.Resource{Bytes: rawResource})
+	if !reflect.DeepEqual(expectedErrors, got.ValidationErrors) {
+		t.Errorf("Expected %+v, got %+v", expectedErrors, got.ValidationErrors)
 	}
 }

@@ -197,7 +197,7 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		if errors.As(err, &e) {
 			for _, ve := range e.Causes {
 				validationErrors = append(validationErrors, ValidationError{
-					Path: ve.KeywordLocation,
+					Path: ve.InstanceLocation,
 					Msg:  ve.Message,
 				})
 			}

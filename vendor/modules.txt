@@ -1,3 +1,6 @@
+# github.com/logrusorgru/aurora v2.0.3+incompatible
+## explicit
+github.com/logrusorgru/aurora
 # github.com/santhosh-tekuri/jsonschema/v5 v5.1.1
 ## explicit; go 1.15
 github.com/santhosh-tekuri/jsonschema/v5

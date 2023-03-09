@@ -74,7 +74,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.BoolVar(&c.Summary, "summary", false, "print a summary at the end (ignored for junit output)")
 	flags.IntVar(&c.NumberOfWorkers, "n", 4, "number of goroutines to run concurrently")
 	flags.BoolVar(&c.Strict, "strict", false, "disallow additional properties not in schema or duplicated keys")
-	flags.StringVar(&c.OutputFormat, "output", "text", "output format - json, junit, tap, text")
+	flags.StringVar(&c.OutputFormat, "output", "text", "output format - json, junit, pretty, tap, text")
 	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources (ignored for tap and junit output)")
 	flags.BoolVar(&c.SkipTLS, "insecure-skip-tls-verify", false, "disable verification of the server's SSL certificate. This will make your HTTPS connections insecure")
 	flags.StringVar(&c.Cache, "cache", "", "cache schemas downloaded via HTTP to this folder")

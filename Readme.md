@@ -1,7 +1,7 @@
 <img width="50%" alt="Kubeconform-GitHub-Hero" src="https://user-images.githubusercontent.com/19731161/142411871-f695e40c-bfa8-43ca-97c0-94c256749732.png">
 <hr>
 
-[![Build status](https://github.com/yannh/kubeconform/workflows/build/badge.svg?branch=master)](https://github.com/yannh/kubeconform/actions?query=branch%3Amaster)
+[![Build status](https://github.com/yannh/kubeconform/actions/workflows/main.yml/badge.svg)](https://github.com/yannh/kubeconform/actions?query=branch%3Amaster)
 [![Homebrew](https://img.shields.io/badge/dynamic/json.svg?url=https://formulae.brew.sh/api/formula/kubeconform.json&query=$.versions.stable&label=homebrew)](https://formulae.brew.sh/formula/kubeconform)
 [![Go Report card](https://goreportcard.com/badge/github.com/yannh/kubeconform)](https://goreportcard.com/report/github.com/yannh/kubeconform)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/yannh/kubeconform/pkg/validator)](https://pkg.go.dev/github.com/yannh/kubeconform/pkg/validator)

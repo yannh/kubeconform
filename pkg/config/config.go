@@ -4,8 +4,16 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
+
+type Stream struct {
+	Input  io.Reader
+	Output io.Writer
+	Error  io.Writer
+}
 
 type Config struct {
 	Cache                  string
@@ -26,6 +34,7 @@ type Config struct {
 	IgnoreFilenamePatterns []string
 	Help                   bool
 	Version                bool
+	Stream                 *Stream
 }
 
 type arrayParam []string
@@ -62,7 +71,9 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 
 	c := Config{}
 	c.Files = []string{}
+	c.Stream = &Stream{os.Stdin, os.Stdout, os.Stderr}
 
+	flags.SetOutput(c.Stream.Output)
 	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "master", "version of Kubernetes to validate against, e.g.: 1.18.0")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds or GVKs to ignore")

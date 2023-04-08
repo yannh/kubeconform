@@ -1,4 +1,4 @@
-package main
+package kubeconform
 
 import (
 	"context"
@@ -15,8 +15,6 @@ import (
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
-var version = "development"
-
 func processResults(cancel context.CancelFunc, o output.Output, validationResults <-chan validator.Result, exitOnError bool) <-chan bool {
 	success := true
 	result := make(chan bool)
@@ -28,7 +26,7 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 			}
 			if o != nil {
 				if err := o.Write(res); err != nil {
-					fmt.Fprint(os.Stderr, "failed writing log\n")
+					log.Fatal("failed writing log: ", err)
 				}
 			}
 			if !success && exitOnError {
@@ -46,27 +44,19 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 	return result
 }
 
-func realMain() int {
-	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
+func Validate(cfg config.Config, out string) error {
+
 	if out != "" {
-		o := os.Stderr
-		errCode := 1
 		if cfg.Help {
-			o = os.Stdout
-			errCode = 0
+			fmt.Fprintln(cfg.Stream.Output, out)
+			return nil
 		}
-		fmt.Fprintln(o, out)
-		return errCode
+		return fmt.Errorf("config out is not empty")
 	}
 
 	if cfg.Version {
-		fmt.Println(version)
-		return 0
-	}
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
-		return 1
+		fmt.Fprintln(cfg.Stream.Output, out)
+		return nil
 	}
 
 	cpuProfileFile := os.Getenv("KUBECONFORM_CPUPROFILE_FILE")
@@ -93,13 +83,11 @@ func realMain() int {
 		useStdin = true
 	}
 
-	var o output.Output
-	if o, err = output.New(cfg.OutputFormat, cfg.Summary, useStdin, cfg.Verbose); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return 1
+	o, err := output.New(cfg.Stream.Output, cfg.OutputFormat, cfg.Summary, useStdin, cfg.Verbose)
+	if err != nil {
+		return fmt.Errorf("failed to get output: %s", err.Error())
 	}
-	var v validator.Validator
-	v, err = validator.New(cfg.SchemaLocations, validator.Opts{
+	v, err := validator.New(cfg.SchemaLocations, validator.Opts{
 		Cache:                cfg.Cache,
 		Debug:                cfg.Debug,
 		SkipTLS:              cfg.SkipTLS,
@@ -110,8 +98,7 @@ func realMain() int {
 		IgnoreMissingSchemas: cfg.IgnoreMissingSchemas,
 	})
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return 1
+		return fmt.Errorf("failed to validate: %s", err.Error())
 	}
 
 	validationResults := make(chan validator.Result)
@@ -121,7 +108,7 @@ func realMain() int {
 	var resourcesChan <-chan resource.Resource
 	var errors <-chan error
 	if useStdin {
-		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
+		resourcesChan, errors = resource.FromStream(ctx, "stdin", cfg.Stream.Input)
 	} else {
 		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns)
 	}
@@ -171,12 +158,8 @@ func realMain() int {
 	o.Flush()
 
 	if !success {
-		return 1
+		return fmt.Errorf("failed to process results")
 	}
 
-	return 0
-}
-
-func main() {
-	os.Exit(realMain())
+	return nil
 }

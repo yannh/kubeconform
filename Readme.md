@@ -81,6 +81,12 @@ If you are a [Homebrew](https://brew.sh/) user, you can install by running:
 $ brew install kubeconform
 ```
 
+If you are a Windows user, you can install with [winget](https://learn.microsoft.com/en-us/windows/package-manager/winget/) by running:
+
+```cmd
+winget install YannHamon.kubeconform
+```
+
 You can also download the latest version from the [release page](https://github.com/yannh/kubeconform/releases).
 
 Another way of installation is via Golang's package manager:

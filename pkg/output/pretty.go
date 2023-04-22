@@ -71,11 +71,11 @@ func (o *prettyo) Write(result validator.Result) error {
 		if o.verbose {
 			fmt.Fprintf(o.w, "%s-%s %s: ", cYellow, reset, result.Resource.Path)
 			if sig.Kind != "" && sig.Name != "" {
-				fmt.Fprintf(o.w, "%s%s %s skipped%s: ", cYellow, sig.Kind, sig.Name, reset)
+				fmt.Fprintf(o.w, "%s%s %s skipped%s\n", cYellow, sig.Kind, sig.Name, reset)
 			} else if sig.Kind != "" {
-				fmt.Fprintf(o.w, "%s%s skipped%s: ", cYellow, sig.Kind, reset)
+				fmt.Fprintf(o.w, "%s%s skipped%s\n", cYellow, sig.Kind, reset)
 			} else {
-				fmt.Fprintf(o.w, "%sskipped%s: ", cYellow, reset)
+				fmt.Fprintf(o.w, "%sskipped%s\n", cYellow, reset)
 			}
 		}
 		o.nSkipped++

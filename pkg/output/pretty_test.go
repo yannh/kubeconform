@@ -65,9 +65,8 @@ metadata:
 					Err:    nil,
 				},
 			},
-			`✔ deployment.yml: Deployment my-app is valid
-Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0
-`,
+			"\033[32m✔\033[0m deployment.yml: \033[32mDeployment my-app is valid\033[0m\n" +
+				"Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0\n",
 		},
 	} {
 		w := new(bytes.Buffer)
@@ -79,7 +78,7 @@ Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 
 		o.Flush()
 
 		if w.String() != testCase.expect {
-			t.Errorf("%s - expected: %s, got: %s", testCase.name, testCase.expect, w)
+			t.Errorf("%s - expected, but got:\n%s\n%s\n", testCase.name, testCase.expect, w)
 		}
 	}
 }

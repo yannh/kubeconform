@@ -5,7 +5,6 @@ import (
 	"io"
 	"sync"
 
-	"github.com/logrusorgru/aurora"
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
@@ -35,6 +34,13 @@ func prettyOutput(w io.Writer, withSummary, isStdin, verbose bool) Output {
 }
 
 func (o *prettyo) Write(result validator.Result) error {
+	checkmark := "\u2714"
+	multiplicationSign := "\u2716"
+	reset := "\033[0m"
+	cRed := "\033[31m"
+	cGreen := "\033[32m"
+	cYellow := "\033[33m"
+
 	o.Lock()
 	defer o.Unlock()
 
@@ -46,30 +52,30 @@ func (o *prettyo) Write(result validator.Result) error {
 	switch result.Status {
 	case validator.Valid:
 		if o.verbose {
-			fmt.Printf("%s %s: ", aurora.BrightGreen("\u2714"), result.Resource.Path)
-			fmt.Println(aurora.Sprintf(aurora.BrightGreen("%s %s is valid"), sig.Kind, sig.Name))
+			fmt.Fprintf(o.w, "%s%s%s %s: %s%s %s is valid%s\n", cGreen, checkmark, reset, result.Resource.Path, cGreen, sig.Kind, sig.Name, reset)
 		}
 		o.nValid++
 	case validator.Invalid:
-		_, err = fmt.Fprintf(o.w, "%s - %s %s is invalid: %s\n", result.Resource.Path, sig.Kind, sig.Name, result.Err)
+		fmt.Fprintf(o.w, "%s%s%s %s: %s%s %s is invalid: %s%s\n", cRed, multiplicationSign, reset, result.Resource.Path, cRed, sig.Kind, sig.Name, result.Err.Error(), reset)
+
 		o.nInvalid++
 	case validator.Error:
-		fmt.Printf("%s %s: ", aurora.BrightRed("\u2716"), result.Resource.Path)
+		fmt.Fprintf(o.w, "%s%s%s %s: ", cRed, multiplicationSign, reset, result.Resource.Path)
 		if sig.Kind != "" && sig.Name != "" {
-			fmt.Println(aurora.Sprintf(aurora.BrightRed("%s failed validation: %s %s"), sig.Kind, sig.Name, result.Err))
+			fmt.Fprintf(o.w, "%s%s failed validation: %s %s%s\n", cRed, sig.Kind, sig.Name, result.Err.Error(), reset)
 		} else {
-			fmt.Println(aurora.Sprintf(aurora.BrightRed("failed validation: %s %s"), sig.Name, result.Err))
+			fmt.Fprintf(o.w, "%sfailed validation: %s %s%s\n", cRed, sig.Name, result.Err.Error(), reset)
 		}
 		o.nErrors++
 	case validator.Skipped:
 		if o.verbose {
-			fmt.Printf("%s %s: ", aurora.Yellow("-"), result.Resource.Path)
+			fmt.Fprintf(o.w, "%s-%s %s: ", cYellow, reset, result.Resource.Path)
 			if sig.Kind != "" && sig.Name != "" {
-				fmt.Println(aurora.Sprintf(aurora.Yellow("%s %s skipped"), sig.Kind, sig.Name))
+				fmt.Fprintf(o.w, "%s%s %s skipped%s: ", cYellow, sig.Kind, sig.Name, reset)
 			} else if sig.Kind != "" {
-				fmt.Println(aurora.Sprintf(aurora.Yellow("%s skipped"), sig.Kind))
+				fmt.Fprintf(o.w, "%s%s skipped%s: ", cYellow, sig.Kind, reset)
 			} else {
-				fmt.Println(aurora.Yellow("skipped"))
+				fmt.Fprintf(o.w, "%sskipped%s: ", cYellow, reset)
 			}
 		}
 		o.nSkipped++

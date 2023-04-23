@@ -2,7 +2,7 @@ package output
 
 import (
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/yannh/kubeconform/pkg/validator"
 )
@@ -12,9 +12,7 @@ type Output interface {
 	Flush() error
 }
 
-func New(outputFormat string, printSummary, isStdin, verbose bool) (Output, error) {
-	w := os.Stdout
-
+func New(w io.Writer, outputFormat string, printSummary, isStdin, verbose bool) (Output, error) {
 	switch {
 	case outputFormat == "json":
 		return jsonOutput(w, printSummary, isStdin, verbose), nil

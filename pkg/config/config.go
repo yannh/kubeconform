@@ -4,28 +4,58 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
 
+type Stream struct {
+	Input  io.Reader
+	Output io.Writer
+	Error  io.Writer
+}
+
 type Config struct {
-	Cache                  string
-	Debug                  bool
-	ExitOnError            bool
-	Files                  []string
-	SchemaLocations        []string
-	SkipTLS                bool
-	SkipKinds              map[string]struct{}
+	Cache                  string   `yaml:"cache" json:"cache"`
+	Debug                  bool     `yaml:"debug" json:"debug"`
+	ExitOnError            bool     `yaml:"exitOnError" json:"exitOnError"`
+	Files                  []string `yaml:"files" json:"files"`
+	Help                   bool     `yaml:"help" json:"help"`
+	IgnoreFilenamePatterns []string `yaml:"ignoreFilenamePatterns" json:"ignoreFilenamePatterns"`
+	IgnoreMissingSchemas   bool     `yaml:"ignoreMissingSchemas" json:"ignoreMissingSchemas"`
+	KubernetesVersion      string   `yaml:"kubernetesVersion" json:"kubernetesVersion"`
+	NumberOfWorkers        int      `yaml:"numberOfWorkers" json:"numberOfWorkers"`
+	OutputFormat           string   `yaml:"output" json:"output"`
 	RejectKinds            map[string]struct{}
-	OutputFormat           string
-	KubernetesVersion      string
-	NumberOfWorkers        int
-	Summary                bool
-	Strict                 bool
-	Verbose                bool
-	IgnoreMissingSchemas   bool
-	IgnoreFilenamePatterns []string
-	Help                   bool
-	Version                bool
+	RejectKindsNG          []string `yaml:"reject" json:"reject"`
+	SchemaLocations        []string `yaml:"schemaLocations" json:"schemaLocations"`
+	SkipKinds              map[string]struct{}
+	SkipKindsNG            []string `yaml:"skip" json:"skip"`
+	SkipTLS                bool     `yaml:"insecureSkipTLSVerify" json:"insecureSkipTLSVerify"`
+	Strict                 bool     `yaml:"strict" json:"strict"`
+	Summary                bool     `yaml:"summary" json:"summary"`
+	Verbose                bool     `yaml:"verbose" json:"verbose"`
+	Version                bool     `yaml:"version" json:"version"`
+	Stream                 *Stream
+}
+
+// LoadNGConfig allows to introduce new config format/structure while keeping backward compatibility.
+func (c *Config) LoadNGConfig() error {
+	// SkipKindsNG.
+	loadKinds(c.SkipKinds, c.SkipKindsNG)
+
+	// RejectKindsNG.
+	loadKinds(c.RejectKinds, c.RejectKindsNG)
+
+	return nil
+}
+
+func loadKinds(dest map[string]struct{}, src []string) {
+	for _, kind := range src {
+		if len(kind) > 0 {
+			dest[kind] = struct{}{}
+		}
+	}
 }
 
 type arrayParam []string
@@ -40,15 +70,8 @@ func (ap *arrayParam) Set(value string) error {
 }
 
 func splitCSV(csvStr string) map[string]struct{} {
-	splitValues := strings.Split(csvStr, ",")
 	valuesMap := map[string]struct{}{}
-
-	for _, kind := range splitValues {
-		if len(kind) > 0 {
-			valuesMap[kind] = struct{}{}
-		}
-	}
-
+	loadKinds(valuesMap, strings.Split(csvStr, ","))
 	return valuesMap
 }
 
@@ -62,7 +85,9 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 
 	c := Config{}
 	c.Files = []string{}
+	c.Stream = &Stream{os.Stdin, os.Stdout, os.Stderr}
 
+	flags.SetOutput(c.Stream.Output)
 	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "master", "version of Kubernetes to validate against, e.g.: 1.18.0")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds or GVKs to ignore")

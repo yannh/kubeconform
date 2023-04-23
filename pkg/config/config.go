@@ -8,24 +8,24 @@ import (
 )
 
 type Config struct {
-	Cache                  string
-	Debug                  bool
-	ExitOnError            bool
-	Files                  []string
-	SchemaLocations        []string
-	SkipTLS                bool
-	SkipKinds              map[string]struct{}
-	RejectKinds            map[string]struct{}
-	OutputFormat           string
-	KubernetesVersion      string
-	NumberOfWorkers        int
-	Summary                bool
-	Strict                 bool
-	Verbose                bool
-	IgnoreMissingSchemas   bool
-	IgnoreFilenamePatterns []string
-	Help                   bool
-	Version                bool
+	Cache                  string              `yaml:"cache" json:"cache"`
+	Debug                  bool                `yaml:"debug" json:"debug"`
+	ExitOnError            bool                `yaml:"exitOnError" json:"exitOnError"`
+	Files                  []string            `yaml:"files" json:"files"`
+	Help                   bool                `yaml:"help" json:"help"`
+	IgnoreFilenamePatterns []string            `yaml:"ignoreFilenamePatterns" json:"ignoreFilenamePatterns"`
+	IgnoreMissingSchemas   bool                `yaml:"ignoreMissingSchemas" json:"ignoreMissingSchemas"`
+	KubernetesVersion      string              `yaml:"kubernetesVersion" json:"kubernetesVersion"`
+	NumberOfWorkers        int                 `yaml:"numberOfWorkers" json:"numberOfWorkers"`
+	OutputFormat           string              `yaml:"output" json:"output"`
+	RejectKinds            map[string]struct{} `yaml:"reject" json:"reject"`
+	SchemaLocations        []string            `yaml:"schemaLocations" json:"schemaLocations"`
+	SkipKinds              map[string]struct{} `yaml:"skip" json:"skip"`
+	SkipTLS                bool                `yaml:"insecureSkipTLSVerify" json:"insecureSkipTLSVerify"`
+	Strict                 bool                `yaml:"strict" json:"strict"`
+	Summary                bool                `yaml:"summary" json:"summary"`
+	Verbose                bool                `yaml:"verbose" json:"verbose"`
+	Version                bool                `yaml:"version" json:"version"`
 }
 
 type arrayParam []string

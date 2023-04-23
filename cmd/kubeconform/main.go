@@ -94,7 +94,7 @@ func realMain() int {
 	}
 
 	var o output.Output
-	if o, err = output.New(cfg.OutputFormat, cfg.Summary, useStdin, cfg.Verbose); err != nil {
+	if o, err = output.New(os.Stdout, cfg.OutputFormat, cfg.Summary, useStdin, cfg.Verbose); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}

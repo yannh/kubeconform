@@ -46,29 +46,8 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 	return result
 }
 
-func realMain() int {
-	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
-	if out != "" {
-		o := os.Stderr
-		errCode := 1
-		if cfg.Help {
-			o = os.Stdout
-			errCode = 0
-		}
-		fmt.Fprintln(o, out)
-		return errCode
-	}
-
-	if cfg.Version {
-		fmt.Println(version)
-		return 0
-	}
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
-		return 1
-	}
-
+func kubeconform(cfg config.Config) int {
+	var err error
 	cpuProfileFile := os.Getenv("KUBECONFORM_CPUPROFILE_FILE")
 	if cpuProfileFile != "" {
 		f, err := os.Create(cpuProfileFile)
@@ -178,5 +157,27 @@ func realMain() int {
 }
 
 func main() {
-	os.Exit(realMain())
+	cfg, out, err := config.FromFlags(os.Args[0], os.Args[1:])
+	if out != "" {
+		o := os.Stderr
+		errCode := 1
+		if cfg.Help {
+			o = os.Stdout
+			errCode = 0
+		}
+		fmt.Fprintln(o, out)
+		os.Exit(errCode)
+	}
+
+	if cfg.Version {
+		fmt.Println(version)
+		return
+	}
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
+		os.Exit(1)
+	}
+
+	os.Exit(kubeconform(cfg))
 }

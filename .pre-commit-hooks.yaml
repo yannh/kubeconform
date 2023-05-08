@@ -1,0 +1,7 @@
+---
+- id: kubeconform
+  name: kubeconform
+  entry: kubeconform
+  language: golang
+  types: [yaml]
+  require_serial: true

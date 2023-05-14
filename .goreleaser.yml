@@ -32,23 +32,63 @@ archives:
 
 dockers:
   - image_templates:
-      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest'
-      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}'
       - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-amd64'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-amd64'
     dockerfile: Dockerfile
+    use: buildx
     build_flag_templates:
+      - "--pull"
       - "--platform=linux/amd64"
     goos: linux
     goarch: amd64
   - image_templates:
-      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-alpine'
-      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-alpine'
-      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-amd64-alpine'
-    dockerfile: Dockerfile-alpine
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-arm64'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-arm64'
+    dockerfile: Dockerfile
+    use: buildx
     build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+    goos: linux
+    goarch: arm64
+  - image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-amd64-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-amd64-alpine'
+    dockerfile: Dockerfile-alpine
+    use: buildx
+    build_flag_templates:
+      - "--pull"
       - "--platform=linux/amd64"
     goos: linux
     goarch: amd64
+  - image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-arm64-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-arm64-alpine'
+    dockerfile: Dockerfile-alpine
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64"
+    goos: linux
+    goarch: arm64
+
+docker_manifests:
+  - name_template: 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}'
+    image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-amd64'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-arm64'
+  - name_template: 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest'
+    image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-amd64'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-arm64'
+  - name_template: 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-alpine'
+    image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-amd64-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-arm64-alpine'
+  - name_template: 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-alpine'
+    image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-amd64-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-arm64-alpine'
 
 checksum:
   name_template: 'CHECKSUMS'

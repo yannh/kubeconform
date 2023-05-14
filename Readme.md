@@ -38,20 +38,21 @@ sys	0m1,069s
 ## Table of contents
 
 * [A small overview of Kubernetes manifest validation](#a-small-overview-of-kubernetes-manifest-validation)
-  * [Limits of Kubeconform validation](#Limits-of-Kubeconform-validation)
-* [Installation](#Installation)
-* [Usage](#Usage)
-  * [Usage examples](#Usage-examples)
-  * [Proxy support](#Proxy-support)
-* [Overriding schemas location](#Overriding-schemas-location)
-  * [CustomResourceDefinition (CRD) Support](#CustomResourceDefinition-(CRD)-Support)
-  * [OpenShift schema Support](#OpenShift-schema-Support)
-* [Integrating Kubeconform in the CI](#Integrating-Kubeconform-in-the-CI)
-  * [Github Workflow](#Github-Workflow)
-  * [Gitlab-CI](#Gitlab-CI)
+  * [Limits of Kubeconform validation](#limits-of-kubeconform-validation)
+* [Installation](#installation)
+* [Usage](#usage)
+  * [Usage examples](#usage-examples)
+  * [Proxy support](#proxy-support)
+* [Overriding schemas location](#overriding-schemas-location)
+  * [CustomResourceDefinition (CRD) Support](#customresourcedefinition-crd-support)
+  * [OpenShift schema Support](#openshift-schema-support)
+* [Integrating Kubeconform in the CI](#integrating-kubeconform-in-the-ci)
+  * [Github Workflow](#github-workflow)
+  * [Gitlab-CI](#gitlab-ci)
+  * [MegaLinter](#megalinter)
 * [Helm charts](#helm-charts)
-* [Using kubeconform as a Go Module](#Using-kubeconform-as-a-Go-Module)
-* [Credits](#Credits)
+* [Using kubeconform as a Go Module](#using-kubeconform-as-a-go-module)
+* [Credits](#credits)
 
 ## A small overview of Kubernetes manifest validation
 
@@ -331,6 +332,12 @@ lint-kubeconform:
 ```
 
 See [issue 106](https://github.com/yannh/kubeconform/issues/106) for more details.
+
+### MegaLinter
+
+Kubeconform is [natively embedded in MegaLinter](https://megalinter.io/latest/descriptors/kubernetes_kubeconform/), an open-source linters aggregator, which is compliant with GitHub Actions, Gitlab CI, Azure Pipelines, Bitbucket Pipelines, Drone CI, Jenkins, Concourse…
+
+To install its configuration, just run `npx mega-linter-runner --install` at the root of your repository (requires Node.js installed)
 
 ## Helm charts
 

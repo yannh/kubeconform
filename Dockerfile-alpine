@@ -1,4 +1,4 @@
-FROM alpine:3.14 as certs
+FROM alpine:3.14
 LABEL org.opencontainers.image.authors="yann@mandragor.org" \
       org.opencontainers.image.source="https://github.com/yannh/kubeconform/" \
       org.opencontainers.image.description="A Kubernetes manifests validation tool" \

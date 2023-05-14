@@ -49,6 +49,22 @@ dockers:
       - "--platform=linux/amd64"
     goos: linux
     goarch: amd64
+  - image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-arm64'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-arm64'
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - "--platform=darwin/arm64"
+    goos: darwin
+    goarch: arm64
+  - image_templates:
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:latest-arm64-alpine'
+      - 'ghcr.io/{{.Env.GIT_OWNER}}/kubeconform:{{ .Tag }}-arm64-alpine'
+    dockerfile: Dockerfile-alpine
+    build_flag_templates:
+      - "--platform=darwin/arm64"
+    goos: darwin
+    goarch: arm64
 
 checksum:
   name_template: 'CHECKSUMS'

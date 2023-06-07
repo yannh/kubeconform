@@ -44,7 +44,7 @@ sys	0m1,069s
   * [Usage examples](#Usage-examples)
   * [Proxy support](#Proxy-support)
 * [Overriding schemas location](#Overriding-schemas-location)
-  * [CustomResourceDefinition (CRD) Support](#CustomResourceDefinition-(CRD)-Support)
+  * [CustomResourceDefinition (CRD) Support](#CustomResourceDefinition-CRD-Support)
   * [OpenShift schema Support](#OpenShift-schema-Support)
 * [Integrating Kubeconform in the CI](#Integrating-Kubeconform-in-the-CI)
   * [Github Workflow](#Github-Workflow)

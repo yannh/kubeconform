@@ -138,3 +138,34 @@ func TestFromFlags(t *testing.T) {
 		}
 	}
 }
+
+func TestKubernetesVersionFlag(t *testing.T) {
+	for _, testCase := range []struct {
+		k8sVersion  string
+		expectError bool
+	}{
+		{
+			"master",
+			false,
+		},
+		{
+			"1.2.3",
+			false,
+		},
+		{
+			"1.2",
+			true,
+		},
+		{
+			"foo",
+			true,
+		},
+	} {
+		_, _, err := FromFlags("kubeconform", []string{"-kubernetes-version", testCase.k8sVersion})
+		if testCase.expectError && err == nil {
+			t.Errorf("expected error for kubernetes version flag %s", testCase.k8sVersion)
+		} else if !testCase.expectError && err != nil {
+			t.Errorf("unexpected error for kubernetes version flag %s: %s", testCase.k8sVersion, err)
+		}
+	}
+}

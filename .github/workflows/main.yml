@@ -38,6 +38,9 @@ jobs:
         with:
           fetch-depth: 0 # https://github.com/goreleaser/goreleaser-action/issues/56
 
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
+ 
       - name: goreleaser
         run: |
           echo "${{ github.token }}" | docker login https://ghcr.io -u ${GITHUB_ACTOR} --password-stdin

@@ -25,6 +25,6 @@ func New(w io.Writer, outputFormat string, printSummary, isStdin, verbose bool) 
 	case outputFormat == "text":
 		return textOutput(w, printSummary, isStdin, verbose), nil
 	default:
-		return nil, fmt.Errorf("`outputFormat` must be 'json', 'tap' or 'text'")
+		return nil, fmt.Errorf("'outputFormat' must be 'json', 'junit', 'pretty', 'tap' or 'text'")
 	}
 }

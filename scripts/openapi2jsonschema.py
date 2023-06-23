@@ -101,8 +101,15 @@ def write_schema_file(schema, filename):
     schema = replace_int_or_string(schema)
     schemaJSON = json.dumps(schema, indent=2)
 
-    # Dealing with user input here..
-    filename = os.path.basename(filename)
+    # ensure the directory exists
+    dirname = os.path.dirname(filename)
+    try:
+        os.mkdir(dirname)
+    except FileExistsError:
+        # Assume the directory already exists
+        # If it's actually a file, that's user error
+        pass
+
     f = open(filename, "w")
     print(schemaJSON, file=f)
     f.close()
@@ -147,14 +154,14 @@ if __name__ == "__main__":
                   defs.append(y)
 
           for y in defs:
-              filename_format = os.getenv("FILENAME_FORMAT", "{kind}_{version}")
+              filename_format = os.getenv("FILENAME_FORMAT", "{group}/{kind}_{version}")
               filename = ""
               if "spec" in y and "versions" in y["spec"] and y["spec"]["versions"]:
                   for version in y["spec"]["versions"]:
                       if "schema" in version and "openAPIV3Schema" in version["schema"]:
                           filename = filename_format.format(
                               kind=y["spec"]["names"]["kind"],
-                              group=y["spec"]["group"].split(".")[0],
+                              group=y["spec"]["group"],
                               version=version["name"],
                           ).lower() + ".json"
 
@@ -163,7 +170,7 @@ if __name__ == "__main__":
                       elif "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
                           filename = filename_format.format(
                               kind=y["spec"]["names"]["kind"],
-                              group=y["spec"]["group"].split(".")[0],
+                              group=y["spec"]["group"],
                               version=version["name"],
                           ).lower() + ".json"
 
@@ -172,7 +179,7 @@ if __name__ == "__main__":
               elif "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
                   filename = filename_format.format(
                       kind=y["spec"]["names"]["kind"],
-                      group=y["spec"]["group"].split(".")[0],
+                      group=y["spec"]["group"],
                       version=y["spec"]["version"],
                   ).lower() + ".json"
 

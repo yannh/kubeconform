@@ -61,6 +61,7 @@ type Opts struct {
 	KubernetesVersion    string              // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
 	Strict               bool                // thros an error if resources contain undocumented fields
 	IgnoreMissingSchemas bool                // skip a resource if no schema for that resource can be found
+	Registries           []registry.Registry // Custom Registries to include for accessing schemas.
 }
 
 // New returns a new Validator
@@ -71,7 +72,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 		schemaLocations = []string{"https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"}
 	}
 
-	registries := []registry.Registry{}
+	registries := opts.Registries
 	for _, schemaLocation := range schemaLocations {
 		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS, opts.Debug)
 		if err != nil {

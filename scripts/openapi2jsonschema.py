@@ -155,6 +155,7 @@ if __name__ == "__main__":
                           filename = filename_format.format(
                               kind=y["spec"]["names"]["kind"],
                               group=y["spec"]["group"].split(".")[0],
+                              fullgroup=y["spec"]["group"],
                               version=version["name"],
                           ).lower() + ".json"
 
@@ -164,6 +165,7 @@ if __name__ == "__main__":
                           filename = filename_format.format(
                               kind=y["spec"]["names"]["kind"],
                               group=y["spec"]["group"].split(".")[0],
+                              fullgroup=y["spec"]["group"],
                               version=version["name"],
                           ).lower() + ".json"
 
@@ -173,6 +175,7 @@ if __name__ == "__main__":
                   filename = filename_format.format(
                       kind=y["spec"]["names"]["kind"],
                       group=y["spec"]["group"].split(".")[0],
+                      fullgroup=y["spec"]["group"],
                       version=y["spec"]["version"],
                   ).lower() + ".json"
 

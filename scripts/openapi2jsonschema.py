@@ -154,7 +154,7 @@ if __name__ == "__main__":
                       if "schema" in version and "openAPIV3Schema" in version["schema"]:
                           filename = filename_format.format(
                               kind=y["spec"]["names"]["kind"],
-                              group=y["spec"]["group"].split(".")[0],
+                              group=y["spec"]["group"],
                               version=version["name"],
                           ).lower() + ".json"
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
                       elif "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
                           filename = filename_format.format(
                               kind=y["spec"]["names"]["kind"],
-                              group=y["spec"]["group"].split(".")[0],
+                              group=y["spec"]["group"],
                               version=version["name"],
                           ).lower() + ".json"
 
@@ -172,7 +172,7 @@ if __name__ == "__main__":
               elif "spec" in y and "validation" in y["spec"] and "openAPIV3Schema" in y["spec"]["validation"]:
                   filename = filename_format.format(
                       kind=y["spec"]["names"]["kind"],
-                      group=y["spec"]["group"].split(".")[0],
+                      group=y["spec"]["group"],
                       version=y["spec"]["version"],
                   ).lower() + ".json"
 

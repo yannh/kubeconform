@@ -46,11 +46,15 @@ func (kv *k8sVersionValue) String() string {
 	return string(*kv)
 }
 
-func (kv *k8sVersionValue) Set(value string) error {
-	if ok, _ := regexp.MatchString(`^(master|\d+\.\d+\.\d+)$`, value); ok != true {
-		return fmt.Errorf("%v is not a valid version. Valid values are 'master' (default) or full version x.y.z (e.g. '1.27.2')", value)
+func (kv k8sVersionValue) MarshalText() ([]byte, error) {
+	return []byte(kv), nil
+}
+
+func (kv *k8sVersionValue) UnmarshalText(v []byte) error {
+	if ok, _ := regexp.MatchString(`^(master|\d+\.\d+\.\d+)$`, string(v)); ok != true {
+		return fmt.Errorf("%v is not a valid version. Valid values are 'master' (default) or full version x.y.z (e.g. '1.27.2')", kv.String())
 	}
-	*kv = k8sVersionValue(value)
+	*kv = k8sVersionValue(v)
 	return nil
 }
 
@@ -75,10 +79,10 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	var buf bytes.Buffer
 	flags.SetOutput(&buf)
 
-	c := Config{KubernetesVersion: "master"}
+	c := Config{}
 	c.Files = []string{}
 
-	flags.Var(&c.KubernetesVersion, "kubernetes-version", "version of Kubernetes to validate against, e.g.: 1.18.0")
+	flags.TextVar(&c.KubernetesVersion, "kubernetes-version", k8sVersionValue("master"), "version of Kubernetes to validate against, e.g.: 1.18.0")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds or GVKs to ignore")
 	flags.StringVar(&rejectKindsCSV, "reject", "", "comma-separated list of kinds or GVKs to reject")

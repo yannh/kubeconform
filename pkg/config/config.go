@@ -52,7 +52,7 @@ func (kv k8sVersionValue) MarshalText() ([]byte, error) {
 
 func (kv *k8sVersionValue) UnmarshalText(v []byte) error {
 	if ok, _ := regexp.MatchString(`^(master|\d+\.\d+\.\d+)$`, string(v)); ok != true {
-		return fmt.Errorf("%v is not a valid version. Valid values are 'master' (default) or full version x.y.z (e.g. '1.27.2')", kv.String())
+		return fmt.Errorf("%v is not a valid version. Valid values are \"master\" (default) or full version x.y.z (e.g. \"1.27.2\")", string(v))
 	}
 	*kv = k8sVersionValue(v)
 	return nil

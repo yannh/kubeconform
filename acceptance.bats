@@ -182,8 +182,7 @@ resetCacheFolder() {
 
 @test "Fail early when passing a non valid -kubernetes-version" {
   run bin/kubeconform -kubernetes-version 1.25 fixtures/valid.yaml
-  [[ "$output" == "invalid value "1.25" for flag -kubernetes-version: 1.25 is not a valid version. Valid values are 'master' (default) or full version x.y.z (e.g. '1.27.2')"* ]]
-  [[ `echo "$output" | wc -l` -eq 1 ]]
+  [ "${lines[0]}" == 'invalid value "1.25" for flag -kubernetes-version: 1.25 is not a valid version. Valid values are "master" (default) or full version x.y.z (e.g. "1.27.2")' ]
   [ "$status" -eq 1 ]
 }
 

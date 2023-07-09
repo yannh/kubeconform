@@ -256,12 +256,16 @@ $ python ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/a
 JSON schema written to trainingjob_v1.json
 ```
 
-By default, the file name output format is `{kind}_{version}`. The `FILENAME_FORMAT` environment variable can be used to change the output file name (Available variables: `kind`, `group`, `version`):
+By default, the file name output format is `{kind}_{version}`. The `FILENAME_FORMAT` environment variable can be used to change the output file name (Available variables: `kind`, `group`, `fullgroup`, `version`):
 
 ```
 $ export FILENAME_FORMAT='{kind}-{group}-{version}'
 $ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
 JSON schema written to trainingjob-sagemaker-v1.json
+
+$ export FILENAME_FORMAT='{kind}-{fullgroup}-{version}'
+$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+JSON schema written to trainingjob-sagemaker.aws.amazon.com-v1.json
 ```
 
 After converting your CRDs to JSON schema files, you can use `kubeconform` to validate your CRs against them:

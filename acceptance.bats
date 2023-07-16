@@ -340,3 +340,8 @@ resetCacheFolder() {
   run xmllint --noout --schema fixtures/junit.xsd output.xml
   [ "$status" -eq 0 ]
 }
+
+@test "passes when trying to use a CRD that does not have the JSONSchema set" {
+  run bash -c "bin/kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' fixtures/httpproxy.yaml"
+  [ "$status" -eq 0 ]
+}

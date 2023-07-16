@@ -2,11 +2,11 @@
 package validator
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
@@ -257,7 +257,7 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 		if err == nil {
 			c := jsonschema.NewCompiler()
 			c.Draft = jsonschema.Draft4
-			if err := c.AddResource(path, strings.NewReader(string(schemaBytes))); err != nil {
+			if err := c.AddResource(path, bytes.NewReader(schemaBytes)); err != nil {
 				continue
 			}
 			schema, err := c.Compile(path)

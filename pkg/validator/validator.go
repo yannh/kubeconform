@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
@@ -254,7 +255,12 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 	for _, reg := range registries {
 		path, schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
-			schema, err := jsonschema.CompileString(path, string(schemaBytes))
+			c := jsonschema.NewCompiler()
+			c.Draft = jsonschema.Draft4
+			if err := c.AddResource(path, strings.NewReader(string(schemaBytes))); err != nil {
+				continue
+			}
+			schema, err := c.Compile(path)
 			// If we got a non-parseable response, we try the next registry
 			if err != nil {
 				continue

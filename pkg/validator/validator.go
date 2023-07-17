@@ -61,6 +61,7 @@ type Opts struct {
 	RejectKinds          map[string]struct{} // List of resource Kinds to reject
 	KubernetesVersion    string              // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
 	Strict               bool                // thros an error if resources contain undocumented fields
+	StrictExceptions     map[string]struct{} // list of field paths (e.g. spec.template.metadata) to ignore when strict is enabled
 	IgnoreMissingSchemas bool                // skip a resource if no schema for that resource can be found
 }
 
@@ -91,6 +92,12 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 	if opts.RejectKinds == nil {
 		opts.RejectKinds = map[string]struct{}{}
 	}
+	if opts.StrictExceptions == nil {
+		opts.StrictExceptions = map[string]struct{}{}
+	}
+	if len(opts.StrictExceptions) == 0 {
+		opts.StrictExceptions["metadata"] = struct{}{}
+	}
 
 	return &v{
 		opts:           opts,
@@ -98,6 +105,38 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 		schemaCache:    cache.NewInMemoryCache(),
 		regs:           registries,
 	}, nil
+}
+
+func (val *v) setStrictSchema(schema *jsonschema.Schema, prefixPath string) {
+	if _, ok := val.opts.StrictExceptions[prefixPath]; ok {
+		return
+	}
+	if schema.AdditionalProperties == nil {
+		schema.AdditionalProperties = false
+	}
+	if schema.Items != nil {
+		casted, ok := schema.Items.(*jsonschema.Schema)
+		if ok {
+			fullPath := prefixPath + ".0"
+			val.setStrictSchema(casted, fullPath)
+		} else {
+			casted, ok := schema.Items.([]*jsonschema.Schema)
+			if ok {
+				for i, s := range casted {
+					fullPath := prefixPath + "." + fmt.Sprintf("%d", i)
+					val.setStrictSchema(s, fullPath)
+				}
+			}
+		}
+	}
+
+	for name, s := range schema.Properties {
+		fullPath := prefixPath + "." + name
+		if fullPath[0] == '.' {
+			fullPath = fullPath[1:]
+		}
+		val.setStrictSchema(s, fullPath)
+	}
 }
 
 type v struct {
@@ -191,6 +230,11 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
 	}
 
+	// If strict mode is enabled, we set additionalProperties to false
+	// if not explicitly set in the schema
+	if val.opts.Strict {
+		val.setStrictSchema(schema, "")
+	}
 	err = schema.Validate(r)
 	if err != nil {
 		validationErrors := []ValidationError{}

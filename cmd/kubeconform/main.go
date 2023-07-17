@@ -86,6 +86,7 @@ func kubeconform(cfg config.Config) int {
 		RejectKinds:          cfg.RejectKinds,
 		KubernetesVersion:    cfg.KubernetesVersion,
 		Strict:               cfg.Strict,
+		StrictExceptions:     cfg.StrictExceptions,
 		IgnoreMissingSchemas: cfg.IgnoreMissingSchemas,
 	})
 	if err != nil {

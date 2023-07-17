@@ -23,6 +23,7 @@ type Config struct {
 	SkipKinds              map[string]struct{} `yaml:"skip" json:"skip"`
 	SkipTLS                bool                `yaml:"insecureSkipTLSVerify" json:"insecureSkipTLSVerify"`
 	Strict                 bool                `yaml:"strict" json:"strict"`
+	StrictExceptions       map[string]struct{} `yaml:"strictExceptions" json:"strictExceptions"`
 	Summary                bool                `yaml:"summary" json:"summary"`
 	Verbose                bool                `yaml:"verbose" json:"verbose"`
 	Version                bool                `yaml:"version" json:"version"`
@@ -55,7 +56,7 @@ func splitCSV(csvStr string) map[string]struct{} {
 // FromFlags retrieves kubeconform's runtime configuration from the command-line parameters
 func FromFlags(progName string, args []string) (Config, string, error) {
 	var schemaLocationsParam, ignoreFilenamePatterns arrayParam
-	var skipKindsCSV, rejectKindsCSV string
+	var skipKindsCSV, rejectKindsCSV, strictExceptionsCSV string
 	flags := flag.NewFlagSet(progName, flag.ContinueOnError)
 	var buf bytes.Buffer
 	flags.SetOutput(&buf)
@@ -74,6 +75,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.BoolVar(&c.Summary, "summary", false, "print a summary at the end (ignored for junit output)")
 	flags.IntVar(&c.NumberOfWorkers, "n", 4, "number of goroutines to run concurrently")
 	flags.BoolVar(&c.Strict, "strict", false, "disallow additional properties not in schema or duplicated keys")
+	flags.StringVar(&strictExceptionsCSV, "strict-exception", "", "comma-separated list of yaml paths to ignore when strict is enabled")
 	flags.StringVar(&c.OutputFormat, "output", "text", "output format - json, junit, pretty, tap, text")
 	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources (ignored for tap and junit output)")
 	flags.BoolVar(&c.SkipTLS, "insecure-skip-tls-verify", false, "disable verification of the server's SSL certificate. This will make your HTTPS connections insecure")
@@ -89,6 +91,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 
 	c.SkipKinds = splitCSV(skipKindsCSV)
 	c.RejectKinds = splitCSV(rejectKindsCSV)
+	c.StrictExceptions = splitCSV(strictExceptionsCSV)
 	c.IgnoreFilenamePatterns = ignoreFilenamePatterns
 	c.SchemaLocations = schemaLocationsParam
 	c.Files = flags.Args()

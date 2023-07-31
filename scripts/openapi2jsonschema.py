@@ -24,7 +24,8 @@ def additional_properties(data, skip=False):
     "This recreates the behaviour of kubectl at https://github.com/kubernetes/kubernetes/blob/225b9119d6a8f03fcbe3cc3d590c261965d928d0/pkg/kubectl/validation/schema.go#L312"
     if isinstance(data, dict):
         if "properties" in data and not skip:
-            if "additionalProperties" not in data:
+            preserve_unkown_field = "x-kubernetes-preserve-unknown-fields" in data and data["x-kubernetes-preserve-unknown-fields"]
+            if "additionalProperties" not in data and not preserve_unkown_field:
                 data["additionalProperties"] = False
         for _, v in data.items():
             additional_properties(v)

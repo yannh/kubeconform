@@ -1,6 +1,7 @@
 package jsonschema
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -14,6 +15,26 @@ type Draft struct {
 	vocab        []string // built-in vocab
 	defaultVocab []string // vocabs when $vocabulary is not used
 	subschemas   map[string]position
+}
+
+func (d *Draft) URL() string {
+	switch d.version {
+	case 2020:
+		return "https://json-schema.org/draft/2020-12/schema"
+	case 2019:
+		return "https://json-schema.org/draft/2019-09/schema"
+	case 7:
+		return "https://json-schema.org/draft-07/schema"
+	case 6:
+		return "https://json-schema.org/draft-06/schema"
+	case 4:
+		return "https://json-schema.org/draft-04/schema"
+	}
+	return ""
+}
+
+func (d *Draft) String() string {
+	return fmt.Sprintf("Draft%d", d.version)
 }
 
 func (d *Draft) loadMeta(url, schema string) {
@@ -264,6 +285,7 @@ func init() {
 	subschemas["dependentSchemas"] = prop
 	subschemas["unevaluatedProperties"] = self
 	subschemas["unevaluatedItems"] = self
+	subschemas["contentSchema"] = self
 	Draft2019.subschemas = clone(subschemas)
 
 	subschemas["prefixItems"] = item

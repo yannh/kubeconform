@@ -30,8 +30,20 @@ type Compiler struct {
 	// If nil, package global LoadURL is used.
 	LoadURL func(s string) (io.ReadCloser, error)
 
+	// Formats can be registered by adding to this map. Key is format name,
+	// value is function that knows how to validate that format.
+	Formats map[string]func(interface{}) bool
+
 	// AssertFormat for specifications >= draft2019-09.
 	AssertFormat bool
+
+	// Decoders can be registered by adding to this map. Key is encoding name,
+	// value is function that knows how to decode string in that format.
+	Decoders map[string]func(string) ([]byte, error)
+
+	// MediaTypes can be registered by adding to this map. Key is mediaType name,
+	// value is function that knows how to validate that mediaType.
+	MediaTypes map[string]func([]byte) error
 
 	// AssertContent for specifications >= draft2019-09.
 	AssertContent bool
@@ -74,7 +86,14 @@ func MustCompileString(url, schema string) *Schema {
 // if '$schema' attribute is missing, it is treated as draft7. to change this
 // behavior change Compiler.Draft value
 func NewCompiler() *Compiler {
-	return &Compiler{Draft: latest, resources: make(map[string]*resource), extensions: make(map[string]extension)}
+	return &Compiler{
+		Draft:      latest,
+		resources:  make(map[string]*resource),
+		Formats:    make(map[string]func(interface{}) bool),
+		Decoders:   make(map[string]func(string) ([]byte, error)),
+		MediaTypes: make(map[string]func([]byte) error),
+		extensions: make(map[string]extension),
+	}
 }
 
 // AddResource adds in-memory resource to the compiler.
@@ -218,7 +237,7 @@ func (c *Compiler) compileRef(r *resource, stack []schemaRef, refPtr string, res
 	// ensure root resource is always compiled first.
 	// this is required to get schema.meta from root resource
 	if r.schema == nil {
-		r.schema = newSchema(r.url, r.floc, r.doc)
+		r.schema = newSchema(r.url, r.floc, r.draft, r.doc)
 		if _, err := c.compile(r, nil, schemaRef{"#", r.schema, false}, r); err != nil {
 			return nil, err
 		}
@@ -239,7 +258,7 @@ func (c *Compiler) compileRef(r *resource, stack []schemaRef, refPtr string, res
 		return sr.schema, nil
 	}
 
-	sr.schema = newSchema(r.url, sr.floc, sr.doc)
+	sr.schema = newSchema(r.url, sr.floc, r.draft, sr.doc)
 	return c.compile(r, stack, schemaRef{refPtr, sr.schema, false}, sr)
 }
 
@@ -316,7 +335,10 @@ func (c *Compiler) compileMap(r *resource, stack []schemaRef, sref schemaRef, re
 	if r.draft.version >= 2019 {
 		if r == res { // root schema
 			if vocab, ok := m["$vocabulary"]; ok {
-				for url := range vocab.(map[string]interface{}) {
+				for url, reqd := range vocab.(map[string]interface{}) {
+					if reqd, ok := reqd.(bool); ok && !reqd {
+						continue
+					}
 					if !r.draft.isVocab(url) {
 						return fmt.Errorf("jsonschema: unsupported vocab %q in %s", url, res)
 					}
@@ -339,6 +361,13 @@ func (c *Compiler) compileMap(r *resource, stack []schemaRef, sref schemaRef, re
 			s.DynamicRef, err = c.compileRef(r, stack, "$dynamicRef", res, dref.(string))
 			if err != nil {
 				return err
+			}
+			if dref, ok := dref.(string); ok {
+				_, frag := split(dref)
+				if frag != "#" && !strings.HasPrefix(frag, "#/") {
+					// frag is anchor
+					s.dynamicRefAnchor = frag[1:]
+				}
 			}
 		}
 	}
@@ -635,7 +664,11 @@ func (c *Compiler) compileMap(r *resource, stack []schemaRef, sref schemaRef, re
 	if format, ok := m["format"]; ok {
 		s.Format = format.(string)
 		if r.draft.version < 2019 || c.AssertFormat || r.schema.meta.hasVocab("format-assertion") {
-			s.format, _ = Formats[s.Format]
+			if format, ok := c.Formats[s.Format]; ok {
+				s.format = format
+			} else {
+				s.format, _ = Formats[s.Format]
+			}
 		}
 	}
 
@@ -658,11 +691,19 @@ func (c *Compiler) compileMap(r *resource, stack []schemaRef, sref schemaRef, re
 	if r.draft.version >= 7 {
 		if encoding, ok := m["contentEncoding"]; ok {
 			s.ContentEncoding = encoding.(string)
-			s.decoder, _ = Decoders[s.ContentEncoding]
+			if decoder, ok := c.Decoders[s.ContentEncoding]; ok {
+				s.decoder = decoder
+			} else {
+				s.decoder, _ = Decoders[s.ContentEncoding]
+			}
 		}
 		if mediaType, ok := m["contentMediaType"]; ok {
 			s.ContentMediaType = mediaType.(string)
-			s.mediaType, _ = MediaTypes[s.ContentMediaType]
+			if mediaType, ok := c.MediaTypes[s.ContentMediaType]; ok {
+				s.mediaType = mediaType
+			} else {
+				s.mediaType, _ = MediaTypes[s.ContentMediaType]
+			}
 			if s.ContentSchema, err = loadSchema("contentSchema", stack); err != nil {
 				return err
 			}

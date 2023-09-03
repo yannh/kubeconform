@@ -1,4 +1,4 @@
-FROM alpine:3.14 as certs
+FROM alpine:3.18.3 as certs
 RUN apk add ca-certificates
 
 FROM scratch AS kubeconform

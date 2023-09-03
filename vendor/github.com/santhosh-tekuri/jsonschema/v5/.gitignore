@@ -1,4 +1,4 @@
 .vscode
 .idea
 *.swp
-jv
+cmd/jv/jv

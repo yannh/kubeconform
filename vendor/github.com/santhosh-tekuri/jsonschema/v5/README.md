@@ -1,10 +1,10 @@
-# jsonschema v5.1.1
+# jsonschema v5.3.1
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GoDoc](https://godoc.org/github.com/santhosh-tekuri/jsonschema?status.svg)](https://pkg.go.dev/github.com/santhosh-tekuri/jsonschema/v5)
 [![Go Report Card](https://goreportcard.com/badge/github.com/santhosh-tekuri/jsonschema/v5)](https://goreportcard.com/report/github.com/santhosh-tekuri/jsonschema/v5)
 [![Build Status](https://github.com/santhosh-tekuri/jsonschema/actions/workflows/go.yaml/badge.svg?branch=master)](https://github.com/santhosh-tekuri/jsonschema/actions/workflows/go.yaml)
-[![codecov.io](https://codecov.io/github/santhosh-tekuri/jsonschema/coverage.svg?branch=master)](https://codecov.io/github/santhosh-tekuri/jsonschema?branch=master)
+[![codecov](https://codecov.io/gh/santhosh-tekuri/jsonschema/branch/master/graph/badge.svg?token=JMVj1pFT2l)](https://codecov.io/gh/santhosh-tekuri/jsonschema)
 
 Package jsonschema provides json-schema compilation and validation.
 
@@ -183,10 +183,10 @@ Prints:
 
 ## CLI
 
-to install `go install github.com/santhosh-tekuri/jsonschema/v5/cmd/jv@latest`
+to install `go install github.com/santhosh-tekuri/jsonschema/cmd/jv@latest`
 
 ```bash
-jv [-draft INT] [-output FORMAT] [-assertformat] [-assertcontent] <json-schema> [<json-doc>]...
+jv [-draft INT] [-output FORMAT] [-assertformat] [-assertcontent] <json-schema> [<json-or-yaml-doc>]...
   -assertcontent
     	enable content assertions with draft >= 2019
   -assertformat
@@ -197,19 +197,24 @@ jv [-draft INT] [-output FORMAT] [-assertformat] [-assertcontent] <json-schema> 
     	output format. valid values flag, basic, detailed
 ```
 
-if no `<json-doc>` arguments are passed, it simply validates the `<json-schema>`.  
+if no `<json-or-yaml-doc>` arguments are passed, it simply validates the `<json-schema>`.  
 if `$schema` attribute is missing in schema, it uses latest version. this can be overridden by passing `-draft` flag
 
 exit-code is 1, if there are any validation errors
 
+`jv` can also validate yaml files. It also accepts schema from yaml files.
+
 ## Validating YAML Documents
 
 since yaml supports non-string keys, such yaml documents are rendered as invalid json documents.  
-yaml parser returns `map[interface{}]interface{}` for object, whereas json parser returns `map[string]interface{}`.  
-this package accepts only `map[string]interface{}`, so we need to manually convert them to `map[string]interface{}`
+
+most yaml parser use `map[interface{}]interface{}` for object,  
+whereas json parser uses `map[string]interface{}`.  
+
+so we need to manually convert them to `map[string]interface{}`.   
+below code shows such conversion by `toStringKeys` function.
 
 https://play.golang.org/p/Hhax3MrtD8r
 
-the above example shows how to validate yaml document with jsonschema.  
-the conversion explained above is implemented by `toStringKeys` function
-
+NOTE: if you are using `gopkg.in/yaml.v3`, then you do not need such conversion. since this library
+returns `map[string]interface{}` if all keys are strings.

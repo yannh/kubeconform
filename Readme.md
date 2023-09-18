@@ -331,7 +331,7 @@ lint-kubeconform:
     name: ghcr.io/yannh/kubeconform:latest-alpine
     entrypoint: [""]
   script:
-  - /kubeconform summary -output json kubeconfigs/
+  - /kubeconform -summary -output json kubeconfigs/
 ```
 
 See [issue 106](https://github.com/yannh/kubeconform/issues/106) for more details.

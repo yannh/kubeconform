@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"sync"
@@ -37,12 +37,12 @@ func (c *onDisk) Get(resourceKind, resourceAPIVersion, k8sVersion string) (inter
 		return nil, err
 	}
 
-	return ioutil.ReadAll(f)
+	return io.ReadAll(f)
 }
 
 // Set adds a JSON schema to the schema cache
 func (c *onDisk) Set(resourceKind, resourceAPIVersion, k8sVersion string, schema interface{}) error {
 	c.Lock()
 	defer c.Unlock()
-	return ioutil.WriteFile(cachePath(c.folder, resourceKind, resourceAPIVersion, k8sVersion), schema.([]byte), 0644)
+	return os.WriteFile(cachePath(c.folder, resourceKind, resourceAPIVersion, k8sVersion), schema.([]byte), 0644)
 }

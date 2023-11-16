@@ -3,7 +3,7 @@ package registry
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 )
@@ -47,7 +47,7 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 	}
 
 	defer f.Close()
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		msg := fmt.Sprintf("failed to read schema at %s: %s", schemaFile, err)
 		if r.debug {

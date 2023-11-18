@@ -72,3 +72,10 @@ setup() {
   run diff prometheus_v1.json ./fixtures/prometheus_v1-denyRootAdditionalProperties.json
   [ "$status" -eq 0 ]
 }
+
+@test "Should output an error if no file is passed" {
+  run ./openapi2jsonschema.py
+  [ "$status" -eq 1 ]
+  [ "${lines[0]}" == 'Missing FILE parameter.' ]
+  [ "${lines[1]}" == 'Usage: ./openapi2jsonschema.py [FILE]' ]
+}

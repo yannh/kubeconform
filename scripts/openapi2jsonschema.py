@@ -122,8 +122,8 @@ def construct_value(load, node):
 
 
 if __name__ == "__main__":
-  if len(sys.argv) == 0:
-      print("missing file")
+  if len(sys.argv) < 2:
+      print('Missing FILE parameter.\nUsage: %s [FILE]' % sys.argv[0])
       exit(1)
 
   for crdFile in sys.argv[1:]:

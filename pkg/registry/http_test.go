@@ -3,7 +3,7 @@ package registry
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -50,7 +50,7 @@ func TestDownloadSchema(t *testing.T) {
 			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
 				return &http.Response{
 					StatusCode: http.StatusNotFound,
-					Body:       ioutil.NopCloser(strings.NewReader("http response mock body")),
+					Body:       io.NopCloser(strings.NewReader("http response mock body")),
 				}, nil
 			}),
 			"http://kubernetesjson.dev",
@@ -66,7 +66,7 @@ func TestDownloadSchema(t *testing.T) {
 			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
 				return &http.Response{
 					StatusCode: http.StatusServiceUnavailable,
-					Body:       ioutil.NopCloser(strings.NewReader("http response mock body")),
+					Body:       io.NopCloser(strings.NewReader("http response mock body")),
 				}, nil
 			}),
 			"http://kubernetesjson.dev",
@@ -82,7 +82,7 @@ func TestDownloadSchema(t *testing.T) {
 			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
 				return &http.Response{
 					StatusCode: http.StatusOK,
-					Body:       ioutil.NopCloser(strings.NewReader("http response mock body")),
+					Body:       io.NopCloser(strings.NewReader("http response mock body")),
 				}, nil
 			}),
 			"http://kubernetesjson.dev",

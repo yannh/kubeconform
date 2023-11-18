@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -99,7 +99,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		return url, nil, fmt.Errorf(msg)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		msg := fmt.Sprintf("failed parsing schema from %s: %s", url, err)
 		if r.debug {

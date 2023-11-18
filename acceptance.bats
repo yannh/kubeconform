@@ -36,7 +36,7 @@ resetCacheFolder() {
 }
 
 @test "Pass when parsing a valid Kubernetes config JSON file" {
-  run bin/kubeconform -kubernetes-version 1.17.1 -summary fixtures/valid.json
+  run bin/kubeconform -kubernetes-version 1.20.0 -summary fixtures/valid.json
   [ "$status" -eq 0 ]
   [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
 }
@@ -134,17 +134,17 @@ resetCacheFolder() {
 }
 
 @test "Fail when parsing a config with additional properties and strict set" {
-  run bin/kubeconform -strict -kubernetes-version 1.16.0 fixtures/extra_property.yaml
+  run bin/kubeconform -strict -kubernetes-version 1.20.0 fixtures/extra_property.yaml
   [ "$status" -eq 1 ]
 }
 
 @test "Fail when parsing a config with duplicate properties and strict set" {
-  run bin/kubeconform -strict -kubernetes-version 1.16.0 fixtures/duplicate_property.yaml
+  run bin/kubeconform -strict -kubernetes-version 1.20.0 fixtures/duplicate_property.yaml
   [ "$status" -eq 1 ]
 }
 
 @test "Pass when parsing a config with duplicate properties and strict NOT set" {
-  run bin/kubeconform -kubernetes-version 1.16.0 fixtures/duplicate_property.yaml
+  run bin/kubeconform -kubernetes-version 1.20.0 fixtures/duplicate_property.yaml
   [ "$status" -eq 0 ]
 }
 

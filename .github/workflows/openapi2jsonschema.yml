@@ -1,0 +1,32 @@
+name: openapi2jsonschema
+on: push
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: openapi2jsonschema
+
+jobs:
+  openapi2jsonschema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: test
+        working-directory: ./scripts
+        run: make docker-test docker-acceptance
+
+      # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: "./scripts"
+          push: true
+          tags: "kubeconform/openapi2jsonschema:latest"

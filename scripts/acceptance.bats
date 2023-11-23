@@ -79,3 +79,11 @@ setup() {
   [ "${lines[0]}" == 'Missing FILE parameter.' ]
   [ "${lines[1]}" == 'Usage: ./openapi2jsonschema.py [FILE]' ]
 }
+
+@test "Should generate expected emissary resource" {
+  run ./openapi2jsonschema.py fixtures/emissary-mapping-crd.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "JSON schema written to mapping_v2.json" ]
+  run diff mapping_v2.json ./fixtures/mapping_v2-expected.json
+  [ "$status" -eq 0 ]
+}

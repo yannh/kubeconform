@@ -1,0 +1,12 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: emissary
+  namespace: default
+spec:
+  # `spec` is tagged with x-kubernetes-preserve-unknown-fields and `ambassador_id` is not declared
+  ambassador_id:
+  - this-ambassador
+  host: some-host.dev
+  prefix: /
+  service: some-service.this-namespace.cluster.local

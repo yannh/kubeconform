@@ -345,3 +345,8 @@ resetCacheFolder() {
   run bash -c "bin/kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' fixtures/httpproxy.yaml"
   [ "$status" -eq 0 ]
 }
+
+@test "Pass when parsing a valid Kubernetes config with an expected unknown field" {
+  run bin/kubeconform -schema-location default -schema-location 'fixtures/registry/mapping_v2.json' fixtures/expected_unkown_field.yaml
+  [ "$status" -eq 0 ]
+}

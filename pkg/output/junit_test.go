@@ -2,6 +2,7 @@ package output
 
 import (
 	"bytes"
+	"fmt"
 	"regexp"
 	"testing"
 
@@ -82,6 +83,67 @@ metadata:
 			"<testsuites name=\"kubeconform\" time=\"\" tests=\"1\" failures=\"0\" disabled=\"0\" errors=\"0\">\n" +
 				"  <testsuite name=\"deployment.yml\" id=\"1\" tests=\"1\" failures=\"0\" errors=\"0\" disabled=\"0\" skipped=\"0\">\n" +
 				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\" time=\"\"></testcase>\n" +
+				"  </testsuite>\n" +
+				"</testsuites>\n",
+		},
+		{
+			"one error, one invalid",
+			true,
+			false,
+			false,
+			[]validator.Result{
+				{
+					Resource: resource.Resource{
+						Path: "deployment.yml",
+						Bytes: []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "my-app"
+`),
+					},
+					Status: validator.Error,
+					Err:    fmt.Errorf("error validating deployment.yml"),
+				},
+				{
+					Resource: resource.Resource{
+						Path: "deployment2.yml",
+						Bytes: []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "my-app"
+`),
+					},
+					Status: validator.Error,
+					Err:    fmt.Errorf("error validating deployment.yml"),
+				},
+				{
+					Resource: resource.Resource{
+						Path: "deployment3.yml",
+						Bytes: []byte(`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "my-app"
+`),
+					},
+					Status: validator.Invalid,
+					Err:    fmt.Errorf("deployment3.yml is invalid"),
+				},
+			},
+			"<testsuites name=\"kubeconform\" time=\"\" tests=\"3\" failures=\"1\" disabled=\"0\" errors=\"2\">\n" +
+				"  <testsuite name=\"deployment.yml\" id=\"1\" tests=\"1\" failures=\"0\" errors=\"1\" disabled=\"0\" skipped=\"0\">\n" +
+				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\" time=\"\">\n" +
+				"      <error message=\"error validating deployment.yml\" type=\"\"></error>\n" +
+				"    </testcase>\n" +
+				"  </testsuite>\n" +
+				"  <testsuite name=\"deployment2.yml\" id=\"2\" tests=\"1\" failures=\"0\" errors=\"1\" disabled=\"0\" skipped=\"0\">\n" +
+				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\" time=\"\">\n" +
+				"      <error message=\"error validating deployment.yml\" type=\"\"></error>\n" +
+				"    </testcase>\n" +
+				"  </testsuite>\n" +
+				"  <testsuite name=\"deployment3.yml\" id=\"3\" tests=\"1\" failures=\"1\" errors=\"0\" disabled=\"0\" skipped=\"0\">\n" +
+				"    <testcase name=\"my-app\" classname=\"Deployment@apps/v1\" time=\"\">\n" +
+				"      <failure message=\"deployment3.yml is invalid\" type=\"\"></failure>\n" +
+				"    </testcase>\n" +
 				"  </testsuite>\n" +
 				"</testsuites>\n",
 		},

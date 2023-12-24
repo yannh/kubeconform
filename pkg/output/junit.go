@@ -65,13 +65,13 @@ type TestCaseError struct {
 }
 
 type junito struct {
-	id                                  int
-	w                                   io.Writer
-	withSummary                         bool
-	verbose                             bool
-	suites                              map[string]*TestSuite // map filename to corresponding suite
-	nValid, nInvalid, nErrors, nSkipped int
-	startTime                           time.Time
+	id          int
+	w           io.Writer
+	withSummary bool
+	verbose     bool
+	suitesIndex map[string]int // map filename to index in suites
+	suites      []TestSuite
+	startTime   time.Time
 }
 
 func junitOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
@@ -80,29 +80,28 @@ func junitOutput(w io.Writer, withSummary bool, isStdin, verbose bool) Output {
 		w:           w,
 		withSummary: withSummary,
 		verbose:     verbose,
-		suites:      make(map[string]*TestSuite),
-		nValid:      0,
-		nInvalid:    0,
-		nErrors:     0,
-		nSkipped:    0,
+		suites:      []TestSuite{},
+		suitesIndex: make(map[string]int),
 		startTime:   time.Now(),
 	}
 }
 
 // Write adds a result to the report.
 func (o *junito) Write(result validator.Result) error {
-	var suite *TestSuite
-	suite, found := o.suites[result.Resource.Path]
+	var suite TestSuite
+	i, found := o.suitesIndex[result.Resource.Path]
 
 	if !found {
 		o.id++
-		suite = &TestSuite{
+		suite = TestSuite{
 			Name:  result.Resource.Path,
 			Id:    o.id,
 			Tests: 0, Failures: 0, Errors: 0, Disabled: 0, Skipped: 0,
 			Cases: make([]TestCase, 0),
 		}
-		o.suites[result.Resource.Path] = suite
+		o.suites = append(o.suites, suite)
+		i = len(o.suites) - 1
+		o.suitesIndex[result.Resource.Path] = i
 	}
 
 	sig, _ := result.Resource.Signature()
@@ -117,23 +116,22 @@ func (o *junito) Write(result validator.Result) error {
 
 	switch result.Status {
 	case validator.Valid:
-		o.nValid++
 	case validator.Invalid:
-		o.nInvalid++
+		o.suites[i].Failures++
 		failure := TestCaseError{Message: result.Err.Error()}
 		testCase.Failure = append(testCase.Failure, failure)
 	case validator.Error:
-		o.nErrors++
+		o.suites[i].Errors++
 		testCase.Error = &TestCaseError{Message: result.Err.Error()}
 	case validator.Skipped:
 		testCase.Skipped = &TestCaseSkipped{}
-		o.nSkipped++
+		o.suites[i].Skipped++
 	case validator.Empty:
 		return nil
 	}
 
-	suite.Tests++
-	suite.Cases = append(suite.Cases, testCase)
+	o.suites[i].Tests++
+	o.suites[i].Cases = append(o.suites[i].Cases, testCase)
 
 	return nil
 }
@@ -142,19 +140,33 @@ func (o *junito) Write(result validator.Result) error {
 func (o *junito) Flush() error {
 	runtime := time.Now().Sub(o.startTime)
 
-	var suites = make([]TestSuite, 0)
+	totalValid := 0
+	totalInvalid := 0
+	totalErrors := 0
+	totalSkipped := 0
+
 	for _, suite := range o.suites {
-		suites = append(suites, *suite)
+		for _, tCase := range suite.Cases {
+			if tCase.Error != nil {
+				totalErrors++
+			} else if tCase.Skipped != nil {
+				totalSkipped++
+			} else if len(tCase.Failure) > 0 {
+				totalInvalid++
+			} else {
+				totalValid++
+			}
+		}
 	}
 
 	root := TestSuiteCollection{
 		Name:     "kubeconform",
 		Time:     runtime.Seconds(),
-		Tests:    o.nValid + o.nInvalid + o.nErrors + o.nSkipped,
-		Failures: o.nInvalid,
-		Errors:   o.nErrors,
-		Disabled: o.nSkipped,
-		Suites:   suites,
+		Tests:    totalValid + totalInvalid + totalErrors + totalSkipped,
+		Failures: totalInvalid,
+		Errors:   totalErrors,
+		Disabled: totalSkipped,
+		Suites:   o.suites,
 	}
 
 	// 2-space indentation

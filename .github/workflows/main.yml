@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: test
       run: make docker-test
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: test
         working-directory: ./scripts
@@ -34,13 +34,13 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # https://github.com/goreleaser/goreleaser-action/issues/56
 
-      - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@v2
- 
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
       - name: goreleaser
         run: |
           echo "${{ github.token }}" | docker login https://ghcr.io -u ${GITHUB_ACTOR} --password-stdin

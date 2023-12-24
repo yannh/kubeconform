@@ -435,3 +435,37 @@ age: not a number
 		t.Errorf("Expected %+v, got %+v", expectedErrors, got.ValidationErrors)
 	}
 }
+
+func TestValidateSkip(t *testing.T) {
+	resource := resource.Resource{Bytes: []byte(`
+apiVersion: random.vendor/v1alpha3
+kind: SomeKind
+firstName: foo
+lastName: bar`)}
+
+	for _, testCase := range []struct {
+		name       string
+		skipOption string
+	}{
+		{"skip kind", "SomeKind"},
+		{"skip version/kind", "random.vendor/v1alpha3/SomeKind"},
+		{"skip apiVersion", "random.vendor/v1alpha3"},
+	} {
+
+		validator := v{
+			opts: Opts{
+				SkipKinds: map[string]struct{}{testCase.skipOption: {}},
+			},
+			schemaDownload: downloadSchema,
+		}
+
+		result := validator.ValidateResource(resource)
+		if result.Status != Skipped {
+			if result.Err != nil {
+				t.Errorf("Test '%s' - expected %d, got %d: %s", testCase.name, Skipped, result.Status, result.Err.Error())
+			} else {
+				t.Errorf("Test '%s' - expected %d, got %d", testCase.name, Skipped, result.Status)
+			}
+		}
+	}
+}

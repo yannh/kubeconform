@@ -180,6 +180,13 @@ resetCacheFolder() {
   [ "$status" -eq 1 ]
 }
 
+@test "Fail early when passing a non valid -kubernetes-version" {
+  run bin/kubeconform -kubernetes-version 1.25 fixtures/valid.yaml
+  [ "${lines[0]}" == 'invalid value "1.25" for flag -kubernetes-version: 1.25 is not a valid version. Valid values are "master" (default) or full version x.y.z (e.g. "1.27.2")' ]
+  [[ "${lines[1]}" == "Usage:"* ]]
+  [ "$status" -eq 1 ]
+}
+
 @test "Pass with a valid input when validating against openshift manifests" {
   run bin/kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubusercontent.com/garethr/openshift-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}.json'  -summary fixtures/valid.yaml
   [ "$status" -eq 0 ]

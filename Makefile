@@ -5,7 +5,7 @@ RELEASE_VERSION ?= latest
 .PHONY: local-test local-build local-build-static docker-test docker-build docker-build-static build-bats docker-acceptance release update-deps build-single-target
 
 local-test:
-	go test -race ./...
+	go test -race ./... -count=1
 
 local-build:
 	git config --global --add safe.directory $$PWD

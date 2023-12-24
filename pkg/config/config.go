@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ type Config struct {
 	Help                   bool                `yaml:"help" json:"help"`
 	IgnoreFilenamePatterns []string            `yaml:"ignoreFilenamePatterns" json:"ignoreFilenamePatterns"`
 	IgnoreMissingSchemas   bool                `yaml:"ignoreMissingSchemas" json:"ignoreMissingSchemas"`
-	KubernetesVersion      string              `yaml:"kubernetesVersion" json:"kubernetesVersion"`
+	KubernetesVersion      k8sVersionValue     `yaml:"kubernetesVersion" json:"kubernetesVersion"`
 	NumberOfWorkers        int                 `yaml:"numberOfWorkers" json:"numberOfWorkers"`
 	OutputFormat           string              `yaml:"output" json:"output"`
 	RejectKinds            map[string]struct{} `yaml:"reject" json:"reject"`
@@ -36,6 +37,24 @@ func (ap *arrayParam) String() string {
 
 func (ap *arrayParam) Set(value string) error {
 	*ap = append(*ap, value)
+	return nil
+}
+
+type k8sVersionValue string
+
+func (kv *k8sVersionValue) String() string {
+	return string(*kv)
+}
+
+func (kv k8sVersionValue) MarshalText() ([]byte, error) {
+	return []byte(kv), nil
+}
+
+func (kv *k8sVersionValue) UnmarshalText(v []byte) error {
+	if ok, _ := regexp.MatchString(`^(master|\d+\.\d+\.\d+)$`, string(v)); ok != true {
+		return fmt.Errorf("%v is not a valid version. Valid values are \"master\" (default) or full version x.y.z (e.g. \"1.27.2\")", string(v))
+	}
+	*kv = k8sVersionValue(v)
 	return nil
 }
 
@@ -63,7 +82,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	c := Config{}
 	c.Files = []string{}
 
-	flags.StringVar(&c.KubernetesVersion, "kubernetes-version", "master", "version of Kubernetes to validate against, e.g.: 1.18.0")
+	flags.TextVar(&c.KubernetesVersion, "kubernetes-version", k8sVersionValue("master"), "version of Kubernetes to validate against, e.g.: 1.18.0")
 	flags.Var(&schemaLocationsParam, "schema-location", "override schemas location search path (can be specified multiple times)")
 	flags.StringVar(&skipKindsCSV, "skip", "", "comma-separated list of kinds or GVKs to ignore")
 	flags.StringVar(&rejectKindsCSV, "reject", "", "comma-separated list of kinds or GVKs to reject")

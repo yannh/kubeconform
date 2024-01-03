@@ -72,9 +72,16 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 			return url, b.([]byte), nil
 		}
 	}
-	req, _ := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		msg := fmt.Sprintf("failed to create http request for schemas at %s: %s", url, err)
+		if r.debug {
+			log.Println(msg)
+		}
+		return url, nil, errors.New(msg)
+	}
 
-	if token, exist := os.LookupEnv("GITHUB_TOKEN"); exist {
+	if token, exist := os.LookupEnv("KUBECONFORM_AUTH_TOKEN"); exist {
 		req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
 	}
 

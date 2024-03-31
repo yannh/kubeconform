@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"bytes"
+	"io"
 	"reflect"
 	"testing"
 
@@ -433,5 +435,67 @@ age: not a number
 	got := val.ValidateResource(resource.Resource{Bytes: rawResource})
 	if !reflect.DeepEqual(expectedErrors, got.ValidationErrors) {
 		t.Errorf("Expected %+v, got %+v", expectedErrors, got.ValidationErrors)
+	}
+}
+
+func TestValidateFile(t *testing.T) {
+	inputData := []byte(`
+kind: name
+apiVersion: v1
+firstName: bar
+lastName: qux
+---
+kind: name
+apiVersion: v1
+firstName: foo
+`)
+
+	schema := []byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string"
+    },
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    }
+  },
+  "required": ["firstName", "lastName"]
+}`)
+
+	val := v{
+		opts: Opts{
+			SkipKinds:   map[string]struct{}{},
+			RejectKinds: map[string]struct{}{},
+		},
+		schemaCache:    nil,
+		schemaDownload: downloadSchema,
+		regs: []registry.Registry{
+			newMockRegistry(func() (string, []byte, error) {
+				return "", schema, nil
+			}),
+		},
+	}
+
+	gotStatuses := []Status{}
+	gotValidationErrors := []ValidationError{}
+	for _, got := range val.Validate("test-file", io.NopCloser(bytes.NewReader(inputData))) {
+		gotStatuses = append(gotStatuses, got.Status)
+		gotValidationErrors = append(gotValidationErrors, got.ValidationErrors...)
+	}
+
+	expectedStatuses := []Status{Valid, Invalid}
+	expectedValidationErrors := []ValidationError{
+		{Path: "", Msg: "missing properties: 'lastName'"},
+	}
+	if !reflect.DeepEqual(expectedStatuses, gotStatuses) {
+		t.Errorf("Expected %+v, got %+v", expectedStatuses, gotStatuses)
+	}
+	if !reflect.DeepEqual(expectedValidationErrors, gotValidationErrors) {
+		t.Errorf("Expected %+v, got %+v", expectedValidationErrors, gotValidationErrors)
 	}
 }

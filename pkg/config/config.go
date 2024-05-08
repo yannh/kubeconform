@@ -59,11 +59,11 @@ func (kv *k8sVersionValue) UnmarshalText(v []byte) error {
 }
 
 func splitCSV(csvStr string) map[string]struct{} {
-	sanitizedValues := strings.ReplaceAll(csvStr, " ", "")
-	splitValues := strings.Split(sanitizedValues, ",")
+	splitValues := strings.Split(csvStr, ",")
 	valuesMap := map[string]struct{}{}
 
 	for _, kind := range splitValues {
+		kind = strings.TrimSpace(kind)
 		if len(kind) > 0 {
 			valuesMap[kind] = struct{}{}
 		}

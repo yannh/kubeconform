@@ -96,6 +96,30 @@ func TestFromFlags(t *testing.T) {
 			},
 		},
 		{
+			[]string{"-skip", "a, b, c"},
+			Config{
+				Files:             []string{},
+				KubernetesVersion: "master",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   nil,
+				SkipKinds:         map[string]struct{}{"a": {}, "b": {}, "c": {}},
+				RejectKinds:       map[string]struct{}{},
+			},
+		},
+		{
+			[]string{"-skip", "a,b, c"},
+			Config{
+				Files:             []string{},
+				KubernetesVersion: "master",
+				NumberOfWorkers:   4,
+				OutputFormat:      "text",
+				SchemaLocations:   nil,
+				SkipKinds:         map[string]struct{}{"a": {}, "b": {}, "c": {}},
+				RejectKinds:       map[string]struct{}{},
+			},
+		},
+		{
 			[]string{"-summary", "-verbose", "file1", "file2"},
 			Config{
 				Files:             []string{"file1", "file2"},

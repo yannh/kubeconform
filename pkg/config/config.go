@@ -63,6 +63,7 @@ func splitCSV(csvStr string) map[string]struct{} {
 	valuesMap := map[string]struct{}{}
 
 	for _, kind := range splitValues {
+		kind = strings.TrimSpace(kind)
 		if len(kind) > 0 {
 			valuesMap[kind] = struct{}{}
 		}

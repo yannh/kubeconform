@@ -1,4 +1,4 @@
-FROM alpine:3.18.3
+FROM alpine:3.19.1
 LABEL org.opencontainers.image.authors="Yann Hamon <yann@mandragor.org>" \
       org.opencontainers.image.source="https://github.com/yannh/kubeconform/" \
       org.opencontainers.image.description="A Kubernetes manifests validation tool" \

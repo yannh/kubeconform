@@ -16,13 +16,13 @@ local-build-static:
 
 # These only used for development. Release artifacts and docker images are produced by goreleaser.
 docker-test:
-	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.21.4 make local-test
+	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.22.3 make local-test
 
 docker-build:
-	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.21.4 make local-build
+	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.22.3 make local-build
 
 docker-build-static:
-	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.21.4 make local-build-static
+	docker run -t -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform golang:1.22.3 make local-build-static
 
 build-bats:
 	docker build -t bats -f Dockerfile.bats .
@@ -32,11 +32,11 @@ docker-acceptance: build-bats
 	docker run --network none -t bats -p acceptance-nonetwork.bats
 
 goreleaser-build-static:
-	docker run -t -e GOOS=linux -e GOARCH=amd64 -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v1.22.1 build --single-target --skip-post-hooks --rm-dist --snapshot
+	docker run -t -e GOOS=linux -e GOARCH=amd64 -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v1.25.1 build --single-target --skip-post-hooks --rm-dist --snapshot
 	cp dist/kubeconform_linux_amd64_v1/kubeconform bin/
 
 release:
-	docker run -e GITHUB_TOKEN -e GIT_OWNER -t -v /var/run/docker.sock:/var/run/docker.sock -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v1.22.1 release --rm-dist
+	docker run -e GITHUB_TOKEN -e GIT_OWNER -t -v /var/run/docker.sock:/var/run/docker.sock -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v1.25.1 release --rm-dist
 
 update-deps:
 	go get -u ./...

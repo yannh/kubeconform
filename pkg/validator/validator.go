@@ -223,8 +223,9 @@ func (val *v) ValidateWithContext(ctx context.Context, filename string, r io.Rea
 	for {
 		select {
 		case res, ok := <-resourcesChan:
-			validationResults = append(validationResults, val.ValidateResource(res))
-			if !ok {
+			if ok {
+				validationResults = append(validationResults, val.ValidateResource(res))
+			} else {
 				resourcesChan = nil
 			}
 

@@ -137,11 +137,14 @@ func TestDownloadSchema(t *testing.T) {
 
 		_, res, err := reg.DownloadSchema(testCase.resourceKind, testCase.resourceAPIVersion, testCase.k8sversion)
 		if err == nil || testCase.expectErr == nil {
-			if err != testCase.expectErr {
-				t.Errorf("during test '%s': expected error, got:\n%s\n%s\n", testCase.name, testCase.expectErr, err)
+			if err == nil && testCase.expectErr != nil {
+				t.Errorf("during test '%s': expected error\n%s, got nil", testCase.name, testCase.expectErr)
+			}
+			if err != nil && testCase.expectErr == nil {
+				t.Errorf("during test '%s': expected no error, got\n%s\n", testCase.name, err)
 			}
 		} else if err.Error() != testCase.expectErr.Error() {
-			t.Errorf("during test '%s': expected error, got:\n%s\n%s\n", testCase.name, testCase.expectErr, err)
+			t.Errorf("during test '%s': expected error\n%s, got:\n%s\n", testCase.name, testCase.expectErr, err)
 		}
 
 		if !bytes.Equal(res, testCase.expect) {

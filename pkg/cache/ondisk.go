@@ -36,6 +36,7 @@ func (c *onDisk) Get(resourceKind, resourceAPIVersion, k8sVersion string) (inter
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	return io.ReadAll(f)
 }

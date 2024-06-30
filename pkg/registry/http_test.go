@@ -2,24 +2,29 @@ package registry
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
 )
 
 type mockHTTPGetter struct {
-	httpGet func(string) (*http.Response, error)
+	callNumber int
+	httpGet    func(mockHTTPGetter, string) (*http.Response, error)
 }
 
-func newMockHTTPGetter(f func(string) (*http.Response, error)) *mockHTTPGetter {
+func newMockHTTPGetter(f func(mockHTTPGetter, string) (*http.Response, error)) *mockHTTPGetter {
 	return &mockHTTPGetter{
-		httpGet: f,
+		callNumber: 0,
+		httpGet:    f,
 	}
 }
-func (m mockHTTPGetter) Get(url string) (resp *http.Response, err error) {
-	return m.httpGet(url)
+func (m *mockHTTPGetter) Get(url string) (resp *http.Response, err error) {
+	m.callNumber = m.callNumber + 1
+	return m.httpGet(*m, url)
 }
 
 func TestDownloadSchema(t *testing.T) {
@@ -33,21 +38,28 @@ func TestDownloadSchema(t *testing.T) {
 		expectErr                                    error
 	}{
 		{
-			"error when downloading",
-			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
-				return nil, fmt.Errorf("failed downloading from registry")
+			"retry connection reset by peer",
+			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
+				if c.callNumber == 1 {
+					return nil, &net.OpError{Err: errors.New("connection reset by peer")}
+				} else {
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(strings.NewReader("http response mock body")),
+					}, nil
+				}
 			}),
 			"http://kubernetesjson.dev",
 			true,
 			"Deployment",
 			"v1",
 			"1.18.0",
+			[]byte("http response mock body"),
 			nil,
-			fmt.Errorf("failed downloading schema at http://kubernetesjson.dev: failed downloading from registry"),
 		},
 		{
 			"getting 404",
-			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
+			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
 				return &http.Response{
 					StatusCode: http.StatusNotFound,
 					Body:       io.NopCloser(strings.NewReader("http response mock body")),
@@ -62,8 +74,8 @@ func TestDownloadSchema(t *testing.T) {
 			fmt.Errorf("could not find schema at http://kubernetesjson.dev"),
 		},
 		{
-			"getting 503",
-			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
+			"getting 500",
+			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
 				return &http.Response{
 					StatusCode: http.StatusServiceUnavailable,
 					Body:       io.NopCloser(strings.NewReader("http response mock body")),
@@ -78,8 +90,31 @@ func TestDownloadSchema(t *testing.T) {
 			fmt.Errorf("error while downloading schema at http://kubernetesjson.dev - received HTTP status 503"),
 		},
 		{
+			"retry 503",
+			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
+				if c.callNumber == 1 {
+					return &http.Response{
+						StatusCode: http.StatusServiceUnavailable,
+						Body:       io.NopCloser(strings.NewReader("503 http response mock body")),
+					}, nil
+				} else {
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(strings.NewReader("http response mock body")),
+					}, nil
+				}
+			}),
+			"http://kubernetesjson.dev",
+			true,
+			"Deployment",
+			"v1",
+			"1.18.0",
+			[]byte("http response mock body"),
+			nil,
+		},
+		{
 			"200",
-			newMockHTTPGetter(func(url string) (resp *http.Response, err error) {
+			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
 				return &http.Response{
 					StatusCode: http.StatusOK,
 					Body:       io.NopCloser(strings.NewReader("http response mock body")),

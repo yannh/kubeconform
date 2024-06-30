@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -74,6 +75,24 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 	}
 
 	resp, err := r.c.Get(url)
+	// retry on transient errors, ie. connection reset by peer
+	if err != nil {
+		if opErr, ok := err.(*net.OpError); ok {
+			if r.debug {
+				log.Printf("failed downloading schema at %s due to network error, retrying: %s", url, opErr)
+			}
+			time.Sleep(1 * time.Second)
+			resp, err = r.c.Get(url)
+		}
+	}
+	// retry on server errors
+	if resp != nil && resp.StatusCode >= 500 {
+		if r.debug {
+			log.Printf("failed downloading schema at %s due to server error, retrying: %d", url, resp.StatusCode)
+		}
+		time.Sleep(1 * time.Second)
+		resp, err = r.c.Get(url)
+	}
 	if err != nil {
 		msg := fmt.Sprintf("failed downloading schema at %s: %s", url, err)
 		if r.debug {

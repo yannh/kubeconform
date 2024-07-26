@@ -54,7 +54,7 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 
 	// retriable http client
 	retryClient := retryablehttp.NewClient()
-	retryClient.RetryMax = 4
+	retryClient.RetryMax = 2
 	retryClient.HTTPClient = &http.Client{Transport: reghttp}
 
 	return &SchemaRegistry{

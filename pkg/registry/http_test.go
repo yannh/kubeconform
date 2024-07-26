@@ -2,13 +2,12 @@ package registry
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"io"
-	"net"
+	"math/rand"
 	"net/http"
-	"strings"
+	"os"
 	"testing"
+	"time"
 )
 
 type mockHTTPGetter struct {
@@ -28,9 +27,79 @@ func (m *mockHTTPGetter) Get(url string) (resp *http.Response, err error) {
 }
 
 func TestDownloadSchema(t *testing.T) {
+
+	firstAttempt := true
+
+	// http server to simulate different responses
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Check if the request is asking to simulate a connection reset or 503
+		// then return that status code once and then return a normal response
+		if r.URL.Path == "/simulate-reset" || r.URL.Path == "/503" {
+			if firstAttempt {
+				firstAttempt = false
+				if r.URL.Path == "/simulate-reset" {
+					if hj, ok := w.(http.Hijacker); ok {
+						conn, _, err := hj.Hijack()
+						if err != nil {
+							fmt.Printf("Hijacking failed: %v\n", err)
+							return
+						}
+						conn.Close() // Close the connection to simulate a reset
+					}
+				}
+				if r.URL.Path == "/503" {
+					w.WriteHeader(http.StatusServiceUnavailable)
+					w.Write([]byte("503 Service Unavailable"))
+				}
+				return
+			} else {
+				firstAttempt = true
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("Normal response"))
+				return
+			}
+		}
+
+		if r.URL.Path == "/404" {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 Not Found"))
+			return
+		}
+
+		if r.URL.Path == "/500" {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 Internal Server Error"))
+			return
+		}
+
+		// Serve a normal response
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Normal response"))
+	})
+
+	port := fmt.Sprint(rand.Intn(1000) + 9000) // random port
+	server := &http.Server{Addr: "127.0.0.1:" + port}
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			fmt.Printf("Failed to start server: %v\n", err)
+		}
+	}()
+
+	url := fmt.Sprintf("http://localhost:%s", port)
+
+	// Wait for the server to start
+	for i := 0; i < 20; i++ {
+		fmt.Printf("Trying to connect to server %d ...\n", i)
+		_, err := http.Get(url)
+		if err == nil {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+
 	for _, testCase := range []struct {
 		name                                         string
-		c                                            httpGetter
 		schemaPathTemplate                           string
 		strict                                       bool
 		resourceKind, resourceAPIVersion, k8sversion string
@@ -39,100 +108,67 @@ func TestDownloadSchema(t *testing.T) {
 	}{
 		{
 			"retry connection reset by peer",
-			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
-				if c.callNumber == 1 {
-					return nil, &net.OpError{Err: errors.New("connection reset by peer")}
-				} else {
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Body:       io.NopCloser(strings.NewReader("http response mock body")),
-					}, nil
-				}
-			}),
-			"http://kubernetesjson.dev",
+			fmt.Sprintf("%s/simulate-reset", url),
 			true,
 			"Deployment",
 			"v1",
 			"1.18.0",
-			[]byte("http response mock body"),
+			[]byte("Normal response"),
 			nil,
 		},
 		{
 			"getting 404",
-			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
-				return &http.Response{
-					StatusCode: http.StatusNotFound,
-					Body:       io.NopCloser(strings.NewReader("http response mock body")),
-				}, nil
-			}),
-			"http://kubernetesjson.dev",
+			fmt.Sprintf("%s/404", url),
 			true,
 			"Deployment",
 			"v1",
 			"1.18.0",
 			nil,
-			fmt.Errorf("could not find schema at http://kubernetesjson.dev"),
+			fmt.Errorf("could not find schema at %s/404", url),
 		},
 		{
 			"getting 500",
-			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
-				return &http.Response{
-					StatusCode: http.StatusServiceUnavailable,
-					Body:       io.NopCloser(strings.NewReader("http response mock body")),
-				}, nil
-			}),
-			"http://kubernetesjson.dev",
+			fmt.Sprintf("%s/500", url),
 			true,
 			"Deployment",
 			"v1",
 			"1.18.0",
 			nil,
-			fmt.Errorf("error while downloading schema at http://kubernetesjson.dev - received HTTP status 503"),
+			fmt.Errorf("failed downloading schema at %s/500: Get \"%s/500\": GET %s/500 giving up after 3 attempt(s)", url, url, url),
 		},
 		{
 			"retry 503",
-			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
-				if c.callNumber == 1 {
-					return &http.Response{
-						StatusCode: http.StatusServiceUnavailable,
-						Body:       io.NopCloser(strings.NewReader("503 http response mock body")),
-					}, nil
-				} else {
-					return &http.Response{
-						StatusCode: http.StatusOK,
-						Body:       io.NopCloser(strings.NewReader("http response mock body")),
-					}, nil
-				}
-			}),
-			"http://kubernetesjson.dev",
+			fmt.Sprintf("%s/503", url),
 			true,
 			"Deployment",
 			"v1",
 			"1.18.0",
-			[]byte("http response mock body"),
+			[]byte("Normal response"),
 			nil,
 		},
 		{
 			"200",
-			newMockHTTPGetter(func(c mockHTTPGetter, url string) (resp *http.Response, err error) {
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       io.NopCloser(strings.NewReader("http response mock body")),
-				}, nil
-			}),
-			"http://kubernetesjson.dev",
+			url,
 			true,
 			"Deployment",
 			"v1",
 			"1.18.0",
-			[]byte("http response mock body"),
+			[]byte("Normal response"),
 			nil,
 		},
 	} {
-		reg := SchemaRegistry{
-			c:                  testCase.c,
-			schemaPathTemplate: testCase.schemaPathTemplate,
-			strict:             testCase.strict,
+		// create a temporary directory for the cache
+		tmpDir, err := os.MkdirTemp("", "kubeconform-cache")
+		if err != nil {
+			t.Errorf("during test '%s': failed to create temp directory: %s", testCase.name, err)
+			continue
+		}
+		defer os.RemoveAll(tmpDir) // clean up the temporary directory
+
+		reg, err := newHTTPRegistry(testCase.schemaPathTemplate, tmpDir, testCase.strict, true, true)
+		if err != nil {
+			t.Errorf("during test '%s': failed to create registry: %s", testCase.name, err)
+			continue
 		}
 
 		_, res, err := reg.DownloadSchema(testCase.resourceKind, testCase.resourceAPIVersion, testCase.k8sversion)
@@ -148,7 +184,7 @@ func TestDownloadSchema(t *testing.T) {
 		}
 
 		if !bytes.Equal(res, testCase.expect) {
-			t.Errorf("during test '%s': expected %s, got %s", testCase.name, testCase.expect, res)
+			t.Errorf("during test '%s': expected '%s', got '%s'", testCase.name, testCase.expect, res)
 		}
 	}
 

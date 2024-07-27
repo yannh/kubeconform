@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 )
@@ -27,74 +26,70 @@ func (m *mockHTTPGetter) Get(url string) (resp *http.Response, err error) {
 }
 
 func TestDownloadSchema(t *testing.T) {
-
-	firstAttempt := true
+	callCounts := map[string]int{}
 
 	// http server to simulate different responses
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Check if the request is asking to simulate a connection reset or 503
-		// then return that status code once and then return a normal response
-		if r.URL.Path == "/simulate-reset" || r.URL.Path == "/503" {
-			if firstAttempt {
-				firstAttempt = false
-				if r.URL.Path == "/simulate-reset" {
-					if hj, ok := w.(http.Hijacker); ok {
-						conn, _, err := hj.Hijack()
-						if err != nil {
-							fmt.Printf("Hijacking failed: %v\n", err)
-							return
-						}
-						conn.Close() // Close the connection to simulate a reset
-					}
-				}
-				if r.URL.Path == "/503" {
-					w.WriteHeader(http.StatusServiceUnavailable)
-					w.Write([]byte("503 Service Unavailable"))
-				}
-				return
+		var s int
+		callCounts[r.URL.Path]++
+		callCount := callCounts[r.URL.Path]
+
+		switch r.URL.Path {
+		case "/404":
+			s = http.StatusNotFound
+		case "/500":
+			s = http.StatusInternalServerError
+		case "/503":
+			if callCount < 2 {
+				s = http.StatusServiceUnavailable
 			} else {
-				firstAttempt = true
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("Normal response"))
+				s = http.StatusOK // Should succeed on 3rd try
+			}
+
+		case "/simulate-reset":
+			if callCount < 2 {
+				if hj, ok := w.(http.Hijacker); ok {
+					conn, _, err := hj.Hijack()
+					if err != nil {
+						fmt.Printf("Hijacking failed: %v\n", err)
+						return
+					}
+					conn.Close() // Close the connection to simulate a reset
+				}
 				return
 			}
+			s = http.StatusOK // Should succeed on third try
+
+		default:
+			s = http.StatusOK
 		}
 
-		if r.URL.Path == "/404" {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("404 Not Found"))
-			return
-		}
-
-		if r.URL.Path == "/500" {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("500 Internal Server Error"))
-			return
-		}
-
-		// Serve a normal response
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Normal response"))
+		w.WriteHeader(s)
+		w.Write([]byte(http.StatusText(s)))
 	})
 
 	port := fmt.Sprint(rand.Intn(1000) + 9000) // random port
 	server := &http.Server{Addr: "127.0.0.1:" + port}
+	url := fmt.Sprintf("http://localhost:%s", port)
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil {
 			fmt.Printf("Failed to start server: %v\n", err)
 		}
 	}()
-
-	url := fmt.Sprintf("http://localhost:%s", port)
+	defer server.Shutdown(nil)
 
 	// Wait for the server to start
 	for i := 0; i < 20; i++ {
-		fmt.Printf("Trying to connect to server %d ...\n", i)
-		_, err := http.Get(url)
-		if err == nil {
+		if _, err := http.Get(url); err == nil {
 			break
 		}
+
+		if i == 19 {
+			t.Error("http server did not start")
+			return
+		}
+
 		time.Sleep(50 * time.Millisecond)
 	}
 
@@ -113,7 +108,7 @@ func TestDownloadSchema(t *testing.T) {
 			"Deployment",
 			"v1",
 			"1.18.0",
-			[]byte("Normal response"),
+			[]byte(http.StatusText(http.StatusOK)),
 			nil,
 		},
 		{
@@ -143,7 +138,7 @@ func TestDownloadSchema(t *testing.T) {
 			"Deployment",
 			"v1",
 			"1.18.0",
-			[]byte("Normal response"),
+			[]byte(http.StatusText(http.StatusOK)),
 			nil,
 		},
 		{
@@ -153,19 +148,13 @@ func TestDownloadSchema(t *testing.T) {
 			"Deployment",
 			"v1",
 			"1.18.0",
-			[]byte("Normal response"),
+			[]byte(http.StatusText(http.StatusOK)),
 			nil,
 		},
 	} {
-		// create a temporary directory for the cache
-		tmpDir, err := os.MkdirTemp("", "kubeconform-cache")
-		if err != nil {
-			t.Errorf("during test '%s': failed to create temp directory: %s", testCase.name, err)
-			continue
-		}
-		defer os.RemoveAll(tmpDir) // clean up the temporary directory
+		callCounts = map[string]int{} // Reinitialise counters
 
-		reg, err := newHTTPRegistry(testCase.schemaPathTemplate, tmpDir, testCase.strict, true, true)
+		reg, err := newHTTPRegistry(testCase.schemaPathTemplate, "", testCase.strict, true, true)
 		if err != nil {
 			t.Errorf("during test '%s': failed to create registry: %s", testCase.name, err)
 			continue

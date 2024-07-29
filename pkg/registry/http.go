@@ -13,13 +13,13 @@ import (
 	"github.com/yannh/kubeconform/pkg/cache"
 )
 
-type httpGetter interface {
-	Get(url string) (resp *http.Response, err error)
+type httpDoer interface {
+	Do(*http.Request) (resp *http.Response, err error)
 }
 
 // SchemaRegistry is a file repository (local or remote) that contains JSON schemas for Kubernetes resources
 type SchemaRegistry struct {
-	c                  httpGetter
+	c                  httpDoer
 	schemaPathTemplate string
 	cache              cache.Cache
 	strict             bool
@@ -72,8 +72,20 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 			return url, b.([]byte), nil
 		}
 	}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		msg := fmt.Sprintf("failed to create http request for schemas at %s: %s", url, err)
+		if r.debug {
+			log.Println(msg)
+		}
+		return url, nil, errors.New(msg)
+	}
 
-	resp, err := r.c.Get(url)
+	if token, exist := os.LookupEnv("KUBECONFORM_AUTH_TOKEN"); exist {
+		req.Header.Add("Authorization", fmt.Sprintf("token %s", token))
+	}
+
+	resp, err := r.c.Do(req)
 	if err != nil {
 		msg := fmt.Sprintf("failed downloading schema at %s: %s", url, err)
 		if r.debug {

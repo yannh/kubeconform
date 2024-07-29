@@ -290,6 +290,13 @@ kubeconform -kubernetes-version 3.8.0  -schema-location 'https://raw.githubuserc
 Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 ```
 
+### Schemas behind private GitHub repos
+
+By setting the environment variable `GITHUB_TOKEN=x` you can use schemas that are behind a private repository.
+See [getting a token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) for info on how to get one command line token.
+> Tip: if using GitHub CLI, `gh auth token` will give a valid token.
+
+
 ## Integrating Kubeconform in the CI
 
 `Kubeconform` publishes Docker Images to Github's new Container Registry (ghcr.io). These images

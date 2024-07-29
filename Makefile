@@ -28,7 +28,7 @@ build-bats:
 	docker build -t bats -f Dockerfile.bats .
 
 docker-acceptance: build-bats
-	docker run -t bats -p acceptance.bats
+	docker run -t bats -p acceptance.bats --verbose-run
 	docker run --network none -t bats -p acceptance-nonetwork.bats
 
 goreleaser-build-static:

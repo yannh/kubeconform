@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 	"github.com/yannh/kubeconform/pkg/cache"
 )
 
@@ -51,8 +52,14 @@ func newHTTPRegistry(schemaPathTemplate string, cacheFolder string, strict bool,
 		filecache = cache.NewOnDiskCache(cacheFolder)
 	}
 
+	// retriable http client
+	retryClient := retryablehttp.NewClient()
+	retryClient.RetryMax = 2
+	retryClient.HTTPClient = &http.Client{Transport: reghttp}
+	retryClient.Logger = nil
+
 	return &SchemaRegistry{
-		c:                  &http.Client{Transport: reghttp},
+		c:                  retryClient.StandardClient(),
 		schemaPathTemplate: schemaPathTemplate,
 		cache:              filecache,
 		strict:             strict,

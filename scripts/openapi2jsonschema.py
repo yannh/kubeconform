@@ -102,7 +102,16 @@ def write_schema_file(schema, filename):
     schemaJSON = json.dumps(schema, indent=2)
 
     # Dealing with user input here..
-    filename = os.path.basename(filename)
+    cwd = Path.cwd()
+    abspath = Path(filename).resolve()
+    if cwd in abspath.parents:
+        filename = abspath.relative_to(cwd)
+        if not filename.parent.exists():
+            filename.parent.mkdir(parents=True)
+    else:
+        print("Trying to write to a file outside of the current directory, aborting.")
+        exit(1)
+        
     f = open(filename, "w")
     print(schemaJSON, file=f)
     f.close()

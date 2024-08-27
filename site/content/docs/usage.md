@@ -33,6 +33,8 @@ Usage: ./bin/kubeconform [OPTION]... [FILE OR FOLDER]...
         override schemas location search path (can be specified multiple times)
   -skip string
         comma-separated list of kinds to ignore
+  -skip-metadata
+        skip extra validations of metadata section
   -strict
         disallow additional properties not in schema or duplicated keys
   -summary

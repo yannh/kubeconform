@@ -475,11 +475,15 @@ func TestValidateFile(t *testing.T) {
 	inputData := []byte(`
 kind: name
 apiVersion: v1
+metadata:
+  name: bar.qux
 firstName: bar
 lastName: qux
 ---
 kind: name
 apiVersion: v1
+metadata:
+  name: foo
 firstName: foo
 `)
 

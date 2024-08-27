@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
+	"strings"
 
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
@@ -191,9 +193,9 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
 	}
 
+	validationErrors := []ValidationError{}
 	err = schema.Validate(r)
 	if err != nil {
-		validationErrors := []ValidationError{}
 		var e *jsonschema.ValidationError
 		if errors.As(err, &e) {
 			for _, ve := range e.Causes {
@@ -202,7 +204,6 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 					Msg:  ve.Message,
 				})
 			}
-
 		}
 		return Result{
 			Resource:         res,
@@ -211,6 +212,35 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 			ValidationErrors: validationErrors,
 		}
 	}
+
+	if res.Metadata != nil {
+	    metadataPath := res.Path + " - .metadata"
+	    namePath := metadataPath + ".name"
+	    name := res.Metadata.Name
+	    if name == "" {
+	        if res.Metadata.GenerateName != "" {
+                name =  res.Metadata.GenerateName
+	            namePath = metadataPath + ".generateName"
+            }
+	    }
+
+	    if !validateDnsLabels(name) {
+            validationErrors = append(validationErrors, ValidationError{
+                    Path: namePath,
+                    Msg:  "invalid metadata name",
+                })
+        }
+
+		validationErrors = validateMeta(metadataPath, res.Metadata, validationErrors)
+        if len(validationErrors) > 0 {
+            return Result{
+                        Resource:         res,
+                        Status:           Invalid,
+                        Err:              fmt.Errorf("invalid metadata."),
+                        ValidationErrors: validationErrors,
+                    }
+        }
+    }
 
 	return Result{Resource: res, Status: Valid}
 }
@@ -278,4 +308,127 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 	}
 
 	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
+}
+
+func validateMeta(path string, metadata *resource.ObjectMeta, validationErrors []ValidationError) []ValidationError {
+	if metadata.Annotations != nil {
+		validationErrors = validateAnnotations(path + ".annotations", metadata.Annotations, validationErrors)
+	}
+	if metadata.Labels != nil {
+		validationErrors = validateLabels(path + ".labels", metadata.Labels, validationErrors)
+	}
+    return validationErrors
+}
+
+/* Annotations are key/value pairs. */
+func validateAnnotations(path string, annotations map[string]string, validationErrors []ValidationError) []ValidationError {
+    for k, v := range annotations {
+        keypath := path + "[" + k + "]"
+        validationErrors = validateKey(keypath, k, validationErrors)
+        if !validateAnnotationValue(v) {
+            validationErrors = append(validationErrors, ValidationError{
+                                Path: keypath,
+                                Msg:  "invalid annotation value",
+                            })
+        }
+    }
+    return validationErrors
+}
+
+/* Labels are key/value pairs.
+ */
+func validateLabels(path string, labels map[string]string, validationErrors []ValidationError) []ValidationError {
+    for k, v := range labels {
+        keypath := path + "[" + k + "]"
+        validationErrors= validateKey(keypath, k, validationErrors)
+        if !validateNameSegment(v) {
+            validationErrors = append(validationErrors, ValidationError{
+                                            Path: keypath,
+                                            Msg:  "invalid label value",
+                                        })
+        }
+    }
+    return validationErrors
+}
+
+/* Valid keys have two segments: an optional prefix and name, separated by a slash (/)
+*/
+func validateKey(keypath string, key string, validationErrors []ValidationError) []ValidationError {
+    if len(key) == 0 {
+        validationErrors = append(validationErrors, ValidationError{
+                                        Path: keypath,
+                                        Msg:  "invalid annotation key",
+                                    })
+    } else {
+        var name string
+        prefix, suffix, found := strings.Cut(key, "/")
+        if found {
+            name = suffix
+            if !validateDnsLabels(prefix) {
+                validationErrors = append(validationErrors, ValidationError{
+                                                Path: keypath,
+                                                Msg:  "invalid annotation key prefix",
+                                            })
+            }
+        } else {
+            name = key
+        }
+
+        if !validateNameSegment(name) {
+            validationErrors = append(validationErrors, ValidationError{
+                                            Path: keypath,
+                                            Msg:  "invalid annotation key name",
+                                        })
+
+        }
+    }
+    return validationErrors
+}
+
+var alphanumericPlusUnderscorePeriodHyphen = regexp.MustCompile("^[0-9A-Za-z_.-]+$")
+
+func isAlphaNumeric(v byte) bool {
+  return (v >= '0' && v <= '9') ||
+         (v >= 'A' && v <= 'Z') ||
+         (v >= 'a' && v <= 'z')
+}
+
+/* The name segment must be 63 characters or less, beginning and ending with an alphanumeric character
+   ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between.
+*/
+func validateNameSegment(name string) bool {
+    return len(name) <= 63 &&
+        alphanumericPlusUnderscorePeriodHyphen.MatchString(name) &&
+        isAlphaNumeric(name[0]) &&
+        isAlphaNumeric(name[len(name)-1])
+}
+
+var alphanumericPlusHyphen = regexp.MustCompile("^[0-9A-Za-z-]+$")
+
+/* The domain name may not exceed the length of 253 characters in its textual representation.
+   A label may contain one to 63 characters of a through z, A through Z, digits 0 through 9, and hyphen.
+   Labels may not start or end with a hyphen.
+*/
+func validateDnsLabels(domain string) bool {
+    if len(domain) == 0 || len(domain) > 253 {
+        return false
+    } else {
+        labels := strings.Split(domain, ".")
+        for _, label := range labels {
+            if len(label) == 0 ||
+                    len(label) > 63 ||
+                    !alphanumericPlusHyphen.MatchString(label) ||
+                    label[0] == '-' ||
+                    label[len(label)-1] == '-' {
+                return false
+            }
+        }
+    }
+    return true
+}
+
+/* annotation must have value
+*/
+func validateAnnotationValue(value string) bool {
+    return len(value) != 0
 }

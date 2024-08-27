@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: some-values
+  labels:
+    some.domain/some-key: 123456789_123456789_123456789_123456789_123456789_123456789_1234
+data:
+  file.name: "a value"

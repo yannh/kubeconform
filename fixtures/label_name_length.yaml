@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: some-values
+  labels:
+    abcdefghijklmnopqrstuvwxyz-01234567890-ABCDEFGHIJKLMNOPQRSTUVWXYZ: "123456789_123456789_123456789_123456789_123456789_123456789_123"
+data:
+  file.name: "a value"

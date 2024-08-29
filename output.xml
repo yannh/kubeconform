@@ -1,0 +1,5 @@
+<testsuites name="kubeconform" time="0.14241325" tests="1" failures="0" disabled="0" errors="0">
+  <testsuite name="fixtures/valid.yaml" id="1" tests="1" failures="0" errors="0" disabled="0" skipped="0">
+    <testcase name="bob" classname="ReplicationController@v1" time="0"></testcase>
+  </testsuite>
+</testsuites>

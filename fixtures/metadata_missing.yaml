@@ -1,0 +1,4 @@
+apiVersion: v1
+kind: ConfigMap
+data:
+  file.name: "a value"

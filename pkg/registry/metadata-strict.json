@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "$ref": "#/$defs/PREFIXED"
+    },
+    "kind": {
+      "$ref": "#/$defs/NAME"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/PREFIXED"
+          },
+          "patternProperties": {
+            "^.+$": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "finalizers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generateName": {
+          "$ref": "#/$defs/RFC-1123-prefix"
+        },
+        "labels": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/PREFIXED"
+          },
+          "patternProperties": {
+            "^.+$": {
+              "$ref": "#/$defs/NAME"
+            }
+          }
+        },
+        "managedFields": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "name": {
+          "$ref": "#/$defs/RFC-1123"
+        },
+        "namespace": {
+          "$ref": "#/$defs/RFC-1123"
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "name"
+          ]
+        },
+        {
+          "required": [
+            "generateName"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata"
+  ],
+  "$defs": {
+    "PREFIXED": {
+      "allOf": [
+        {
+          "pattern": "^(.{0,253}/)?.{1,63}$",
+          "type": "string"
+        },
+        {
+          "pattern": "^([a-z0-9-]{1,63}(\\.[a-z0-9-]{1,63})*/)?[a-z0-9A-Z]+([_.-][a-z0-9A-Z]+)*$"
+        }
+      ]
+    },
+    "NAME": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9A-Z]+([_.-][a-z0-9A-Z]+)*$"
+    },
+    "RFC-1123": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+    },
+    "RFC-1123-prefix": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 58,
+      "pattern": "^[a-z0-9]+[a-z0-9-]*$"
+    }
+  }
+}

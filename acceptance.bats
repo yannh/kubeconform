@@ -81,6 +81,56 @@ resetCacheFolder() {
   [ "$status" -eq 1 ]
 }
 
+@test "Fail when annotation key is invalid" {
+  run bin/kubeconform fixtures/annotation_key_invalid.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when annotation value is missing" {
+  run bin/kubeconform fixtures/annotation_missing_value.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when annotation value is null" {
+  run bin/kubeconform fixtures/annotation_null_value.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when label name is too long" {
+  run bin/kubeconform fixtures/label_name_length.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when label namespace is invalid domain" {
+  run bin/kubeconform fixtures/label_namespace.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when label value is too long" {
+  run bin/kubeconform fixtures/label_value_length.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Fail when metadata name is missing" {
+  run bin/kubeconform fixtures/metadata_name_missing.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Pass if skip-metadata added" {
+  run bin/kubeconform -skip-metadata fixtures/metadata_name_missing.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Pass with extra metadata fields" {
+  run bin/kubeconform fixtures/metadata_extra.yaml
+  [ "$status" -eq 0 ]
+}
+
+@test "Fail extra metadata fields when strict" {
+  run bin/kubeconform -strict fixtures/metadata_extra.yaml
+  [ "$status" -eq 1 ]
+}
+
 @test "Return relevant error for non-existent file" {
   run bin/kubeconform fixtures/not-here
   [ "$status" -eq 1 ]

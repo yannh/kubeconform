@@ -58,6 +58,7 @@ type Opts struct {
 	Debug                bool                // Debug infos will be print here
 	SkipTLS              bool                // skip TLS validation when downloading from an HTTP Schema Registry
 	SkipKinds            map[string]struct{} // List of resource Kinds to ignore
+	SkipMetadata         bool                // skip extra validation of metadata
 	RejectKinds          map[string]struct{} // List of resource Kinds to reject
 	KubernetesVersion    string              // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
 	Strict               bool                // thros an error if resources contain undocumented fields
@@ -92,11 +93,17 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 		opts.RejectKinds = map[string]struct{}{}
 	}
 
+	var metadataSchema *jsonschema.Schema = nil
+	if !opts.SkipMetadata {
+		metadataSchema, _ = downloadSchema([]registry.Registry{registry.NewEmbeddedRegistry(opts.Debug, opts.Strict)}, "metadata", "", "")
+	}
+
 	return &v{
 		opts:           opts,
 		schemaDownload: downloadSchema,
 		schemaCache:    cache.NewInMemoryCache(),
 		regs:           registries,
+		metadataSchema: metadataSchema,
 	}, nil
 }
 
@@ -105,6 +112,23 @@ type v struct {
 	schemaCache    cache.Cache
 	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*jsonschema.Schema, error)
 	regs           []registry.Registry
+	metadataSchema *jsonschema.Schema
+}
+
+func validate(schema *jsonschema.Schema, r map[string]interface{}, validationErrors []ValidationError) ([]ValidationError, error) {
+	err := schema.Validate(r)
+	if err != nil {
+		var e *jsonschema.ValidationError
+		if errors.As(err, &e) {
+			for _, ve := range e.Causes {
+				validationErrors = append(validationErrors, ValidationError{
+					Path: ve.InstanceLocation,
+					Msg:  ve.Message,
+				})
+			}
+		}
+	}
+	return validationErrors, err
 }
 
 // ValidateResource validates a single resource. This allows to validate
@@ -162,6 +186,12 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: fmt.Errorf("prohibited resource kind %s", sig.Kind), Status: Error}
 	}
 
+	validationErrors := []ValidationError{}
+	var metaDataError error = nil
+	if val.metadataSchema != nil {
+		validationErrors, metaDataError = validate(val.metadataSchema, r, validationErrors)
+	}
+
 	cached := false
 	var schema *jsonschema.Schema
 
@@ -183,27 +213,21 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		}
 	}
 
+	status := Valid
 	if schema == nil {
 		if val.opts.IgnoreMissingSchemas {
-			return Result{Resource: res, Err: nil, Status: Skipped}
+			status = Skipped
+		} else {
+			return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
 		}
-
-		return Result{Resource: res, Err: fmt.Errorf("could not find schema for %s", sig.Kind), Status: Error}
+	} else {
+		validationErrors, err = validate(schema, r, validationErrors)
+		if err == nil {
+			err = metaDataError
+		}
 	}
 
-	err = schema.Validate(r)
-	if err != nil {
-		validationErrors := []ValidationError{}
-		var e *jsonschema.ValidationError
-		if errors.As(err, &e) {
-			for _, ve := range e.Causes {
-				validationErrors = append(validationErrors, ValidationError{
-					Path: ve.InstanceLocation,
-					Msg:  ve.Message,
-				})
-			}
-
-		}
+	if len(validationErrors) > 0 {
 		return Result{
 			Resource:         res,
 			Status:           Invalid,
@@ -211,8 +235,7 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 			ValidationErrors: validationErrors,
 		}
 	}
-
-	return Result{Resource: res, Status: Valid}
+	return Result{Resource: res, Status: status}
 }
 
 // ValidateWithContext validates resources found in r

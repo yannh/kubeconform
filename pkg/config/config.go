@@ -22,6 +22,7 @@ type Config struct {
 	RejectKinds            map[string]struct{} `yaml:"reject" json:"reject"`
 	SchemaLocations        []string            `yaml:"schemaLocations" json:"schemaLocations"`
 	SkipKinds              map[string]struct{} `yaml:"skip" json:"skip"`
+	SkipMetadata           bool                `yaml:"skipMetadata" json:"skipMetadata"`
 	SkipTLS                bool                `yaml:"insecureSkipTLSVerify" json:"insecureSkipTLSVerify"`
 	Strict                 bool                `yaml:"strict" json:"strict"`
 	Summary                bool                `yaml:"summary" json:"summary"`
@@ -97,6 +98,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.StringVar(&c.OutputFormat, "output", "text", "output format - json, junit, pretty, tap, text")
 	flags.BoolVar(&c.Verbose, "verbose", false, "print results for all resources (ignored for tap and junit output)")
 	flags.BoolVar(&c.SkipTLS, "insecure-skip-tls-verify", false, "disable verification of the server's SSL certificate. This will make your HTTPS connections insecure")
+	flags.BoolVar(&c.SkipMetadata, "skip-metadata", false, "skip extra validations of metadata section")
 	flags.StringVar(&c.Cache, "cache", "", "cache schemas downloaded via HTTP to this folder")
 	flags.BoolVar(&c.Help, "h", false, "show help information")
 	flags.BoolVar(&c.Version, "v", false, "show version information")

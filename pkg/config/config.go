@@ -16,6 +16,7 @@ type Config struct {
 	Help                   bool                `yaml:"help" json:"help"`
 	IgnoreFilenamePatterns []string            `yaml:"ignoreFilenamePatterns" json:"ignoreFilenamePatterns"`
 	IgnoreMissingSchemas   bool                `yaml:"ignoreMissingSchemas" json:"ignoreMissingSchemas"`
+	InjectMissingDefaults  bool                `yaml:"injectMissingDefaults" json:"injectMissingDefaults"` // New field added
 	KubernetesVersion      k8sVersionValue     `yaml:"kubernetesVersion" json:"kubernetesVersion"`
 	NumberOfWorkers        int                 `yaml:"numberOfWorkers" json:"numberOfWorkers"`
 	OutputFormat           string              `yaml:"output" json:"output"`
@@ -100,6 +101,10 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.StringVar(&c.Cache, "cache", "", "cache schemas downloaded via HTTP to this folder")
 	flags.BoolVar(&c.Help, "h", false, "show help information")
 	flags.BoolVar(&c.Version, "v", false, "show version information")
+
+	// New flag added for injecting missing defaults
+	flags.BoolVar(&c.InjectMissingDefaults, "inject-missing-defaults", false, "Inject missing required fields with defaults from the schema")
+
 	flags.Usage = func() {
 		fmt.Fprintf(&buf, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", progName)
 		flags.PrintDefaults()

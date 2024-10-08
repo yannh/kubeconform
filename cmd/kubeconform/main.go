@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
 	"runtime/pprof"
 	"sync"
+
+	"sigs.k8s.io/yaml"
 
 	"github.com/yannh/kubeconform/pkg/config"
 	"github.com/yannh/kubeconform/pkg/output"
@@ -16,6 +20,69 @@ import (
 )
 
 var version = "development"
+
+// New function to load the manifest and schema for injecting defaults
+func loadManifestAndSchema(manifestPath, schemaPath string) (map[string]interface{}, map[string]interface{}, error) {
+	manifestFile, err := os.ReadFile(manifestPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error reading manifest file: %v", err)
+	}
+	var manifest map[string]interface{}
+	if err := yaml.Unmarshal(manifestFile, &manifest); err != nil {
+		return nil, nil, fmt.Errorf("error parsing manifest YAML: %v", err)
+	}
+
+	schemaFile, err := os.ReadFile(schemaPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error reading schema file: %v", err)
+	}
+	var schema map[string]interface{}
+	if err := json.Unmarshal(schemaFile, &schema); err != nil {
+		return nil, nil, fmt.Errorf("error parsing schema JSON: %v", err)
+	}
+
+	return manifest, schema, nil
+}
+
+// New function to inject defaults recursively
+func injectDefaultsRecursively(schema map[string]interface{}, manifest map[string]interface{}) {
+	properties, propertiesExist := schema["properties"].(map[string]interface{})
+	if !propertiesExist {
+		return
+	}
+
+	for key, subschema := range properties {
+		if _, keyExists := manifest[key]; !keyExists {
+			subSchemaMap, ok := subschema.(map[string]interface{})
+			if ok {
+				if defaultValue, hasDefault := subSchemaMap["default"]; hasDefault {
+					manifest[key] = defaultValue
+					fmt.Printf("Injected default for %s: %v\\n", key, defaultValue)
+				}
+			}
+		} else {
+			if subSchemaMap, ok := subschema.(map[string]interface{}); ok {
+				if subSchemaType, typeExists := subSchemaMap["type"].(string); typeExists {
+					if subSchemaType == "object" {
+						if nestedManifest, isMap := manifest[key].(map[string]interface{}); isMap {
+							injectDefaultsRecursively(subSchemaMap, nestedManifest)
+						}
+					} else if subSchemaType == "array" {
+						if arrayItems, hasItems := subSchemaMap["items"].(map[string]interface{}); hasItems {
+							if manifestArray, isArray := manifest[key].([]interface{}); isArray {
+								for _, item := range manifestArray {
+									if itemMap, isMap := item.(map[string]interface{}); isMap {
+										injectDefaultsRecursively(arrayItems, itemMap)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 func processResults(cancel context.CancelFunc, o output.Output, validationResults <-chan validator.Result, exitOnError bool) <-chan bool {
 	success := true
@@ -28,7 +95,7 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 			}
 			if o != nil {
 				if err := o.Write(res); err != nil {
-					fmt.Fprint(os.Stderr, "failed writing log\n")
+					fmt.Fprint(os.Stderr, "failed writing log\\n")
 				}
 			}
 			if !success && exitOnError {
@@ -99,10 +166,36 @@ func kubeconform(cfg config.Config) int {
 
 	var resourcesChan <-chan resource.Resource
 	var errors <-chan error
-	if useStdin {
-		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
+
+	// Use the manifest with injected defaults for validation
+	if cfg.InjectMissingDefaults {
+		manifest, schema, err := loadManifestAndSchema(cfg.Files[0], cfg.SchemaLocations[0])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error loading manifest or schema: %s\\n", err)
+			os.Exit(1)
+		}
+
+		// Inject defaults into the manifest
+		injectDefaultsRecursively(schema, manifest)
+
+		// Convert the modified manifest back to YAML for validation
+		updatedManifest, err := yaml.Marshal(manifest)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error converting updated manifest to YAML: %s\\n", err)
+			os.Exit(1)
+		}
+
+		// Use a buffer as io.Reader to pass updated manifest
+		manifestReader := bytes.NewReader(updatedManifest)
+
+		// Use the updated manifest for validation
+		resourcesChan, errors = resource.FromStream(ctx, "updatedManifest", manifestReader)
 	} else {
-		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns)
+		if useStdin {
+			resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
+		} else {
+			resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns)
+		}
 	}
 
 	// Process discovered resources across multiple workers
@@ -175,9 +268,10 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\\n", err.Error())
 		os.Exit(1)
 	}
 
+	// Inject defaults if the flag is enabled and validate the updated manifest
 	os.Exit(kubeconform(cfg))
 }

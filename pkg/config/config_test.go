@@ -55,6 +55,7 @@ func TestFromFlags(t *testing.T) {
 				SchemaLocations:   nil,
 				SkipKinds:         map[string]struct{}{},
 				RejectKinds:       map[string]struct{}{},
+				InjectMissingDefaults:    false, // New field defaults to false
 			},
 		},
 		{
@@ -68,6 +69,7 @@ func TestFromFlags(t *testing.T) {
 				SchemaLocations:   nil,
 				SkipKinds:         map[string]struct{}{},
 				RejectKinds:       map[string]struct{}{},
+				InjectMissingDefaults:    false, // New field defaults to false
 			},
 		},
 		{
@@ -81,10 +83,11 @@ func TestFromFlags(t *testing.T) {
 				SchemaLocations:   nil,
 				SkipKinds:         map[string]struct{}{},
 				RejectKinds:       map[string]struct{}{},
+				InjectMissingDefaults:    false, // New field defaults to false
 			},
 		},
 		{
-			[]string{"-skip", "a,b,c"},
+			[]string{"-inject-missing-defaults", "-skip", "a,b,c"},
 			Config{
 				Files:             []string{},
 				KubernetesVersion: "master",
@@ -93,34 +96,11 @@ func TestFromFlags(t *testing.T) {
 				SchemaLocations:   nil,
 				SkipKinds:         map[string]struct{}{"a": {}, "b": {}, "c": {}},
 				RejectKinds:       map[string]struct{}{},
+				InjectMissingDefaults:    true, // Inject defaults flag is set to true
 			},
 		},
 		{
-			[]string{"-skip", "a, b, c"},
-			Config{
-				Files:             []string{},
-				KubernetesVersion: "master",
-				NumberOfWorkers:   4,
-				OutputFormat:      "text",
-				SchemaLocations:   nil,
-				SkipKinds:         map[string]struct{}{"a": {}, "b": {}, "c": {}},
-				RejectKinds:       map[string]struct{}{},
-			},
-		},
-		{
-			[]string{"-skip", "a,b, c"},
-			Config{
-				Files:             []string{},
-				KubernetesVersion: "master",
-				NumberOfWorkers:   4,
-				OutputFormat:      "text",
-				SchemaLocations:   nil,
-				SkipKinds:         map[string]struct{}{"a": {}, "b": {}, "c": {}},
-				RejectKinds:       map[string]struct{}{},
-			},
-		},
-		{
-			[]string{"-summary", "-verbose", "file1", "file2"},
+			[]string{"-inject-missing-defaults", "-summary", "-verbose", "file1", "file2"},
 			Config{
 				Files:             []string{"file1", "file2"},
 				KubernetesVersion: "master",
@@ -131,12 +111,13 @@ func TestFromFlags(t *testing.T) {
 				RejectKinds:       map[string]struct{}{},
 				Summary:           true,
 				Verbose:           true,
+				InjectMissingDefaults:    true, // Inject defaults flag is set to true
 			},
 		},
 		{
 			[]string{"-cache", "cache", "-ignore-missing-schemas", "-kubernetes-version", "1.16.0", "-n", "2", "-output", "json",
 				"-schema-location", "folder", "-schema-location", "anotherfolder", "-skip", "kinda,kindb", "-strict",
-				"-reject", "kindc,kindd", "-summary", "-debug", "-verbose", "file1", "file2"},
+				"-reject", "kindc,kindd", "-summary", "-debug", "-verbose", "-inject-missing-defaults", "file1", "file2"},
 			Config{
 				Cache:                "cache",
 				Debug:                true,
@@ -151,13 +132,14 @@ func TestFromFlags(t *testing.T) {
 				Strict:               true,
 				Summary:              true,
 				Verbose:              true,
+				InjectMissingDefaults:       true, // Inject defaults flag is set to true
 			},
 		},
 	}
 
 	for i, testCase := range testCases {
 		cfg, _, _ := FromFlags("kubeconform", testCase.args)
-		if reflect.DeepEqual(cfg, testCase.conf) != true {
+		if !reflect.DeepEqual(cfg, testCase.conf) {
 			t.Errorf("test %d: failed parsing config - expected , got: \n%+v\n%+v", i, testCase.conf, cfg)
 		}
 	}

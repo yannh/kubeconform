@@ -43,6 +43,7 @@ type Result struct {
 	Err              error
 	Status           Status
 	ValidationErrors []ValidationError
+	InjectedDefaults []string // Add this field to store injected defaults
 }
 
 // Validator exposes multiple methods to validate your Kubernetes resources.
@@ -62,6 +63,7 @@ type Opts struct {
 	KubernetesVersion    string              // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
 	Strict               bool                // thros an error if resources contain undocumented fields
 	IgnoreMissingSchemas bool                // skip a resource if no schema for that resource can be found
+	InjectDefaults 			 bool 							 // Add this field to control default injection for missing properties
 }
 
 // New returns a new Validator
@@ -220,23 +222,24 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 func (val *v) ValidateWithContext(ctx context.Context, filename string, r io.ReadCloser) []Result {
 	validationResults := []Result{}
 	resourcesChan, _ := resource.FromStream(ctx, filename, r)
-	for {
-		select {
-		case res, ok := <-resourcesChan:
-			if ok {
-				validationResults = append(validationResults, val.ValidateResource(res))
-			} else {
-				resourcesChan = nil
+	loop:
+		for {
+			select {
+			case res, ok := <-resourcesChan:
+				if ok {
+					validationResults = append(validationResults, val.ValidateResource(res))
+				} else {
+					resourcesChan = nil
+				}
+	
+			case <-ctx.Done():
+				break loop
 			}
-
-		case <-ctx.Done():
-			break
+	
+			if resourcesChan == nil {
+				break
+			}
 		}
-
-		if resourcesChan == nil {
-			break
-		}
-	}
 
 	r.Close()
 	return validationResults

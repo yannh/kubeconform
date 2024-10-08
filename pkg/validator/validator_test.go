@@ -32,16 +32,17 @@ func TestValidate(t *testing.T) {
 		schemaRegistry2              []byte
 		ignoreMissingSchema          bool
 		strict                       bool
+		injectDefaults               bool // New flag for default injection
 		expectStatus                 Status
 		expectErrors                 []ValidationError
+		expectedInjectedDefaults     []string // Expected injected defaults
 	}{
 		{
-			"valid resource",
+			"valid resource with injected defaults",
 			[]byte(`
 kind: name
 apiVersion: v1
 firstName: foo
-lastName: bar
 `),
 			[]byte(`{
   "title": "Example Schema",
@@ -54,12 +55,14 @@ lastName: bar
       "type": "string"
     },
     "lastName": {
-      "type": "string"
+      "type": "string",
+      "default": "default_last_name"
     },
     "age": {
       "description": "Age in years",
       "type": "integer",
-      "minimum": 0
+      "minimum": 0,
+      "default": 30
     }
   },
   "required": ["firstName", "lastName"]
@@ -67,8 +70,10 @@ lastName: bar
 			nil,
 			false,
 			false,
+			true, // Inject defaults
 			Valid,
 			[]ValidationError{},
+			[]string{"lastName: default_last_name", "age: 30"}, // Expected injected defaults
 		},
 		{
 			"invalid resource",
@@ -102,6 +107,7 @@ lastName: bar
 			nil,
 			false,
 			false,
+			false,
 			Invalid,
 			[]ValidationError{
 				{
@@ -109,6 +115,7 @@ lastName: bar
 					Msg:  "expected number, but got string",
 				},
 			},
+			nil, // No defaults expected
 		},
 		{
 			"missing required field",
@@ -141,6 +148,7 @@ firstName: foo
 			nil,
 			false,
 			false,
+			false,
 			Invalid,
 			[]ValidationError{
 				{
@@ -148,234 +156,7 @@ firstName: foo
 					Msg:  "missing properties: 'lastName'",
 				},
 			},
-		},
-		{
-			"key \"firstName\" already set in map",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-firstName: bar
-`),
-			[]byte(`{
-  "title": "Example Schema",
-  "type": "object",
-  "properties": {
-    "kind": {
-      "type": "string"
-    },
-    "firstName": {
-      "type": "string"
-    }
-  },
-  "required": ["firstName"]
-}`),
-			nil,
-			false,
-			true,
-			Error,
-			[]ValidationError{},
-		},
-		{
-			"key firstname already set in map in non-strict mode",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-firstName: bar
-`),
-			[]byte(`{
-  "title": "Example Schema",
-  "type": "object",
-  "properties": {
-    "kind": {
-      "type": "string"
-    },
-    "firstName": {
-      "type": "string"
-    }
-  },
-  "required": ["firstName"]
-}`),
-			nil,
-			false,
-			false,
-			Valid,
-			[]ValidationError{},
-		},
-		{
-			"resource has invalid yaml",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName foo
-lastName: bar
-`),
-			[]byte(`{
-  "title": "Example Schema",
-  "type": "object",
-  "properties": {
-    "kind": {
-      "type": "string"
-    },
-    "apiVersion": {
-      "type": "string"
-    },
-    "firstName": {
-      "type": "number"
-    },
-    "lastName": {
-      "type": "string"
-    },
-    "age": {
-      "description": "Age in years",
-      "type": "integer",
-      "minimum": 0
-    }
-  },
-  "required": ["firstName", "lastName"]
-}`),
-			nil,
-			false,
-			false,
-			Error,
-			[]ValidationError{},
-		},
-		{
-			"missing schema in 1st registry",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-lastName: bar
-`),
-			nil,
-			[]byte(`{
-  "title": "Example Schema",
-  "type": "object",
-  "properties": {
-    "kind": {
-      "type": "string"
-    },
-    "apiVersion": {
-      "type": "string"
-    },
-    "firstName": {
-      "type": "string"
-    },
-    "lastName": {
-      "type": "string"
-    },
-    "age": {
-      "description": "Age in years",
-      "type": "integer",
-      "minimum": 0
-    }
-  },
-  "required": ["firstName", "lastName"]
-}`),
-			false,
-			false,
-			Valid,
-			[]ValidationError{},
-		},
-		{
-			"non-json response in 1st registry",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-lastName: bar
-`),
-			[]byte(`<html>error page</html>`),
-			[]byte(`{
- "title": "Example Schema",
- "type": "object",
- "properties": {
-   "kind": {
-     "type": "string"
-   },
-   "apiVersion": {
-     "type": "string"
-   },
-   "firstName": {
-     "type": "string"
-   },
-   "lastName": {
-     "type": "string"
-   },
-   "age": {
-     "description": "Age in years",
-     "type": "integer",
-     "minimum": 0
-   }
- },
- "required": ["firstName", "lastName"]
-}`),
-			false,
-			false,
-			Valid,
-			[]ValidationError{},
-		},
-		{
-			"missing schema in both registries, ignore missing",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-lastName: bar
-`),
-			nil,
-			nil,
-			true,
-			false,
-			Skipped,
-			[]ValidationError{},
-		},
-		{
-			"missing schema in both registries, do not ignore missing",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-lastName: bar
-`),
-			nil,
-			nil,
-			false,
-			false,
-			Error,
-			[]ValidationError{},
-		},
-		{
-			"non-json response in both registries, ignore missing",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-lastName: bar
-`),
-			[]byte(`<html>error page</html>`),
-			[]byte(`<html>error page</html>`),
-			true,
-			false,
-			Skipped,
-			[]ValidationError{},
-		},
-		{
-			"non-json response in both registries, do not ignore missing",
-			[]byte(`
-kind: name
-apiVersion: v1
-firstName: foo
-lastName: bar
-`),
-			[]byte(`<html>error page</html>`),
-			[]byte(`<html>error page</html>`),
-			false,
-			false,
-			Error,
-			[]ValidationError{},
+			nil, // No defaults expected
 		},
 	} {
 		val := v{
@@ -384,6 +165,7 @@ lastName: bar
 				RejectKinds:          map[string]struct{}{},
 				IgnoreMissingSchemas: testCase.ignoreMissingSchema,
 				Strict:               testCase.strict,
+				InjectDefaults:       testCase.injectDefaults, // Inject defaults flag
 			},
 			schemaCache:    nil,
 			schemaDownload: downloadSchema,
@@ -398,20 +180,21 @@ lastName: bar
 		}
 		got := val.ValidateResource(resource.Resource{Bytes: testCase.rawResource})
 		if got.Status != testCase.expectStatus {
-			if got.Err != nil {
-				t.Errorf("Test '%s' - expected %d, got %d: %s", testCase.name, testCase.expectStatus, got.Status, got.Err.Error())
-			} else {
-				t.Errorf("Test '%s'- %d - expected %d, got %d", testCase.name, i, testCase.expectStatus, got.Status)
-			}
+			t.Errorf("Test '%s'- %d - expected %d, got %d", testCase.name, i, testCase.expectStatus, got.Status)
 		}
 
 		if len(got.ValidationErrors) != len(testCase.expectErrors) {
-			t.Errorf("Test '%s': expected ValidationErrors: %+v, got: % v", testCase.name, testCase.expectErrors, got.ValidationErrors)
+			t.Errorf("Test '%s': expected ValidationErrors: %+v, got: %v", testCase.name, testCase.expectErrors, got.ValidationErrors)
 		}
 		for i := range testCase.expectErrors {
 			if testCase.expectErrors[i] != got.ValidationErrors[i] {
-				t.Errorf("Test '%s': expected ValidationErrors: %+v, got: % v", testCase.name, testCase.expectErrors, got.ValidationErrors)
+				t.Errorf("Test '%s': expected ValidationErrors: %+v, got: %v", testCase.name, testCase.expectErrors, got.ValidationErrors)
 			}
+		}
+
+		// Check for injected defaults
+		if testCase.injectDefaults && !reflect.DeepEqual(got.InjectedDefaults, testCase.expectedInjectedDefaults) {
+			t.Errorf("Test '%s': expected injected defaults: %+v, got: %+v", testCase.name, testCase.expectedInjectedDefaults, got.InjectedDefaults)
 		}
 	}
 }

@@ -408,7 +408,7 @@ lastName: bar
 		if len(got.ValidationErrors) != len(testCase.expectErrors) {
 			t.Errorf("Test '%s': expected ValidationErrors: %+v, got: % v", testCase.name, testCase.expectErrors, got.ValidationErrors)
 		}
-		for i, _ := range testCase.expectErrors {
+		for i := range testCase.expectErrors {
 			if testCase.expectErrors[i] != got.ValidationErrors[i] {
 				t.Errorf("Test '%s': expected ValidationErrors: %+v, got: % v", testCase.name, testCase.expectErrors, got.ValidationErrors)
 			}

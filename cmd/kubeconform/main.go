@@ -44,8 +44,8 @@ func loadManifestAndSchema(manifestPath, schemaPath string) (map[string]interfac
 	return manifest, schema, nil
 }
 
-// New function to inject defaults recursively
-func injectDefaultsRecursively(schema map[string]interface{}, manifest map[string]interface{}) {
+// New function to inject defaults recursively and return the injected defaults in a list form
+func injectDefaultsRecursively(schema map[string]interface{}, manifest map[string]interface{}, injectedDefaults *[]string) {
 	properties, propertiesExist := schema["properties"].(map[string]interface{})
 	if !propertiesExist {
 		return
@@ -57,7 +57,7 @@ func injectDefaultsRecursively(schema map[string]interface{}, manifest map[strin
 			if ok {
 				if defaultValue, hasDefault := subSchemaMap["default"]; hasDefault {
 					manifest[key] = defaultValue
-					fmt.Printf("Injected default for %s: %v\\n", key, defaultValue)
+					*injectedDefaults = append(*injectedDefaults, fmt.Sprintf("%s: %v", key, defaultValue))
 				}
 			}
 		} else {
@@ -65,14 +65,14 @@ func injectDefaultsRecursively(schema map[string]interface{}, manifest map[strin
 				if subSchemaType, typeExists := subSchemaMap["type"].(string); typeExists {
 					if subSchemaType == "object" {
 						if nestedManifest, isMap := manifest[key].(map[string]interface{}); isMap {
-							injectDefaultsRecursively(subSchemaMap, nestedManifest)
+							injectDefaultsRecursively(subSchemaMap, nestedManifest, injectedDefaults)
 						}
 					} else if subSchemaType == "array" {
 						if arrayItems, hasItems := subSchemaMap["items"].(map[string]interface{}); hasItems {
 							if manifestArray, isArray := manifest[key].([]interface{}); isArray {
 								for _, item := range manifestArray {
 									if itemMap, isMap := item.(map[string]interface{}); isMap {
-										injectDefaultsRecursively(arrayItems, itemMap)
+										injectDefaultsRecursively(arrayItems, itemMap, injectedDefaults)
 									}
 								}
 							}
@@ -95,7 +95,7 @@ func processResults(cancel context.CancelFunc, o output.Output, validationResult
 			}
 			if o != nil {
 				if err := o.Write(res); err != nil {
-					fmt.Fprint(os.Stderr, "failed writing log\\n")
+					fmt.Fprint(os.Stderr, "failed writing log\n")
 				}
 			}
 			if !success && exitOnError {
@@ -171,17 +171,28 @@ func kubeconform(cfg config.Config) int {
 	if cfg.InjectMissingDefaults {
 		manifest, schema, err := loadManifestAndSchema(cfg.Files[0], cfg.SchemaLocations[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error loading manifest or schema: %s\\n", err)
+			fmt.Fprintf(os.Stderr, "error loading manifest or schema: %s\n", err)
 			os.Exit(1)
 		}
 
+		// List to store injected defaults
+		var injectedDefaults []string
+
 		// Inject defaults into the manifest
-		injectDefaultsRecursively(schema, manifest)
+		injectDefaultsRecursively(schema, manifest, &injectedDefaults)
+
+		// Display injected defaults in list form if verbose flag is enabled
+		if cfg.Verbose && len(injectedDefaults) > 0 {
+			fmt.Println("Injected Defaults:")
+			for _, def := range injectedDefaults {
+				fmt.Printf(" - %s\n", def)
+			}
+		}
 
 		// Convert the modified manifest back to YAML for validation
 		updatedManifest, err := yaml.Marshal(manifest)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error converting updated manifest to YAML: %s\\n", err)
+			fmt.Fprintf(os.Stderr, "error converting updated manifest to YAML: %s\n", err)
 			os.Exit(1)
 		}
 
@@ -268,7 +279,7 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\\n", err.Error())
+		fmt.Fprintf(os.Stderr, "failed parsing command line: %s\n", err.Error())
 		os.Exit(1)
 	}
 

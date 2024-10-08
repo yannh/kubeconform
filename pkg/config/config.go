@@ -52,7 +52,7 @@ func (kv k8sVersionValue) MarshalText() ([]byte, error) {
 }
 
 func (kv *k8sVersionValue) UnmarshalText(v []byte) error {
-	if ok, _ := regexp.MatchString(`^(master|\d+\.\d+\.\d+)$`, string(v)); ok != true {
+	if ok, _ := regexp.MatchString(`^(master|\d+\.\d+\.\d+)$`, string(v)); !ok {
 		return fmt.Errorf("%v is not a valid version. Valid values are \"master\" (default) or full version x.y.z (e.g. \"1.27.2\")", string(v))
 	}
 	*kv = k8sVersionValue(v)
@@ -103,7 +103,7 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	flags.BoolVar(&c.Version, "v", false, "show version information")
 
 	// New flag added for injecting missing defaults
-	flags.BoolVar(&c.InjectMissingDefaults, "inject-missing-defaults", false, "Inject missing required fields with defaults from the schema")
+	flags.BoolVar(&c.InjectMissingDefaults, "inject-missing-defaults", true, "Inject missing required fields with defaults from the schema")
 
 	flags.Usage = func() {
 		fmt.Fprintf(&buf, "Usage: %s [OPTION]... [FILE OR FOLDER]...\n", progName)

@@ -10,14 +10,15 @@
 
 It is inspired by, contains code from and is designed to stay close to
 [Kubeval](https://github.com/instrumenta/kubeval), but with the following improvements:
- * **high performance**: will validate & download manifests over multiple routines, caching
-   downloaded files in memory
- * configurable list of **remote, or local schemas locations**, enabling validating Kubernetes
-   custom resources (CRDs) and offline validation capabilities
- * uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
-   by the kubernetes-json-schema project - which guarantees
-   up-to-date **schemas for all recent versions of Kubernetes**.
-   
+
+- **high performance**: will validate & download manifests over multiple routines, caching
+  downloaded files in memory
+- configurable list of **remote, or local schemas locations**, enabling validating Kubernetes
+  custom resources (CRDs) and offline validation capabilities
+- uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
+  by the kubernetes-json-schema project - which guarantees
+  up-to-date **schemas for all recent versions of Kubernetes**.
+
 <details><summary><h4>Speed comparison with Kubeval</h4></summary><p>
 Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:
    
@@ -37,21 +38,21 @@ sys	0m1,069s
 
 ## Table of contents
 
-* [A small overview of Kubernetes manifest validation](#a-small-overview-of-kubernetes-manifest-validation)
-  * [Limits of Kubeconform validation](#Limits-of-Kubeconform-validation)
-* [Installation](#Installation)
-* [Usage](#Usage)
-  * [Usage examples](#Usage-examples)
-  * [Proxy support](#Proxy-support)
-* [Overriding schemas location](#Overriding-schemas-location)
-  * [CustomResourceDefinition (CRD) Support](#CustomResourceDefinition-CRD-Support)
-  * [OpenShift schema Support](#OpenShift-schema-Support)
-* [Integrating Kubeconform in the CI](#Integrating-Kubeconform-in-the-CI)
-  * [Github Workflow](#Github-Workflow)
-  * [Gitlab-CI](#Gitlab-CI)
-* [Helm charts](#helm-charts)
-* [Using kubeconform as a Go Module](#Using-kubeconform-as-a-Go-Module)
-* [Credits](#Credits)
+- [A small overview of Kubernetes manifest validation](#a-small-overview-of-kubernetes-manifest-validation)
+  - [Limits of Kubeconform validation](#Limits-of-Kubeconform-validation)
+- [Installation](#Installation)
+- [Usage](#Usage)
+  - [Usage examples](#Usage-examples)
+  - [Proxy support](#Proxy-support)
+- [Overriding schemas location](#Overriding-schemas-location)
+  - [CustomResourceDefinition (CRD) Support](#CustomResourceDefinition-CRD-Support)
+  - [OpenShift schema Support](#OpenShift-schema-Support)
+- [Integrating Kubeconform in the CI](#Integrating-Kubeconform-in-the-CI)
+  - [Github Workflow](#Github-Workflow)
+  - [Gitlab-CI](#Gitlab-CI)
+- [Helm charts](#helm-charts)
+- [Using kubeconform as a Go Module](#Using-kubeconform-as-a-Go-Module)
+- [Credits](#Credits)
 
 ## A small overview of Kubernetes manifest validation
 
@@ -103,51 +104,55 @@ $ go install github.com/yannh/kubeconform/cmd/kubeconform@latest
 
 ```
 $ kubeconform -h
-Usage: kubeconform [OPTION]... [FILE OR FOLDER]...
+Usage: ./kubeconform [OPTION]... [FILE OR FOLDER]...
   -cache string
-    	cache schemas downloaded via HTTP to this folder
+        cache schemas downloaded via HTTP to this folder
   -debug
-    	print debug information
+        print debug information
   -exit-on-error
-    	immediately stop execution when the first error is encountered
-  -h	show help information
+        immediately stop execution when the first error is encountered
+  -h    show help information
   -ignore-filename-pattern value
-    	regular expression specifying paths to ignore (can be specified multiple times)
+        regular expression specifying paths to ignore (can be specified multiple times)
   -ignore-missing-schemas
-    	skip files with missing schemas instead of failing
+        skip files with missing schemas instead of failing
+  -inject-missing-defaults
+        Inject missing required fields with defaults from the schema (default true)
   -insecure-skip-tls-verify
-    	disable verification of the server's SSL certificate. This will make your HTTPS connections insecure
-  -kubernetes-version string
-    	version of Kubernetes to validate against, e.g.: 1.18.0 (default "master")
+        disable verification of the server's SSL certificate. This will make your HTTPS connections insecure
+  -kubernetes-version value
+        version of Kubernetes to validate against, e.g.: 1.18.0 (default master)
   -n int
-    	number of goroutines to run concurrently (default 4)
+        number of goroutines to run concurrently (default 4)
   -output string
-    	output format - json, junit, pretty, tap, text (default "text")
+        output format - json, junit, pretty, tap, text (default "text")
   -reject string
-    	comma-separated list of kinds or GVKs to reject
+        comma-separated list of kinds or GVKs to reject
   -schema-location value
-    	override schemas location search path (can be specified multiple times)
+        override schemas location search path (can be specified multiple times)
   -skip string
-    	comma-separated list of kinds or GVKs to ignore
+        comma-separated list of kinds or GVKs to ignore
   -strict
-    	disallow additional properties not in schema or duplicated keys
+        disallow additional properties not in schema or duplicated keys
   -summary
-    	print a summary at the end (ignored for junit output)
-  -v	show version information
+        print a summary at the end (ignored for junit output)
+  -v    show version information
   -verbose
-    	print results for all resources (ignored for tap and junit output)
+        print results for all resources (ignored for tap and junit output)
 ```
 
 ### Usage examples
 
-* Validating a single, valid file
+- Validating a single, valid file
+
 ```bash
 $ kubeconform fixtures/valid.yaml
 $ echo $?
 0
 ```
 
-* Validating a single invalid file, setting output to json, and printing a summary
+- Validating a single invalid file, setting output to json, and printing a summary
+
 ```bash
 $ kubeconform -summary -output json fixtures/invalid.yaml
 {
@@ -171,13 +176,15 @@ $ echo $?
 1
 ```
 
-* Passing manifests via Stdin
+- Passing manifests via Stdin
+
 ```bash
 cat fixtures/valid.yaml  | ./bin/kubeconform -summary
 Summary: 1 resource found parsing stdin - Valid: 1, Invalid: 0, Errors: 0 Skipped: 0
 ```
 
-* Validating a file, ignoring its resource using both Kind, and GVK (Group, Version, Kind) notations
+- Validating a file, ignoring its resource using both Kind, and GVK (Group, Version, Kind) notations
+
 ```
 # This will ignore ReplicationController for all apiVersions
 $ kubeconform -summary -skip ReplicationController fixtures/valid.yaml
@@ -188,7 +195,8 @@ $ kubeconform -summary -skip v1/ReplicationController fixtures/valid.yaml
 Summary: 1 resource found in 1 file - Valid: 0, Invalid: 0, Errors: 0, Skipped: 1
 ```
 
-* Validating a folder, increasing the number of parallel workers
+- Validating a folder, increasing the number of parallel workers
+
 ```
 $ kubeconform -summary -n 16 fixtures
 fixtures/crd_schema.yaml - CustomResourceDefinition trainingjobs.sagemaker.aws.amazon.com failed validation: could not find schema for CustomResourceDefinition
@@ -212,31 +220,34 @@ schemas from https://github.com/yannh/kubernetes-json-schema. Kubeconform howeve
 schemas locations - HTTP(s) URLs, or local filesystem paths, in which case it will lookup for schema definitions
 in each of them, in order, stopping as soon as a matching file is found.
 
- * If the `-schema-location` value does not end with `.json`, Kubeconform will assume filenames / a file
- structure identical to that of [kubernetesjsonschema.dev](https://kubernetesjsonschema.dev/) or [yannh/kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema).
- * if the `-schema-location` value ends with `.json` - Kubeconform assumes the value is a **Go templated
- string** that indicates how to search for JSON schemas.
-* the `-schema-location` value of `default` is an alias for `https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json`.
+- If the `-schema-location` value does not end with `.json`, Kubeconform will assume filenames / a file
+  structure identical to that of [kubernetesjsonschema.dev](https://kubernetesjsonschema.dev/) or [yannh/kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema).
+- if the `-schema-location` value ends with `.json` - Kubeconform assumes the value is a **Go templated
+  string** that indicates how to search for JSON schemas.
+- the `-schema-location` value of `default` is an alias for `https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json`.
 
 **The following command lines are equivalent:**
+
 ```bash
 $ kubeconform fixtures/valid.yaml
 $ kubeconform -schema-location default fixtures/valid.yaml
 $ kubeconform -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json' fixtures/valid.yaml
 ```
+
 Here are the variables you can use in -schema-location:
- * *NormalizedKubernetesVersion* - Kubernetes Version, prefixed by v
- * *StrictSuffix* - "-strict" or "" depending on whether validation is running in strict mode or not
- * *ResourceKind* - Kind of the Kubernetes Resource
- * *ResourceAPIVersion* - Version of API used for the resource - "v1" in "apiVersion: monitoring.coreos.com/v1"
- * *Group* - the group name as stated in this resource's definition - "monitoring.coreos.com" in "apiVersion: monitoring.coreos.com/v1"
- * *KindSuffix* - suffix computed from apiVersion - for compatibility with `Kubeval` schema registries
+
+- _NormalizedKubernetesVersion_ - Kubernetes Version, prefixed by v
+- _StrictSuffix_ - "-strict" or "" depending on whether validation is running in strict mode or not
+- _ResourceKind_ - Kind of the Kubernetes Resource
+- _ResourceAPIVersion_ - Version of API used for the resource - "v1" in "apiVersion: monitoring.coreos.com/v1"
+- _Group_ - the group name as stated in this resource's definition - "monitoring.coreos.com" in "apiVersion: monitoring.coreos.com/v1"
+- _KindSuffix_ - suffix computed from apiVersion - for compatibility with `Kubeval` schema registries
 
 ### CustomResourceDefinition (CRD) Support
 
 Because Custom Resources (CR) are not native Kubernetes objects, they are not included in the default schema.  
 If your CRs are present in [Datree's CRDs-catalog](https://github.com/datreeio/CRDs-catalog), you can specify this project as an additional registry to lookup:
-  
+
 ```bash
 # Look in the CRDs-catalog for the desired schema/s
 $ kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' [MANIFEST]
@@ -298,6 +309,7 @@ can be used directly in a Github Action, once logged in using a [_Github Token_]
 ### Github Workflow
 
 Example:
+
 ```yaml
 name: kubeconform
 on: push
@@ -310,7 +322,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: docker://ghcr.io/yannh/kubeconform:latest
         with:
-          entrypoint: '/kubeconform'
+          entrypoint: "/kubeconform"
           args: "-summary -output json kubeconfigs/"
 ```
 
@@ -331,7 +343,7 @@ lint-kubeconform:
     name: ghcr.io/yannh/kubeconform:latest-alpine
     entrypoint: [""]
   script:
-  - /kubeconform -summary -output json kubeconfigs/
+    - /kubeconform -summary -output json kubeconfigs/
 ```
 
 See [issue 106](https://github.com/yannh/kubeconform/issues/106) for more details.
@@ -354,5 +366,5 @@ Additional documentation on [pkg.go.dev](https://pkg.go.dev/github.com/yannh/kub
 
 ## Credits
 
- * @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and
- [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) projects ❤️
+- @garethr for the [Kubeval](https://github.com/instrumenta/kubeval) and
+  [kubernetes-json-schema](https://github.com/instrumenta/kubernetes-json-schema) projects ❤️

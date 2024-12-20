@@ -127,7 +127,7 @@ if __name__ == "__main__":
       exit(1)
 
   for crdFile in sys.argv[1:]:
-      if crdFile.startswith("http"):
+      if crdFile.startswith("http:") or crdFile.startsWith("https:"):
         f = urllib.request.urlopen(crdFile)
       else:
         f = open(crdFile)

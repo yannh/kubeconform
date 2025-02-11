@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v5"
 	_ "github.com/santhosh-tekuri/jsonschema/v5/httploader"
@@ -202,7 +203,6 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 					Msg:  ve.Message,
 				})
 			}
-
 		}
 		return Result{
 			Resource:         res,
@@ -248,6 +248,21 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 	return val.ValidateWithContext(context.Background(), filename, r)
 }
 
+// validateDuration is a custom validator for the duration format
+// as JSONSchema only supports the ISO 8601 format, i.e. `PT1H30M`,
+// while Kubernetes API machinery expects the Go duration format, i.e. `1h30m`
+// which is commonly used in Kubernetes operators for specifying intervals.
+// https://github.com/kubernetes/apiextensions-apiserver/blob/1ecd29f74da0639e2e6e3b8fac0c9bfd217e05eb/pkg/apis/apiextensions/v1/types_jsonschema.go#L71
+func validateDuration(v any) bool {
+	// Try validation with the Go duration format
+	if _, err := time.ParseDuration(v.(string)); err == nil {
+		return true
+	}
+
+	// Try validation with the ISO 8601 format
+	return jsonschema.Formats["duration"](v)
+}
+
 func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
 	var err error
 	var schemaBytes []byte
@@ -257,6 +272,9 @@ func downloadSchema(registries []registry.Registry, kind, version, k8sVersion st
 		path, schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
 			c := jsonschema.NewCompiler()
+
+			// Overwrite duration validatior
+			c.Formats["duration"] = validateDuration
 			c.Draft = jsonschema.Draft4
 			if err := c.AddResource(path, bytes.NewReader(schemaBytes)); err != nil {
 				continue

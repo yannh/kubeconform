@@ -1,7 +1,10 @@
 package resource
 
 import (
+	"context"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -199,6 +202,109 @@ lorem: ipsum
 			if string(r.Bytes) != string(testCase.res[j].Bytes) {
 				t.Errorf("test %d, resource %d, expected Bytes %s, received %s", i, j, string(testCase.res[j].Bytes), string(r.Bytes))
 			}
+		}
+	}
+}
+
+// Test generated using Keploy
+func TestFindFilesInFolders_BasicFunctionality(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	tempDir := t.TempDir()
+	os.WriteFile(filepath.Join(tempDir, "file1.yaml"), []byte{}, 0644)
+	os.WriteFile(filepath.Join(tempDir, "file2.json"), []byte{}, 0644)
+	os.WriteFile(filepath.Join(tempDir, "ignored.txt"), []byte{}, 0644)
+
+	ignorePatterns := []string{".*ignored.*"}
+	files, errors := findFilesInFolders(ctx, []string{tempDir}, ignorePatterns)
+
+	receivedFiles := []string{}
+	for f := range files {
+		receivedFiles = append(receivedFiles, f)
+	}
+
+	if len(receivedFiles) != 2 {
+		t.Errorf("expected 2 files, got %d: %v", len(receivedFiles), receivedFiles)
+	}
+
+	select {
+	case err := <-errors:
+		t.Errorf("unexpected error: %v", err)
+	default:
+	}
+}
+
+// Test generated using Keploy
+func TestFindResourcesInFile_ErrorHandling(t *testing.T) {
+	resources := make(chan Resource)
+	errors := make(chan error)
+	buf := make([]byte, 4*1024*1024)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		for err := range errors {
+			if err == nil {
+				t.Errorf("expected an error, got nil")
+			}
+		}
+	}()
+
+	findResourcesInFile("nonexistent.yaml", resources, errors, buf)
+	close(resources)
+	close(errors)
+	wg.Wait()
+}
+
+// Test generated using Keploy
+func TestDiscoveryError_ErrorMethod(t *testing.T) {
+	underlyingErr := "file not found"
+	de := DiscoveryError{
+		Path: "/path/to/file.yaml",
+		Err:  fmt.Errorf(underlyingErr),
+	}
+
+	if de.Error() != underlyingErr {
+		t.Errorf("expected error message '%s', got '%s'", underlyingErr, de.Error())
+	}
+}
+
+// Test generated using Keploy
+func TestIsIgnored_MultiplePatterns(t *testing.T) {
+	for i, testCase := range []struct {
+		path            string
+		ignorePatterns  []string
+		expectedIgnored bool
+		expectedError   bool
+	}{
+		{
+			path:            "/path/to/ignored/file.yaml",
+			ignorePatterns:  []string{".*ignored.*", ".*file.*"},
+			expectedIgnored: true,
+			expectedError:   false,
+		},
+		{
+			path:            "/path/to/not_ignored/file.yaml",
+			ignorePatterns:  []string{".*ignored.*", ".*not.*"},
+			expectedIgnored: true,
+			expectedError:   false,
+		},
+		{
+			path:            "/path/to/file.yaml",
+			ignorePatterns:  []string{"[invalid_regex"},
+			expectedIgnored: false,
+			expectedError:   true,
+		},
+	} {
+		ignored, err := isIgnored(testCase.path, testCase.ignorePatterns)
+		if ignored != testCase.expectedIgnored {
+			t.Errorf("test %d: expected ignored=%t, got %t", i+1, testCase.expectedIgnored, ignored)
+		}
+		if (err != nil) != testCase.expectedError {
+			t.Errorf("test %d: expected error=%t, got %v", i+1, testCase.expectedError, err)
 		}
 	}
 }

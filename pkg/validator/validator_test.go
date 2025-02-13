@@ -1,14 +1,15 @@
 package validator
 
 import (
-	"bytes"
-	"io"
-	"reflect"
-	"testing"
+    "bytes"
+    "io"
+    "reflect"
+    "testing"
 
-	"github.com/yannh/kubeconform/pkg/registry"
+    "github.com/yannh/kubeconform/pkg/registry"
 
-	"github.com/yannh/kubeconform/pkg/resource"
+    "github.com/yannh/kubeconform/pkg/resource"
+    "github.com/yannh/kubeconform/pkg/cache"
 )
 
 type mockRegistry struct {
@@ -531,4 +532,132 @@ firstName: foo
 	if !reflect.DeepEqual(expectedValidationErrors, gotValidationErrors) {
 		t.Errorf("Expected %+v, got %+v", expectedValidationErrors, gotValidationErrors)
 	}
+}
+
+
+// Test generated using Keploy
+func TestValidateResource_EmptyResource(t *testing.T) {
+    val := v{
+        opts: Opts{
+            SkipKinds:   map[string]struct{}{},
+            RejectKinds: map[string]struct{}{},
+        },
+        schemaCache:    nil,
+        schemaDownload: downloadSchema,
+        regs:           []registry.Registry{},
+    }
+
+    res := resource.Resource{Bytes: []byte{}}
+    result := val.ValidateResource(res)
+
+    if result.Status != Empty {
+        t.Errorf("Expected status %v, got %v", Empty, result.Status)
+    }
+}
+
+
+// Test generated using Keploy
+func TestValidateResource_ProhibitedKind(t *testing.T) {
+    val := v{
+        opts: Opts{
+            SkipKinds:   map[string]struct{}{},
+            RejectKinds: map[string]struct{}{"ProhibitedKind": {}},
+        },
+        schemaCache:    nil,
+        schemaDownload: downloadSchema,
+        regs:           []registry.Registry{},
+    }
+
+    rawResource := []byte(`
+    kind: ProhibitedKind
+    apiVersion: v1
+    firstName: foo
+    lastName: bar
+    `)
+    res := resource.Resource{Bytes: rawResource}
+    result := val.ValidateResource(res)
+
+    if result.Status != Error {
+        t.Errorf("Expected status %v, got %v", Error, result.Status)
+    }
+    if result.Err == nil || result.Err.Error() != "prohibited resource kind ProhibitedKind" {
+        t.Errorf("Expected error 'prohibited resource kind ProhibitedKind', got %v", result.Err)
+    }
+}
+
+
+// Test generated using Keploy
+func TestValidateResource_RegistrySchema(t *testing.T) {
+    schema := []byte(`{
+      "title": "Example Schema",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        }
+      },
+      "required": ["firstName", "lastName"]
+    }`)
+
+    val := v{
+        opts: Opts{
+            SkipKinds:   map[string]struct{}{},
+            RejectKinds: map[string]struct{}{},
+        },
+        schemaCache:    cache.NewInMemoryCache(),
+        schemaDownload: downloadSchema,
+        regs: []registry.Registry{
+            newMockRegistry(func() (string, []byte, error) {
+                return "", schema, nil
+            }),
+        },
+    }
+
+    rawResource := []byte(`
+    kind: name
+    apiVersion: v1
+    firstName: foo
+    lastName: bar
+    `)
+    res := resource.Resource{Bytes: rawResource}
+    result := val.ValidateResource(res)
+
+    if result.Status != Valid {
+        t.Errorf("Expected status %v, got %v", Valid, result.Status)
+    }
+}
+
+
+// Test generated using Keploy
+func TestValidateResource_SkipKinds(t *testing.T) {
+    val := v{
+        opts: Opts{
+            SkipKinds: map[string]struct{}{
+                "SkippedKind": {},
+            },
+            RejectKinds: map[string]struct{}{},
+        },
+        schemaCache:    nil,
+        schemaDownload: downloadSchema,
+        regs:           []registry.Registry{},
+    }
+
+    rawResource := []byte(`
+    kind: SkippedKind
+    apiVersion: v1
+    firstName: foo
+    lastName: bar
+    `)
+    res := resource.Resource{Bytes: rawResource}
+    result := val.ValidateResource(res)
+
+    if result.Status != Skipped {
+        t.Errorf("Expected status %v, got %v", Skipped, result.Status)
+    }
 }

@@ -406,11 +406,11 @@ lastName: bar
 		}
 
 		if len(got.ValidationErrors) != len(testCase.expectErrors) {
-			t.Errorf("Test '%s': expected ValidationErrors: %+v, got: % v", testCase.name, testCase.expectErrors, got.ValidationErrors)
+			t.Errorf("Test '%s': expected ValidationErrors: %+#v, got: %+#v", testCase.name, testCase.expectErrors, got.ValidationErrors)
 		}
 		for i, _ := range testCase.expectErrors {
 			if testCase.expectErrors[i] != got.ValidationErrors[i] {
-				t.Errorf("Test '%s': expected ValidationErrors: %+v, got: % v", testCase.name, testCase.expectErrors, got.ValidationErrors)
+				t.Errorf("Test '%s': expected ValidationErrors: %+#v, got: %+#v", testCase.name, testCase.expectErrors, got.ValidationErrors)
 			}
 		}
 	}
@@ -467,7 +467,7 @@ age: not a number
 
 	got := val.ValidateResource(resource.Resource{Bytes: rawResource})
 	if !reflect.DeepEqual(expectedErrors, got.ValidationErrors) {
-		t.Errorf("Expected %+v, got %+v", expectedErrors, got.ValidationErrors)
+		t.Errorf("Expected %+#v, got %+#v", expectedErrors, got.ValidationErrors)
 	}
 }
 
@@ -529,6 +529,6 @@ firstName: foo
 		t.Errorf("Expected %+v, got %+v", expectedStatuses, gotStatuses)
 	}
 	if !reflect.DeepEqual(expectedValidationErrors, gotValidationErrors) {
-		t.Errorf("Expected %+v, got %+v", expectedValidationErrors, gotValidationErrors)
+		t.Errorf("Expected %+#v, got %+#v", expectedValidationErrors, gotValidationErrors)
 	}
 }

@@ -6,6 +6,8 @@ import json
 import sys
 import os
 import urllib.request
+import re
+
 if 'DISABLE_SSL_CERT_VALIDATION' in os.environ:
     import ssl
     ssl._create_default_https_context = ssl._create_unverified_context
@@ -93,6 +95,8 @@ def append_no_duplicates(obj, key, value):
     if value not in obj[key]:
         obj[key].append(value)
 
+def uescape_decode(match):
+    return match.group().encode().decode("unicode_escape")
 
 def write_schema_file(schema, filename):
     schemaJSON = ""
@@ -100,6 +104,10 @@ def write_schema_file(schema, filename):
     schema = additional_properties(schema, skip=not os.getenv("DENY_ROOT_ADDITIONAL_PROPERTIES"))
     schema = replace_int_or_string(schema)
     schemaJSON = json.dumps(schema, indent=2)
+    # Replace \u with \\u using regex and decoding function
+    uescapes = re.compile(r"(?<!\\)\\u[0-9a-fA-F]{4}", re.UNICODE)
+
+    schemaJSON = uescapes.sub(uescape_decode, schemaJSON)
 
     # Dealing with user input here..
     filename = os.path.basename(filename)

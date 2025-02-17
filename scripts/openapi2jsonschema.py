@@ -104,7 +104,7 @@ def write_schema_file(schema, filename):
     schema = additional_properties(schema, skip=not os.getenv("DENY_ROOT_ADDITIONAL_PROPERTIES"))
     schema = replace_int_or_string(schema)
     schemaJSON = json.dumps(schema, indent=2)
-    # Replace \u with \\u using regex and decoding function
+    # Convert Unicode escape sequences to their actual Unicode character
     uescapes = re.compile(r"(?<!\\)\\u[0-9a-fA-F]{4}", re.UNICODE)
 
     schemaJSON = uescapes.sub(uescape_decode, schemaJSON)

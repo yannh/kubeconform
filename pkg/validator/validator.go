@@ -2,19 +2,20 @@
 package validator
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
+	"github.com/yannh/kubeconform/pkg/cache"
+	"github.com/yannh/kubeconform/pkg/loader"
+	"github.com/yannh/kubeconform/pkg/registry"
+	"github.com/yannh/kubeconform/pkg/resource"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"io"
-
-	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
-	"github.com/yannh/kubeconform/pkg/cache"
-	"github.com/yannh/kubeconform/pkg/registry"
-	"github.com/yannh/kubeconform/pkg/resource"
+	"os"
 	"sigs.k8s.io/yaml"
+	"strings"
 )
 
 // Different types of validation results
@@ -93,19 +94,43 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 		opts.RejectKinds = map[string]struct{}{}
 	}
 
+	var filecache cache.Cache = nil
+	if opts.Cache != "" {
+		fi, err := os.Stat(opts.Cache)
+		if err != nil {
+			return nil, fmt.Errorf("failed opening cache folder %s: %s", opts.Cache, err)
+		}
+		if !fi.IsDir() {
+			return nil, fmt.Errorf("cache folder %s is not a directory", err)
+		}
+
+		filecache = cache.NewOnDiskCache(opts.Cache)
+	}
+
+	httpLoader, err := loader.NewHTTPURLLoader(false, filecache)
+	if err != nil {
+		return nil, fmt.Errorf("failed creating HTTP loader: %s", err)
+	}
+
 	return &v{
 		opts:           opts,
 		schemaDownload: downloadSchema,
 		schemaCache:    cache.NewInMemoryCache(),
 		regs:           registries,
+		loader: jsonschema.SchemeURLLoader{
+			"file":  jsonschema.FileLoader{},
+			"http":  httpLoader,
+			"https": httpLoader,
+		},
 	}, nil
 }
 
 type v struct {
 	opts           Opts
 	schemaCache    cache.Cache
-	schemaDownload func(registries []registry.Registry, kind, version, k8sVersion string) (*jsonschema.Schema, error)
+	schemaDownload func(registries []registry.Registry, loader jsonschema.SchemeURLLoader, kind, version, k8sVersion string) (*jsonschema.Schema, error)
 	regs           []registry.Registry
+	loader         jsonschema.SchemeURLLoader
 }
 
 // ValidateResource validates a single resource. This allows to validate
@@ -175,7 +200,7 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 	}
 
 	if !cached {
-		if schema, err = val.schemaDownload(val.regs, sig.Kind, sig.Version, val.opts.KubernetesVersion); err != nil {
+		if schema, err = val.schemaDownload(val.regs, val.loader, sig.Kind, sig.Version, val.opts.KubernetesVersion); err != nil {
 			return Result{Resource: res, Err: err, Status: Error}
 		}
 
@@ -209,10 +234,11 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 			}
 
 		}
+
 		return Result{
 			Resource:         res,
 			Status:           Invalid,
-			Err:              fmt.Errorf("problem validating schema. Check JSON formatting: %s", err),
+			Err:              fmt.Errorf("problem validating schema. Check JSON formatting: %s", strings.ReplaceAll(err.Error(), "\n", " ")),
 			ValidationErrors: validationErrors,
 		}
 	}
@@ -253,20 +279,16 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 	return val.ValidateWithContext(context.Background(), filename, r)
 }
 
-func downloadSchema(registries []registry.Registry, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
+func downloadSchema(registries []registry.Registry, loader jsonschema.SchemeURLLoader, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
 	var err error
-	var schemaBytes []byte
 	var path string
+	var s any
 
 	for _, reg := range registries {
-		path, schemaBytes, err = reg.DownloadSchema(kind, version, k8sVersion)
+		path, s, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
-			s, err := jsonschema.UnmarshalJSON(bytes.NewReader(schemaBytes))
-			if err != nil {
-				continue
-			}
-
 			c := jsonschema.NewCompiler()
+			c.UseLoader(loader)
 			c.DefaultDraft(jsonschema.Draft4)
 			if err := c.AddResource(path, s); err != nil {
 				continue

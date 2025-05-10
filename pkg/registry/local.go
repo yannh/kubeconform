@@ -1,8 +1,10 @@
 package registry
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"io"
 	"log"
 	"os"
@@ -24,7 +26,7 @@ func newLocalRegistry(pathTemplate string, strict bool, debug bool) (*LocalRegis
 }
 
 // DownloadSchema retrieves the schema from a file for the resource
-func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, []byte, error) {
+func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, any, error) {
 	schemaFile, err := schemaPath(r.pathTemplate, resourceKind, resourceAPIVersion, k8sVersion, r.strict)
 	if err != nil {
 		return schemaFile, []byte{}, nil
@@ -36,7 +38,7 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 			if r.debug {
 				log.Print(msg)
 			}
-			return schemaFile, nil, newNotFoundError(errors.New(msg))
+			return schemaFile, nil, NewNotFoundError(errors.New(msg))
 		}
 
 		msg := fmt.Sprintf("failed to open schema at %s: %s", schemaFile, err)
@@ -59,5 +61,7 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 	if r.debug {
 		log.Printf("using schema found at %s", schemaFile)
 	}
-	return schemaFile, content, nil
+
+	b, err := jsonschema.UnmarshalJSON(bytes.NewReader(content))
+	return schemaFile, b, err
 }

@@ -113,10 +113,10 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 	}
 
 	return &v{
-		opts:           opts,
-		schemaDownload: downloadSchema,
-		schemaCache:    cache.NewInMemoryCache(),
-		regs:           registries,
+		opts:              opts,
+		schemaDownload:    downloadSchema,
+		schemaMemoryCache: cache.NewInMemoryCache(),
+		regs:              registries,
 		loader: jsonschema.SchemeURLLoader{
 			"file":  jsonschema.FileLoader{},
 			"http":  httpLoader,
@@ -126,11 +126,16 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 }
 
 type v struct {
-	opts           Opts
-	schemaCache    cache.Cache
-	schemaDownload func(registries []registry.Registry, loader jsonschema.SchemeURLLoader, kind, version, k8sVersion string) (*jsonschema.Schema, error)
-	regs           []registry.Registry
-	loader         jsonschema.SchemeURLLoader
+	opts              Opts
+	schemaDiskCache   cache.Cache
+	schemaMemoryCache cache.Cache
+	schemaDownload    func(registries []registry.Registry, loader jsonschema.SchemeURLLoader, kind, version, k8sVersion string) (*jsonschema.Schema, error)
+	regs              []registry.Registry
+	loader            jsonschema.SchemeURLLoader
+}
+
+func key(resourceKind, resourceAPIVersion, k8sVersion string) string {
+	return fmt.Sprintf("%s-%s-%s", resourceKind, resourceAPIVersion, k8sVersion)
 }
 
 // ValidateResource validates a single resource. This allows to validate
@@ -188,9 +193,25 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: fmt.Errorf("prohibited resource kind %s", sig.Kind), Status: Error}
 	}
 
+	cached := false
 	var schema *jsonschema.Schema
-	if schema, err = val.schemaDownload(val.regs, val.loader, sig.Kind, sig.Version, val.opts.KubernetesVersion); err != nil {
-		return Result{Resource: res, Err: err, Status: Error}
+
+	if val.schemaMemoryCache != nil {
+		s, err := val.schemaMemoryCache.Get(key(sig.Kind, sig.Version, val.opts.KubernetesVersion))
+		if err == nil {
+			cached = true
+			schema = s.(*jsonschema.Schema)
+		}
+	}
+
+	if !cached {
+		if schema, err = val.schemaDownload(val.regs, val.loader, sig.Kind, sig.Version, val.opts.KubernetesVersion); err != nil {
+			return Result{Resource: res, Err: err, Status: Error}
+		}
+
+		if val.schemaMemoryCache != nil {
+			val.schemaMemoryCache.Set(key(sig.Kind, sig.Version, val.opts.KubernetesVersion), schema)
+		}
 	}
 
 	if schema == nil {

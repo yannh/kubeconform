@@ -26,7 +26,7 @@ func (l FileLoader) Load(url string) (any, error) {
 	}
 	if l.cache != nil {
 		if cached, err := l.cache.Get(path); err == nil {
-			return jsonschema.UnmarshalJSON(bytes.NewReader(cached))
+			return jsonschema.UnmarshalJSON(bytes.NewReader(cached.([]byte)))
 		}
 	}
 

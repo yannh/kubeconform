@@ -27,7 +27,7 @@ func cachePath(folder, key string) string {
 }
 
 // Get retrieves the JSON schema given a resource signature
-func (c *onDisk) Get(key string) ([]byte, error) {
+func (c *onDisk) Get(key string) (any, error) {
 	c.RLock()
 	defer c.RUnlock()
 
@@ -41,12 +41,12 @@ func (c *onDisk) Get(key string) ([]byte, error) {
 }
 
 // Set adds a JSON schema to the schema cache
-func (c *onDisk) Set(key string, schema []byte) error {
+func (c *onDisk) Set(key string, schema any) error {
 	c.Lock()
 	defer c.Unlock()
 
 	if _, err := os.Stat(cachePath(c.folder, key)); os.IsNotExist(err) {
-		return os.WriteFile(cachePath(c.folder, key), schema, 0644)
+		return os.WriteFile(cachePath(c.folder, key), schema.([]byte), 0644)
 	}
 	return nil
 }

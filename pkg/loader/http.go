@@ -21,7 +21,7 @@ type HTTPURLLoader struct {
 func (l *HTTPURLLoader) Load(url string) (any, error) {
 	if l.cache != nil {
 		if cached, err := l.cache.Get(url); err == nil {
-			return jsonschema.UnmarshalJSON(bytes.NewReader(cached))
+			return jsonschema.UnmarshalJSON(bytes.NewReader(cached.([]byte)))
 		}
 	}
 

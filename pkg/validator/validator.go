@@ -303,10 +303,9 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 			if err != nil {
 				continue
 			}
-			return schema, err
+			return schema, nil
 		}
 
-		// If we get a 404, we try the next registry, but we exit if we get a real failure
 		if _, notfound := err.(*loader.NotFoundError); notfound {
 			continue
 		}

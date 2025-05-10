@@ -3,6 +3,7 @@ package validator
 import (
 	"bytes"
 	"github.com/santhosh-tekuri/jsonschema/v6"
+	"github.com/yannh/kubeconform/pkg/loader"
 	"io"
 	"reflect"
 	"testing"
@@ -315,7 +316,7 @@ lastName: bar
 }`),
 			false,
 			false,
-			Valid,
+			Error,
 			[]ValidationError{},
 		},
 		{
@@ -360,7 +361,7 @@ lastName: bar
 			[]byte(`<html>error page</html>`),
 			true,
 			false,
-			Skipped,
+			Error,
 			[]ValidationError{},
 		},
 		{
@@ -389,11 +390,17 @@ lastName: bar
 			schemaDownload: downloadSchema,
 			regs: []registry.Registry{
 				newMockRegistry(func() (string, any, error) {
+					if testCase.schemaRegistry1 == nil {
+						return "", nil, loader.NewNotFoundError(nil)
+					}
 					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry1))
 					return "", s, err
 				}),
 				newMockRegistry(func() (string, any, error) {
-					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry1))
+					if testCase.schemaRegistry2 == nil {
+						return "", nil, loader.NewNotFoundError(nil)
+					}
+					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry2))
 					return "", s, err
 				}),
 			},

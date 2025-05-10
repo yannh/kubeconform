@@ -1,6 +1,6 @@
 package cache
 
 type Cache interface {
-	Get(key string) (interface{}, error)
-	Set(key string, schema interface{}) error
+	Get(key string) ([]byte, error)
+	Set(key string, schema []byte) error
 }

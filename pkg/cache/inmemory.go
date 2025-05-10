@@ -10,18 +10,18 @@ import (
 //   - This cache caches the parsed Schemas
 type inMemory struct {
 	sync.RWMutex
-	schemas map[string]interface{}
+	schemas map[string][]byte
 }
 
 // New creates a new cache for downloaded schemas
 func NewInMemoryCache() Cache {
 	return &inMemory{
-		schemas: map[string]interface{}{},
+		schemas: make(map[string][]byte),
 	}
 }
 
 // Get retrieves the JSON schema given a resource signature
-func (c *inMemory) Get(key string) (interface{}, error) {
+func (c *inMemory) Get(key string) ([]byte, error) {
 	c.RLock()
 	defer c.RUnlock()
 	schema, ok := c.schemas[key]
@@ -34,7 +34,7 @@ func (c *inMemory) Get(key string) (interface{}, error) {
 }
 
 // Set adds a JSON schema to the schema cache
-func (c *inMemory) Set(key string, schema interface{}) error {
+func (c *inMemory) Set(key string, schema []byte) error {
 	c.Lock()
 	defer c.Unlock()
 	c.schemas[key] = schema

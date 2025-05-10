@@ -103,7 +103,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		if r.debug {
 			log.Print(msg)
 		}
-		return url, nil, fmt.Errorf(msg)
+		return url, nil, fmt.Errorf("%s", msg)
 	}
 
 	body, err := io.ReadAll(resp.Body)

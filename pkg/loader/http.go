@@ -19,6 +19,12 @@ type HTTPURLLoader struct {
 }
 
 func (l *HTTPURLLoader) Load(url string) (any, error) {
+	if l.cache != nil {
+		if cached, err := l.cache.Get(url); err == nil {
+			return cached, nil
+		}
+	}
+
 	resp, err := l.client.Get(url)
 	if err != nil {
 		msg := fmt.Sprintf("failed downloading schema at %s: %s", url, err)
@@ -41,12 +47,18 @@ func (l *HTTPURLLoader) Load(url string) (any, error) {
 		msg := fmt.Sprintf("failed parsing schema from %s: %s", url, err)
 		return nil, errors.New(msg)
 	}
-
-	if l.cache != nil {
-		// To implement
+	s, err := jsonschema.UnmarshalJSON(bytes.NewReader(body))
+	if err != nil {
+		return nil, err
 	}
 
-	return jsonschema.UnmarshalJSON(bytes.NewReader(body))
+	if l.cache != nil {
+		if err = l.cache.Set(url, s); err != nil {
+			return nil, fmt.Errorf("failed to write cache to disk: %s", err)
+		}
+	}
+
+	return s, nil
 }
 
 func NewHTTPURLLoader(skipTLS bool, cache cache.Cache) (*HTTPURLLoader, error) {

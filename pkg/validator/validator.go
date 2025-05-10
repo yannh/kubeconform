@@ -188,25 +188,9 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		return Result{Resource: res, Err: fmt.Errorf("prohibited resource kind %s", sig.Kind), Status: Error}
 	}
 
-	cached := false
 	var schema *jsonschema.Schema
-
-	if val.schemaCache != nil {
-		s, err := val.schemaCache.Get(sig.Kind, sig.Version, val.opts.KubernetesVersion)
-		if err == nil {
-			cached = true
-			schema = s.(*jsonschema.Schema)
-		}
-	}
-
-	if !cached {
-		if schema, err = val.schemaDownload(val.regs, val.loader, sig.Kind, sig.Version, val.opts.KubernetesVersion); err != nil {
-			return Result{Resource: res, Err: err, Status: Error}
-		}
-
-		if val.schemaCache != nil {
-			val.schemaCache.Set(sig.Kind, sig.Version, val.opts.KubernetesVersion, schema)
-		}
+	if schema, err = val.schemaDownload(val.regs, val.loader, sig.Kind, sig.Version, val.opts.KubernetesVersion); err != nil {
+		return Result{Resource: res, Err: err, Status: Error}
 	}
 
 	if schema == nil {

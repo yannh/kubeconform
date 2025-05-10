@@ -3,7 +3,6 @@ package registry
 import (
 	"bytes"
 	"fmt"
-	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/loader"
 	"os"
@@ -81,7 +80,7 @@ func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, d
 		return nil, fmt.Errorf("failed initialising schema location registry: %s", err)
 	}
 
-	var filecache cache.Cache = nil
+	var c cache.Cache = nil
 	if cacheFolder != "" {
 		fi, err := os.Stat(cacheFolder)
 		if err != nil {
@@ -91,17 +90,19 @@ func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, d
 			return nil, fmt.Errorf("cache folder %s is not a directory", err)
 		}
 
-		filecache = cache.NewOnDiskCache(cacheFolder)
+		c = cache.NewOnDiskCache(cacheFolder)
+	} else {
+		c = cache.NewInMemoryCache()
 	}
 
 	if strings.HasPrefix(schemaLocation, "http") {
-		httpLoader, err := loader.NewHTTPURLLoader(skipTLS, filecache)
+		httpLoader, err := loader.NewHTTPURLLoader(skipTLS, c)
 		if err != nil {
 			return nil, fmt.Errorf("failed creating HTTP loader: %s", err)
 		}
 		return newHTTPRegistry(schemaLocation, httpLoader, strict, debug)
 	}
 
-	fileLoader := jsonschema.FileLoader{}
+	fileLoader := loader.NewFileLoader(c)
 	return newLocalRegistry(schemaLocation, fileLoader, strict, debug)
 }

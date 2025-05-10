@@ -2,18 +2,11 @@ package registry
 
 import (
 	"github.com/santhosh-tekuri/jsonschema/v6"
-	"github.com/yannh/kubeconform/pkg/cache"
-	"net/http"
 )
-
-type httpGetter interface {
-	Get(url string) (resp *http.Response, err error)
-}
 
 // SchemaRegistry is a file repository (local or remote) that contains JSON schemas for Kubernetes resources
 type SchemaRegistry struct {
 	schemaPathTemplate string
-	cache              cache.Cache
 	strict             bool
 	debug              bool
 	loader             jsonschema.URLLoader
@@ -35,13 +28,7 @@ func (r SchemaRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVers
 		return "", nil, err
 	}
 
-	if r.cache != nil {
-		if b, err := r.cache.Get(resourceKind, resourceAPIVersion, k8sVersion); err == nil {
-			return url, b.([]byte), nil
-		}
-	}
-
 	resp, err := r.loader.Load(url)
 
-	return url, resp, nil
+	return url, resp, err
 }

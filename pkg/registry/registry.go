@@ -3,6 +3,7 @@ package registry
 import (
 	"bytes"
 	"fmt"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/loader"
 	"os"
@@ -18,22 +19,6 @@ type Manifest struct {
 type Registry interface {
 	DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, any, error)
 }
-
-// Retryable indicates whether an error is a temporary or a permanent failure
-type Retryable interface {
-	IsNotFound() bool
-}
-
-// NotFoundError is returned when the registry does not contain a schema for the resource
-type NotFoundError struct {
-	err error
-}
-
-func NewNotFoundError(err error) *NotFoundError {
-	return &NotFoundError{err}
-}
-func (e *NotFoundError) Error() string   { return e.err.Error() }
-func (e *NotFoundError) Retryable() bool { return false }
 
 func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool) (string, error) {
 	normalisedVersion := k8sVersion
@@ -117,5 +102,6 @@ func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, d
 		return newHTTPRegistry(schemaLocation, httpLoader, strict, debug)
 	}
 
-	return newLocalRegistry(schemaLocation, strict, debug)
+	fileLoader := jsonschema.FileLoader{}
+	return newLocalRegistry(schemaLocation, fileLoader, strict, debug)
 }

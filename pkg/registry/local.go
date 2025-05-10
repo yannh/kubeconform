@@ -1,27 +1,23 @@
 package registry
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
 	"github.com/santhosh-tekuri/jsonschema/v6"
-	"io"
-	"log"
-	"os"
 )
 
 type LocalRegistry struct {
 	pathTemplate string
 	strict       bool
 	debug        bool
+	loader       jsonschema.URLLoader
 }
 
 // NewLocalSchemas creates a new "registry", that will serve schemas from files, given a list of schema filenames
-func newLocalRegistry(pathTemplate string, strict bool, debug bool) (*LocalRegistry, error) {
+func newLocalRegistry(pathTemplate string, loader jsonschema.URLLoader, strict bool, debug bool) (*LocalRegistry, error) {
 	return &LocalRegistry{
 		pathTemplate,
 		strict,
 		debug,
+		loader,
 	}, nil
 }
 
@@ -31,37 +27,7 @@ func (r LocalRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersi
 	if err != nil {
 		return schemaFile, []byte{}, nil
 	}
-	f, err := os.Open(schemaFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("could not open file %s", schemaFile)
-			if r.debug {
-				log.Print(msg)
-			}
-			return schemaFile, nil, NewNotFoundError(errors.New(msg))
-		}
 
-		msg := fmt.Sprintf("failed to open schema at %s: %s", schemaFile, err)
-		if r.debug {
-			log.Print(msg)
-		}
-		return schemaFile, nil, errors.New(msg)
-	}
-
-	defer f.Close()
-	content, err := io.ReadAll(f)
-	if err != nil {
-		msg := fmt.Sprintf("failed to read schema at %s: %s", schemaFile, err)
-		if r.debug {
-			log.Print(msg)
-		}
-		return schemaFile, nil, err
-	}
-
-	if r.debug {
-		log.Printf("using schema found at %s", schemaFile)
-	}
-
-	b, err := jsonschema.UnmarshalJSON(bytes.NewReader(content))
-	return schemaFile, b, err
+	s, err := r.loader.Load(schemaFile)
+	return schemaFile, s, err
 }

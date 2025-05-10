@@ -279,7 +279,7 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 	return val.ValidateWithContext(context.Background(), filename, r)
 }
 
-func downloadSchema(registries []registry.Registry, loader jsonschema.SchemeURLLoader, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
+func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
 	var err error
 	var path string
 	var s any
@@ -288,7 +288,7 @@ func downloadSchema(registries []registry.Registry, loader jsonschema.SchemeURLL
 		path, s, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
 			c := jsonschema.NewCompiler()
-			c.UseLoader(loader)
+			c.UseLoader(l)
 			c.DefaultDraft(jsonschema.Draft4)
 			if err := c.AddResource(path, s); err != nil {
 				continue
@@ -302,10 +302,9 @@ func downloadSchema(registries []registry.Registry, loader jsonschema.SchemeURLL
 		}
 
 		// If we get a 404, we try the next registry, but we exit if we get a real failure
-		if _, notfound := err.(*registry.NotFoundError); notfound {
+		if _, notfound := err.(*loader.NotFoundError); notfound {
 			continue
 		}
-
 		return nil, err
 	}
 

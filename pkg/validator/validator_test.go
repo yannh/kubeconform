@@ -2,6 +2,7 @@ package validator
 
 import (
 	"bytes"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"io"
 	"reflect"
 	"testing"
@@ -12,16 +13,16 @@ import (
 )
 
 type mockRegistry struct {
-	SchemaDownloader func() (string, []byte, error)
+	SchemaDownloader func() (string, any, error)
 }
 
-func newMockRegistry(f func() (string, []byte, error)) *mockRegistry {
+func newMockRegistry(f func() (string, any, error)) *mockRegistry {
 	return &mockRegistry{
 		SchemaDownloader: f,
 	}
 }
 
-func (m mockRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, []byte, error) {
+func (m mockRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, any, error) {
 	return m.SchemaDownloader()
 }
 
@@ -385,14 +386,15 @@ lastName: bar
 				IgnoreMissingSchemas: testCase.ignoreMissingSchema,
 				Strict:               testCase.strict,
 			},
-			schemaCache:    nil,
 			schemaDownload: downloadSchema,
 			regs: []registry.Registry{
-				newMockRegistry(func() (string, []byte, error) {
-					return "", testCase.schemaRegistry1, nil
+				newMockRegistry(func() (string, any, error) {
+					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry1))
+					return "", s, err
 				}),
-				newMockRegistry(func() (string, []byte, error) {
-					return "", testCase.schemaRegistry2, nil
+				newMockRegistry(func() (string, any, error) {
+					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry1))
+					return "", s, err
 				}),
 			},
 		}
@@ -456,11 +458,11 @@ age: not a number
 			SkipKinds:   map[string]struct{}{},
 			RejectKinds: map[string]struct{}{},
 		},
-		schemaCache:    nil,
 		schemaDownload: downloadSchema,
 		regs: []registry.Registry{
-			newMockRegistry(func() (string, []byte, error) {
-				return "", schema, nil
+			newMockRegistry(func() (string, any, error) {
+				s, err := jsonschema.UnmarshalJSON(bytes.NewReader(schema))
+				return "", s, err
 			}),
 		},
 	}
@@ -505,11 +507,11 @@ firstName: foo
 			SkipKinds:   map[string]struct{}{},
 			RejectKinds: map[string]struct{}{},
 		},
-		schemaCache:    nil,
 		schemaDownload: downloadSchema,
 		regs: []registry.Registry{
-			newMockRegistry(func() (string, []byte, error) {
-				return "", schema, nil
+			newMockRegistry(func() (string, any, error) {
+				s, err := jsonschema.UnmarshalJSON(bytes.NewReader(schema))
+				return "", s, err
 			}),
 		},
 	}

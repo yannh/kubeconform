@@ -204,7 +204,7 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 				}
 				validationErrors = append(validationErrors, ValidationError{
 					Path: path,
-					Msg:  ve.LocalizedError(message.NewPrinter(language.English)),
+					Msg:  ve.ErrorKind.LocalizedString(message.NewPrinter(language.English)),
 				})
 			}
 

@@ -106,7 +106,7 @@ lastName: bar
 			[]ValidationError{
 				{
 					Path: "/firstName",
-					Msg:  "expected number, but got string",
+					Msg:  "got string, want number",
 				},
 			},
 		},
@@ -145,7 +145,7 @@ firstName: foo
 			[]ValidationError{
 				{
 					Path: "",
-					Msg:  "missing properties: 'lastName'",
+					Msg:  "missing property 'lastName'",
 				},
 			},
 		},
@@ -447,8 +447,8 @@ age: not a number
 }`)
 
 	expectedErrors := []ValidationError{
-		{Path: "", Msg: "missing properties: 'lastName'"},
-		{Path: "/age", Msg: "expected integer, but got string"},
+		{Path: "", Msg: "missing property 'lastName'"},
+		{Path: "/age", Msg: "got string, want integer"},
 	}
 
 	val := v{
@@ -523,7 +523,7 @@ firstName: foo
 
 	expectedStatuses := []Status{Valid, Invalid}
 	expectedValidationErrors := []ValidationError{
-		{Path: "", Msg: "missing properties: 'lastName'"},
+		{Path: "", Msg: "missing property 'lastName'"},
 	}
 	if !reflect.DeepEqual(expectedStatuses, gotStatuses) {
 		t.Errorf("Expected %+v, got %+v", expectedStatuses, gotStatuses)

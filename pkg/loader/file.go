@@ -24,11 +24,6 @@ func (l FileLoader) Load(url string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if l.cache != nil {
-		if cached, err := l.cache.Get(path); err == nil {
-			return jsonschema.UnmarshalJSON(bytes.NewReader(cached.([]byte)))
-		}
-	}
 
 	f, err := os.Open(path)
 	if err != nil {
@@ -43,12 +38,6 @@ func (l FileLoader) Load(url string) (any, error) {
 	content, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
-	}
-
-	if l.cache != nil {
-		if err = l.cache.Set(path, content); err != nil {
-			return nil, fmt.Errorf("failed to write cache to disk: %s", err)
-		}
 	}
 
 	return jsonschema.UnmarshalJSON(bytes.NewReader(content))
@@ -71,8 +60,6 @@ func (l FileLoader) ToFile(url string) (string, error) {
 	return path, nil
 }
 
-func NewFileLoader(cache cache.Cache) *FileLoader {
-	return &FileLoader{
-		cache: cache,
-	}
+func NewFileLoader() *FileLoader {
+	return &FileLoader{}
 }

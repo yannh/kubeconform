@@ -10,26 +10,21 @@ import (
 //   - This cache caches the parsed Schemas
 type inMemory struct {
 	sync.RWMutex
-	schemas map[string]interface{}
+	schemas map[string]any
 }
 
 // New creates a new cache for downloaded schemas
 func NewInMemoryCache() Cache {
 	return &inMemory{
-		schemas: map[string]interface{}{},
+		schemas: make(map[string]any),
 	}
 }
 
-func key(resourceKind, resourceAPIVersion, k8sVersion string) string {
-	return fmt.Sprintf("%s-%s-%s", resourceKind, resourceAPIVersion, k8sVersion)
-}
-
 // Get retrieves the JSON schema given a resource signature
-func (c *inMemory) Get(resourceKind, resourceAPIVersion, k8sVersion string) (interface{}, error) {
-	k := key(resourceKind, resourceAPIVersion, k8sVersion)
+func (c *inMemory) Get(key string) (any, error) {
 	c.RLock()
 	defer c.RUnlock()
-	schema, ok := c.schemas[k]
+	schema, ok := c.schemas[key]
 
 	if !ok {
 		return nil, fmt.Errorf("schema not found in in-memory cache")
@@ -39,11 +34,10 @@ func (c *inMemory) Get(resourceKind, resourceAPIVersion, k8sVersion string) (int
 }
 
 // Set adds a JSON schema to the schema cache
-func (c *inMemory) Set(resourceKind, resourceAPIVersion, k8sVersion string, schema interface{}) error {
-	k := key(resourceKind, resourceAPIVersion, k8sVersion)
+func (c *inMemory) Set(key string, schema any) error {
 	c.Lock()
 	defer c.Unlock()
-	c.schemas[k] = schema
+	c.schemas[key] = schema
 
 	return nil
 }

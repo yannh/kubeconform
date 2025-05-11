@@ -2,6 +2,8 @@ package validator
 
 import (
 	"bytes"
+	"github.com/santhosh-tekuri/jsonschema/v6"
+	"github.com/yannh/kubeconform/pkg/loader"
 	"io"
 	"reflect"
 	"testing"
@@ -12,16 +14,16 @@ import (
 )
 
 type mockRegistry struct {
-	SchemaDownloader func() (string, []byte, error)
+	SchemaDownloader func() (string, any, error)
 }
 
-func newMockRegistry(f func() (string, []byte, error)) *mockRegistry {
+func newMockRegistry(f func() (string, any, error)) *mockRegistry {
 	return &mockRegistry{
 		SchemaDownloader: f,
 	}
 }
 
-func (m mockRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, []byte, error) {
+func (m mockRegistry) DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, any, error) {
 	return m.SchemaDownloader()
 }
 
@@ -106,7 +108,7 @@ lastName: bar
 			[]ValidationError{
 				{
 					Path: "/firstName",
-					Msg:  "expected number, but got string",
+					Msg:  "got string, want number",
 				},
 			},
 		},
@@ -145,7 +147,7 @@ firstName: foo
 			[]ValidationError{
 				{
 					Path: "",
-					Msg:  "missing properties: 'lastName'",
+					Msg:  "missing property 'lastName'",
 				},
 			},
 		},
@@ -314,7 +316,7 @@ lastName: bar
 }`),
 			false,
 			false,
-			Valid,
+			Error,
 			[]ValidationError{},
 		},
 		{
@@ -359,7 +361,7 @@ lastName: bar
 			[]byte(`<html>error page</html>`),
 			true,
 			false,
-			Skipped,
+			Error,
 			[]ValidationError{},
 		},
 		{
@@ -385,14 +387,21 @@ lastName: bar
 				IgnoreMissingSchemas: testCase.ignoreMissingSchema,
 				Strict:               testCase.strict,
 			},
-			schemaCache:    nil,
 			schemaDownload: downloadSchema,
 			regs: []registry.Registry{
-				newMockRegistry(func() (string, []byte, error) {
-					return "", testCase.schemaRegistry1, nil
+				newMockRegistry(func() (string, any, error) {
+					if testCase.schemaRegistry1 == nil {
+						return "", nil, loader.NewNotFoundError(nil)
+					}
+					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry1))
+					return "", s, err
 				}),
-				newMockRegistry(func() (string, []byte, error) {
-					return "", testCase.schemaRegistry2, nil
+				newMockRegistry(func() (string, any, error) {
+					if testCase.schemaRegistry2 == nil {
+						return "", nil, loader.NewNotFoundError(nil)
+					}
+					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry2))
+					return "", s, err
 				}),
 			},
 		}
@@ -447,8 +456,8 @@ age: not a number
 }`)
 
 	expectedErrors := []ValidationError{
-		{Path: "", Msg: "missing properties: 'lastName'"},
-		{Path: "/age", Msg: "expected integer, but got string"},
+		{Path: "", Msg: "missing property 'lastName'"},
+		{Path: "/age", Msg: "got string, want integer"},
 	}
 
 	val := v{
@@ -456,11 +465,11 @@ age: not a number
 			SkipKinds:   map[string]struct{}{},
 			RejectKinds: map[string]struct{}{},
 		},
-		schemaCache:    nil,
 		schemaDownload: downloadSchema,
 		regs: []registry.Registry{
-			newMockRegistry(func() (string, []byte, error) {
-				return "", schema, nil
+			newMockRegistry(func() (string, any, error) {
+				s, err := jsonschema.UnmarshalJSON(bytes.NewReader(schema))
+				return "", s, err
 			}),
 		},
 	}
@@ -505,11 +514,11 @@ firstName: foo
 			SkipKinds:   map[string]struct{}{},
 			RejectKinds: map[string]struct{}{},
 		},
-		schemaCache:    nil,
 		schemaDownload: downloadSchema,
 		regs: []registry.Registry{
-			newMockRegistry(func() (string, []byte, error) {
-				return "", schema, nil
+			newMockRegistry(func() (string, any, error) {
+				s, err := jsonschema.UnmarshalJSON(bytes.NewReader(schema))
+				return "", s, err
 			}),
 		},
 	}
@@ -523,7 +532,7 @@ firstName: foo
 
 	expectedStatuses := []Status{Valid, Invalid}
 	expectedValidationErrors := []ValidationError{
-		{Path: "", Msg: "missing properties: 'lastName'"},
+		{Path: "", Msg: "missing property 'lastName'"},
 	}
 	if !reflect.DeepEqual(expectedStatuses, gotStatuses) {
 		t.Errorf("Expected %+v, got %+v", expectedStatuses, gotStatuses)

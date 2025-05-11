@@ -3,6 +3,9 @@ package registry
 import (
 	"bytes"
 	"fmt"
+	"github.com/yannh/kubeconform/pkg/cache"
+	"github.com/yannh/kubeconform/pkg/loader"
+	"os"
 	"strings"
 	"text/template"
 )
@@ -13,24 +16,8 @@ type Manifest struct {
 
 // Registry is an interface that should be implemented by any source of Kubernetes schemas
 type Registry interface {
-	DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, []byte, error)
+	DownloadSchema(resourceKind, resourceAPIVersion, k8sVersion string) (string, any, error)
 }
-
-// Retryable indicates whether an error is a temporary or a permanent failure
-type Retryable interface {
-	IsNotFound() bool
-}
-
-// NotFoundError is returned when the registry does not contain a schema for the resource
-type NotFoundError struct {
-	err error
-}
-
-func newNotFoundError(err error) *NotFoundError {
-	return &NotFoundError{err}
-}
-func (e *NotFoundError) Error() string   { return e.err.Error() }
-func (e *NotFoundError) Retryable() bool { return false }
 
 func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict bool) (string, error) {
 	normalisedVersion := k8sVersion
@@ -81,7 +68,7 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 	return buf.String(), nil
 }
 
-func New(schemaLocation string, cache string, strict bool, skipTLS bool, debug bool) (Registry, error) {
+func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, debug bool) (Registry, error) {
 	if schemaLocation == "default" {
 		schemaLocation = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 	} else if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of our fork of kubernetes-json-schema
@@ -93,9 +80,29 @@ func New(schemaLocation string, cache string, strict bool, skipTLS bool, debug b
 		return nil, fmt.Errorf("failed initialising schema location registry: %s", err)
 	}
 
-	if strings.HasPrefix(schemaLocation, "http") {
-		return newHTTPRegistry(schemaLocation, cache, strict, skipTLS, debug)
+	var c cache.Cache = nil
+	if cacheFolder != "" {
+		fi, err := os.Stat(cacheFolder)
+		if err != nil {
+			return nil, fmt.Errorf("failed opening cache folder %s: %s", cacheFolder, err)
+		}
+		if !fi.IsDir() {
+			return nil, fmt.Errorf("cache folder %s is not a directory", err)
+		}
+
+		c = cache.NewOnDiskCache(cacheFolder)
+	} else {
+		c = cache.NewInMemoryCache()
 	}
 
-	return newLocalRegistry(schemaLocation, strict, debug)
+	if strings.HasPrefix(schemaLocation, "http") {
+		httpLoader, err := loader.NewHTTPURLLoader(skipTLS, c)
+		if err != nil {
+			return nil, fmt.Errorf("failed creating HTTP loader: %s", err)
+		}
+		return newHTTPRegistry(schemaLocation, httpLoader, strict, debug)
+	}
+
+	fileLoader := loader.NewFileLoader(c)
+	return newLocalRegistry(schemaLocation, fileLoader, strict, debug)
 }

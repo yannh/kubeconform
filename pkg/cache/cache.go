@@ -1,6 +1,6 @@
 package cache
 
 type Cache interface {
-	Get(resourceKind, resourceAPIVersion, k8sVersion string) (interface{}, error)
-	Set(resourceKind, resourceAPIVersion, k8sVersion string, schema interface{}) error
+	Get(key string) (any, error)
+	Set(key string, schema any) error
 }

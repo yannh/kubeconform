@@ -299,14 +299,14 @@ resetCacheFolder() {
 @test "Fail when parsing a List that contains an invalid resource" {
   run bin/kubeconform -summary fixtures/list_invalid.yaml
   [ "$status" -eq 1 ]
-  [ "${lines[0]}" == 'fixtures/list_invalid.yaml - ReplicationController bob is invalid: problem validating schema. Check JSON formatting: jsonschema: '\''/spec/replicas'\'' does not validate with https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/replicationcontroller-v1.json#/properties/spec/properties/replicas/type: expected integer or null, but got string' ]
+  [ "${lines[0]}" == 'fixtures/list_invalid.yaml - ReplicationController bob is invalid: problem validating schema. Check JSON formatting: jsonschema validation failed with '\''https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/replicationcontroller-v1.json#'\'' - at '\''/spec/replicas'\'': got string, want null or integer' ]
   [ "${lines[1]}" == 'Summary: 2 resources found in 1 file - Valid: 1, Invalid: 1, Errors: 0, Skipped: 0' ]
 }
 
 @test "Fail when parsing a List that contains an invalid resource from stdin" {
   run bash -c "cat fixtures/list_invalid.yaml | bin/kubeconform -summary -"
   [ "$status" -eq 1 ]
-  [ "${lines[0]}" == 'stdin - ReplicationController bob is invalid: problem validating schema. Check JSON formatting: jsonschema: '\''/spec/replicas'\'' does not validate with https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/replicationcontroller-v1.json#/properties/spec/properties/replicas/type: expected integer or null, but got string' ]
+  [ "${lines[0]}" == 'stdin - ReplicationController bob is invalid: problem validating schema. Check JSON formatting: jsonschema validation failed with '\''https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/master-standalone/replicationcontroller-v1.json#'\'' - at '\''/spec/replicas'\'': got string, want null or integer' ]
   [ "${lines[1]}" == 'Summary: 2 resources found parsing stdin - Valid: 1, Invalid: 1, Errors: 0, Skipped: 0' ]
 }
 

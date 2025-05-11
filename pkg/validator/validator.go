@@ -292,8 +292,73 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 // https://github.com/kubernetes/apiextensions-apiserver/blob/1ecd29f74da0639e2e6e3b8fac0c9bfd217e05eb/pkg/apis/apiextensions/v1/types_jsonschema.go#L71
 func validateDuration(v any) error {
 	// Try validation with the Go duration format
-	if _, err := time.ParseDuration(v.(string)); err != nil {
-		return err
+	if _, err := time.ParseDuration(v.(string)); err == nil {
+		return nil
+	}
+
+	s, ok := v.(string)
+	if !ok {
+		return nil
+	}
+
+	// must start with 'P'
+	s, ok = strings.CutPrefix(s, "P")
+	if !ok {
+		return fmt.Errorf("must start with P")
+	}
+	if s == "" {
+		return fmt.Errorf("nothing after P")
+	}
+
+	// dur-week
+	if s, ok := strings.CutSuffix(s, "W"); ok {
+		if s == "" {
+			return fmt.Errorf("no number in week")
+		}
+		for _, ch := range s {
+			if ch < '0' || ch > '9' {
+				return fmt.Errorf("invalid week")
+			}
+		}
+		return nil
+	}
+
+	allUnits := []string{"YMD", "HMS"}
+	for i, s := range strings.Split(s, "T") {
+		if i != 0 && s == "" {
+			return fmt.Errorf("no time elements")
+		}
+		if i >= len(allUnits) {
+			return fmt.Errorf("more than one T")
+		}
+		units := allUnits[i]
+		for s != "" {
+			digitCount := 0
+			for _, ch := range s {
+				if ch >= '0' && ch <= '9' {
+					digitCount++
+				} else {
+					break
+				}
+			}
+			if digitCount == 0 {
+				return fmt.Errorf("missing number")
+			}
+			s = s[digitCount:]
+			if s == "" {
+				return fmt.Errorf("missing unit")
+			}
+			unit := s[0]
+			j := strings.IndexByte(units, unit)
+			if j == -1 {
+				if strings.IndexByte(allUnits[i], unit) != -1 {
+					return fmt.Errorf("unit %q out of order", unit)
+				}
+				return fmt.Errorf("invalid unit %q", unit)
+			}
+			units = units[j+1:]
+			s = s[1:]
+		}
 	}
 
 	return nil

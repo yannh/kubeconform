@@ -91,8 +91,6 @@ func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, d
 		}
 
 		c = cache.NewOnDiskCache(cacheFolder)
-	} else {
-		c = cache.NewInMemoryCache()
 	}
 
 	if strings.HasPrefix(schemaLocation, "http") {
@@ -103,6 +101,6 @@ func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, d
 		return newHTTPRegistry(schemaLocation, httpLoader, strict, debug)
 	}
 
-	fileLoader := loader.NewFileLoader(c)
+	fileLoader := loader.NewFileLoader()
 	return newLocalRegistry(schemaLocation, fileLoader, strict, debug)
 }

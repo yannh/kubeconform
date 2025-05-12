@@ -359,3 +359,9 @@ resetCacheFolder() {
   run bash -c "bin/kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' fixtures/httpproxy.yaml"
   [ "$status" -eq 0 ]
 }
+
+# https://github.com/yannh/kubeconform/pull/309
+@test "passes when validating duration not in ISO8601" {
+  run bash -c "./bin/kubeconform -schema-location ./fixtures/grafanaalertrulegroup_v1beta1.json ./fixtures/grafana-alert-rule-group-sample.yaml"
+  [ "$status" -eq 0 ]
+}

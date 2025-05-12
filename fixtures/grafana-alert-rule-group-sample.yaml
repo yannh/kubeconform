@@ -1,0 +1,62 @@
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaAlertRuleGroup
+metadata:
+  name: grafanaalertrulegroup-sample
+spec:
+  folderRef: test-folder
+  instanceSelector:
+    matchLabels:
+      dashboards: "grafana"
+  interval: 5m
+  rules:
+    - condition: B
+      data:
+        - datasourceUid: grafanacloud-demoinfra-prom
+          model:
+            datasource:
+              type: prometheus
+              uid: grafanacloud-demoinfra-prom
+            editorMode: code
+            expr: weather_temp_c{}
+            instant: true
+            intervalMs: 1000
+            legendFormat: __auto
+            maxDataPoints: 43200
+            range: false
+            refId: A
+          refId: A
+          relativeTimeRange:
+            from: 600
+        - datasourceUid: __expr__
+          model:
+            conditions:
+              - evaluator:
+                  params:
+                    - 0
+                  type: lt
+                operator:
+                  type: and
+                query:
+                  params:
+                    - C
+                reducer:
+                  params: []
+                  type: last
+                type: query
+            datasource:
+              type: __expr__
+              uid: __expr__
+            expression: A
+            intervalMs: 1000
+            maxDataPoints: 43200
+            refId: B
+            type: threshold
+          refId: B
+          relativeTimeRange:
+            from: 600
+      execErrState: Error
+      for: 5m0s
+      noDataState: NoData
+      title: Temperature below zero
+      uid: 4843de5c-4f8a-4af0-9509-23526a04faf8

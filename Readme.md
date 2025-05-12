@@ -314,6 +314,14 @@ jobs:
           args: "-summary -output json kubeconfigs/"
 ```
 
+**Using CRDs in Github Workflow:**
+
+To use CRDs in github workflows, you must pass the schema-location value without `''` enclosing it:
+
+```
+-schema-location https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json 
+```
+
 _Note on pricing_: Kubeconform relies on Github Container Registry which is currently in Beta. During that period,
 [bandwidth is free](https://docs.github.com/en/packages/guides/about-github-container-registry). After that period,
 bandwidth costs might be applicable. Since bandwidth from Github Packages within Github Actions is free, I expect

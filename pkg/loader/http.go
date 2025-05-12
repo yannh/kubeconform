@@ -56,7 +56,7 @@ func (l *HTTPURLLoader) Load(url string) (any, error) {
 
 	s, err := jsonschema.UnmarshalJSON(bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return nil, NewNonJSONResponseError(err)
 	}
 
 	return s, nil

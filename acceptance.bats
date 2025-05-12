@@ -276,6 +276,13 @@ resetCacheFolder() {
   [ "$output" = "failed opening cache folder cache_does_not_exist: stat cache_does_not_exist: no such file or directory" ]
 }
 
+@test "HTTP references should be cached" {
+  resetCacheFolder
+  run bin/kubeconform -cache cache -summary -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "`ls cache/ | wc -l`" -eq 2 ]
+}
+
 @test "Produces correct TAP output" {
   run bin/kubeconform -output tap fixtures/valid.yaml
   [ "$status" -eq 0 ]

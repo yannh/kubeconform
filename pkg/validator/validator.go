@@ -390,6 +390,10 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 		if _, notfound := err.(*loader.NotFoundError); notfound {
 			continue
 		}
+		if _, nonJSONError := err.(*loader.NonJSONResponseError); nonJSONError {
+			continue
+		}
+
 		return nil, err
 	}
 

@@ -19,3 +19,8 @@
   run bin/kubeconform -schema-location 'fixtures/{{ .ResourceKind }}.json' -schema-location './fixtures/registry/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/test_crd.yaml
   [ "$status" -eq 0 ]
 }
+
+@test "Pass when using a cached schema with external references" {
+  run bin/kubeconform -cache fixtures/cache -summary -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+}

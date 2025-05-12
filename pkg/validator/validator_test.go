@@ -316,7 +316,7 @@ lastName: bar
 }`),
 			false,
 			false,
-			Error,
+			Valid,
 			[]ValidationError{},
 		},
 		{
@@ -361,7 +361,7 @@ lastName: bar
 			[]byte(`<html>error page</html>`),
 			true,
 			false,
-			Error,
+			Skipped,
 			[]ValidationError{},
 		},
 		{
@@ -475,6 +475,9 @@ interval: test
 						return "", nil, loader.NewNotFoundError(nil)
 					}
 					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry1))
+					if err != nil {
+						return "", s, loader.NewNonJSONResponseError(err)
+					}
 					return "", s, err
 				}),
 				newMockRegistry(func() (string, any, error) {
@@ -482,6 +485,9 @@ interval: test
 						return "", nil, loader.NewNotFoundError(nil)
 					}
 					s, err := jsonschema.UnmarshalJSON(bytes.NewReader(testCase.schemaRegistry2))
+					if err != nil {
+						return "", s, loader.NewNonJSONResponseError(err)
+					}
 					return "", s, err
 				}),
 			},
@@ -550,6 +556,9 @@ age: not a number
 		regs: []registry.Registry{
 			newMockRegistry(func() (string, any, error) {
 				s, err := jsonschema.UnmarshalJSON(bytes.NewReader(schema))
+				if err != nil {
+					return "", s, loader.NewNonJSONResponseError(err)
+				}
 				return "", s, err
 			}),
 		},

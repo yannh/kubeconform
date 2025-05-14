@@ -17,10 +17,10 @@ It is inspired by, contains code from and is designed to stay close to
  * uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
    by the kubernetes-json-schema project - which guarantees
    up-to-date **schemas for all recent versions of Kubernetes**.
-   
+
 <details><summary><h4>Speed comparison with Kubeval</h4></summary><p>
 Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:
-   
+
 ```bash
 $ time kubeconform -ignore-missing-schemas -n 8 -summary  preview staging production
 Summary: 50714 resources found in 35139 files - Valid: 27334, Invalid: 0, Errors: 0 Skipped: 23380
@@ -45,6 +45,8 @@ sys	0m1,069s
   * [Proxy support](#Proxy-support)
 * [Overriding schemas location](#Overriding-schemas-location)
   * [CustomResourceDefinition (CRD) Support](#CustomResourceDefinition-CRD-Support)
+    * [Datree CRDs-catalog](#datree-crds-catalog)
+    * [CustomResourceDefinition catalog](#customresourcedefinition-catalog)
   * [OpenShift schema Support](#OpenShift-schema-Support)
 * [Integrating Kubeconform in the CI](#Integrating-Kubeconform-in-the-CI)
   * [Github Workflow](#Github-Workflow)
@@ -234,9 +236,19 @@ Here are the variables you can use in -schema-location:
 
 ### CustomResourceDefinition (CRD) Support
 
-Because Custom Resources (CR) are not native Kubernetes objects, they are not included in the default schema.  
+Because Custom Resources (CR) are not native Kubernetes objects, they are not included in the default schema.
+
+You can provide validation schemas for CRDs by providing a schema location for them, like:
+
+```bash
+# Look for the desired schema/s at example.com
+$ kubeconform -schema-location default -schema-location 'https://example.com/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' [MANIFEST]
+```
+
+#### Datree CRDs-catalog
+
 If your CRs are present in [Datree's CRDs-catalog](https://github.com/datreeio/CRDs-catalog), you can specify this project as an additional registry to lookup:
-  
+
 ```bash
 # Look in the CRDs-catalog for the desired schema/s
 $ kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' [MANIFEST]
@@ -279,6 +291,17 @@ $ kubeconform -schema-location default -schema-location 'schemas/{{ .ResourceKin
 
 </p>
 </details>
+
+#### CustomResourceDefinition catalog
+
+If your CRs are present in the [CustomResourceDefinition catalog](https://github.com/CustomResourceDefinition/catalog), you can specify this project as an additional registry to lookup:
+
+```bash
+# Look in the catalog for the desired schema/s
+$ kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/CustomResourceDefinition/catalog/main/schema/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' [MANIFEST]
+```
+
+This catalog is self-updating and accepts new CRD sources by pull request, see details in their [README](https://github.com/CustomResourceDefinition/catalog/blob/main/README.md#how-to-contribute-crds).
 
 ### OpenShift schema Support
 

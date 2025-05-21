@@ -195,7 +195,7 @@ func TestHTTPURLLoader_Load_Retries(t *testing.T) {
 			defer server.Close()
 
 			// Create HTTPURLLoader
-			loader, _ := NewHTTPURLLoader(false, nil)
+			loader, _ := NewHTTPURLLoader(false, nil, "")
 
 			fullurl := server.URL + tt.url
 			// Call Load and handle errors

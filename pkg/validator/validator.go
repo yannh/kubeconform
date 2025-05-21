@@ -5,6 +5,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"time"
+
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/loader"
@@ -12,11 +17,7 @@ import (
 	"github.com/yannh/kubeconform/pkg/resource"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"io"
-	"os"
 	"sigs.k8s.io/yaml"
-	"strings"
-	"time"
 )
 
 // Different types of validation results
@@ -58,6 +59,7 @@ type Validator interface {
 // Opts contains a set of options for the validator.
 type Opts struct {
 	Cache                string              // Cache schemas downloaded via HTTP to this folder
+	AuthToken            string              // Cache schemas downloaded via HTTP to this folder
 	Debug                bool                // Debug infos will be print here
 	SkipTLS              bool                // skip TLS validation when downloading from an HTTP Schema Registry
 	SkipKinds            map[string]struct{} // List of resource Kinds to ignore
@@ -77,7 +79,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 
 	registries := []registry.Registry{}
 	for _, schemaLocation := range schemaLocations {
-		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS, opts.Debug)
+		reg, err := registry.New(schemaLocation, opts.Cache, opts.Strict, opts.SkipTLS, opts.Debug, opts.AuthToken)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +110,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 		filecache = cache.NewOnDiskCache(opts.Cache)
 	}
 
-	httpLoader, err := loader.NewHTTPURLLoader(false, filecache)
+	httpLoader, err := loader.NewHTTPURLLoader(false, filecache, opts.AuthToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating HTTP loader: %s", err)
 	}

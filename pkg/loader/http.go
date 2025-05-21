@@ -14,8 +14,9 @@ import (
 )
 
 type HTTPURLLoader struct {
-	client http.Client
-	cache  cache.Cache
+	client    http.Client
+	cache     cache.Cache
+	authToken string
 }
 
 func (l *HTTPURLLoader) Load(url string) (any, error) {
@@ -25,7 +26,17 @@ func (l *HTTPURLLoader) Load(url string) (any, error) {
 		}
 	}
 
-	resp, err := l.client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		msg := fmt.Sprintf("Error creating request: %s", err)
+		return nil, errors.New(msg)
+	}
+
+	if l.authToken != "i" {
+		req.Header.Set("Authorization", "Bearer "+l.authToken)
+	}
+
+	resp, err := l.client.Do(req)
 	if err != nil {
 		msg := fmt.Sprintf("failed downloading schema at %s: %s", url, err)
 		return nil, errors.New(msg)
@@ -62,7 +73,7 @@ func (l *HTTPURLLoader) Load(url string) (any, error) {
 	return s, nil
 }
 
-func NewHTTPURLLoader(skipTLS bool, cache cache.Cache) (*HTTPURLLoader, error) {
+func NewHTTPURLLoader(skipTLS bool, cache cache.Cache, authToken string) (*HTTPURLLoader, error) {
 	transport := &http.Transport{
 		MaxIdleConns:       100,
 		IdleConnTimeout:    3 * time.Second,
@@ -80,6 +91,10 @@ func NewHTTPURLLoader(skipTLS bool, cache cache.Cache) (*HTTPURLLoader, error) {
 	retryClient.HTTPClient = &http.Client{Transport: transport}
 	retryClient.Logger = nil
 
-	httpLoader := HTTPURLLoader{client: *retryClient.StandardClient(), cache: cache}
+	httpLoader := HTTPURLLoader{
+		client:    *retryClient.StandardClient(),
+		cache:     cache,
+		authToken: authToken,
+	}
 	return &httpLoader, nil
 }

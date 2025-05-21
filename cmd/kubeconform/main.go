@@ -80,6 +80,7 @@ func kubeconform(cfg config.Config) int {
 	var v validator.Validator
 	v, err = validator.New(cfg.SchemaLocations, validator.Opts{
 		Cache:                cfg.Cache,
+		AuthToken:            cfg.AuthToken,
 		Debug:                cfg.Debug,
 		SkipTLS:              cfg.SkipTLS,
 		SkipKinds:            cfg.SkipKinds,

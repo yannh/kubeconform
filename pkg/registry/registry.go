@@ -3,11 +3,12 @@ package registry
 import (
 	"bytes"
 	"fmt"
-	"github.com/yannh/kubeconform/pkg/cache"
-	"github.com/yannh/kubeconform/pkg/loader"
 	"os"
 	"strings"
 	"text/template"
+
+	"github.com/yannh/kubeconform/pkg/cache"
+	"github.com/yannh/kubeconform/pkg/loader"
 )
 
 type Manifest struct {
@@ -68,7 +69,7 @@ func schemaPath(tpl, resourceKind, resourceAPIVersion, k8sVersion string, strict
 	return buf.String(), nil
 }
 
-func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, debug bool) (Registry, error) {
+func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, debug bool, authToken string) (Registry, error) {
 	if schemaLocation == "default" {
 		schemaLocation = "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
 	} else if !strings.HasSuffix(schemaLocation, "json") { // If we dont specify a full templated path, we assume the paths of our fork of kubernetes-json-schema
@@ -94,7 +95,7 @@ func New(schemaLocation string, cacheFolder string, strict bool, skipTLS bool, d
 	}
 
 	if strings.HasPrefix(schemaLocation, "http") {
-		httpLoader, err := loader.NewHTTPURLLoader(skipTLS, c)
+		httpLoader, err := loader.NewHTTPURLLoader(skipTLS, c, authToken)
 		if err != nil {
 			return nil, fmt.Errorf("failed creating HTTP loader: %s", err)
 		}

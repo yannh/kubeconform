@@ -384,8 +384,18 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 			if err != nil {
 				continue
 			}
-			if schema != nil && isSchemaForKind(schema, kind) {
-				return schema, nil
+			if schema != nil {
+				// First check if the schema has explicit kind constraints
+				if hasKindConstraints(schema) {
+					if isSchemaForKind(schema, kind) {
+						return schema, nil
+					}
+				} else {
+					// If no kind constraints, check if the path matches the kind
+					if pathMatchesKind(path, kind) {
+						return schema, nil
+					}
+				}
 			}
 			continue
 		}
@@ -403,20 +413,54 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 	return nil, nil // No schema found - we don't consider it an error, resource will be skipped
 }
 
+func hasKindConstraints(schema *jsonschema.Schema) bool {
+	if schema == nil {
+		return false
+	}
+
+	if schema.Properties != nil {
+		if kindProp, ok := schema.Properties["kind"]; ok {
+			// Check if the kind property has enum or const constraints
+			if kindProp.Enum != nil || kindProp.Const != nil {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func pathMatchesKind(path string, expectedKind string) bool {
+	// Convert expected kind to lowercase for comparison
+	expectedLower := strings.ToLower(expectedKind)
+
+	// Check if the path contains the expected kind name
+	pathLower := strings.ToLower(path)
+
+	// For direct file paths (like secretstore_v1.json), check if the filename contains the kind
+	if strings.Contains(pathLower, expectedLower) {
+		return true
+	}
+
+	return false
+}
+
 func isSchemaForKind(schema *jsonschema.Schema, expectedKind string) bool {
 	if schema == nil {
 		return true
 	}
 
-	if schemaMap, ok := schema.Meta.(map[string]interface{}); ok {
-		if properties, ok := schemaMap["properties"].(map[string]interface{}); ok {
-			if kindProp, ok := properties["kind"].(map[string]interface{}); ok {
-				if enum, ok := kindProp["enum"].([]interface{}); ok && len(enum) > 0 {
-					if enumKind, ok := enum[0].(string); ok {
+	if schema.Properties != nil {
+		if kindProp, ok := schema.Properties["kind"]; ok {
+			if kindProp.Enum != nil {
+				if enumValues := kindProp.Enum.Values; len(enumValues) > 0 {
+					if enumKind, ok := enumValues[0].(string); ok {
 						return enumKind == expectedKind
 					}
 				}
-				if constVal, ok := kindProp["const"].(string); ok {
+			}
+			if kindProp.Const != nil {
+				if constVal, ok := (*kindProp.Const).(string); ok {
 					return constVal == expectedKind
 				}
 			}

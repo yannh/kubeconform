@@ -63,7 +63,7 @@ type Opts struct {
 	SkipKinds            map[string]struct{} // List of resource Kinds to ignore
 	RejectKinds          map[string]struct{} // List of resource Kinds to reject
 	KubernetesVersion    string              // Kubernetes Version - has to match one in https://github.com/instrumenta/kubernetes-json-schema
-	Strict               bool                // thros an error if resources contain undocumented fields
+	Strict               bool                // Throws an error if resources contain undocumented fields
 	IgnoreMissingSchemas bool                // skip a resource if no schema for that resource can be found
 }
 

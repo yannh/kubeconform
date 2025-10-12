@@ -2,13 +2,13 @@
 <meta charset=utf-8>
 <meta name=author content="Yann Hamon">
 <link rel=stylesheet type=text/css href=/css/style.css><link rel=stylesheet type=text/css href=/css/prism.css>
-<title>Kubeconform - Fast Kubernetes manifests validation! | Github Action</title>
+<title>Kubeconform - Fast Kubernetes manifests validation! | GitHub Action</title>
 </head>
 <body>
 <div id=main-container><div id=header>
 <ul id=navigation>
 <li><a href=/about>About</a></li>
-<li><a href=https://github.com/yannh/kubeconform/>Github</a></li>
+<li><a href=https://github.com/yannh/kubeconform/>GitHub</a></li>
 <li><a href=/docs/installation/>Docs</a></li>
 <li><a href=/>Home</a></li>
 </ul>
@@ -21,7 +21,7 @@
 <li><a href=http://kubeconform.mandragor.org/docs/usage/>Usage</a></li>
 <li><a href=http://kubeconform.mandragor.org/docs/crd-support/>Custom Resources support</a></li>
 <li><a href=http://kubeconform.mandragor.org/docs/json-schema-conversion/>OpenAPI to JSON Schema conversion</a></li>
-<li><a href=http://kubeconform.mandragor.org/docs/usage-as-github-action/>Github Action</a></li>
+<li><a href=http://kubeconform.mandragor.org/docs/usage-as-github-action/>GitHub Action</a></li>
 <li><a href=http://kubeconform.mandragor.org/docs/using-as-a-go-module/>Kubeconform as a Go module</a></li>
 </ul>
 <div id=main>
@@ -30,16 +30,16 @@
 <a href=http://kubeconform.mandragor.org/docs/using-as-a-go-module/ id=next>Kubeconform as a Go module ></a>
 </div>
 <div id=content-text>
-<h1>Github Action</h1>
-<p>Kubeconform is publishes Docker Images to Github&rsquo;s new Container Registry, ghcr.io. These images
-can be used directly in a Github Action, once logged in using a <a href=https://github.blog/changelog/2021-03-24-packages-container-registry-now-supports-github_token/><em>Github Token</em></a>.</p>
+<h1>GitHub Action</h1>
+<p>Kubeconform is publishes Docker Images to GitHub&rsquo;s new Container Registry, ghcr.io. These images
+can be used directly in a GitHub Action, once logged in using a <a href=https://github.blog/changelog/2021-03-24-packages-container-registry-now-supports-github_token/><em>GitHub Token</em></a>.</p>
 <pre><code class=language-bash>name: kubeconform
 on: push
 jobs:
   kubeconform:
     runs-on: ubuntu-latest
     steps:
-      - name: login to Github Packages
+      - name: login to GitHub Packages
         run: echo "${{ github.token }}" | docker login https://ghcr.io -u ${GITHUB_ACTOR} --password-stdin
       - uses: actions/checkout@v2
       - uses: docker://ghcr.io/yannh/kubeconform:master
@@ -47,10 +47,10 @@ jobs:
           entrypoint: '/kubeconform'
           args: "-summary -output json kubeconfigs/"
 </code></pre>
-<p><em>Note on pricing</em>: Kubeconform relies on Github Container Registry which is currently in Beta. During that period,
+<p><em>Note on pricing</em>: Kubeconform relies on GitHub Container Registry which is currently in Beta. During that period,
 <a href=https://docs.github.com/en/packages/guides/about-github-container-registry>bandwidth is free</a>. After that period,
-bandwidth costs might be applicable. Since bandwidth from Github Packages within Github Actions is free, I expect
-Github Container Registry to also be usable for free within Github Actions in the future. If that were not to be the
+bandwidth costs might be applicable. Since bandwidth from GitHub Packages within GitHub Actions is free, I expect
+GitHub Container Registry to also be usable for free within GitHub Actions in the future. If that were not to be the
 case, I might publish the Docker image to a different platform.</p>
 </div>
 <div class=navig>

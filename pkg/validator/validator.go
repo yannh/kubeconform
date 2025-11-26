@@ -5,6 +5,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"time"
+
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/loader"
@@ -12,11 +17,7 @@ import (
 	"github.com/yannh/kubeconform/pkg/resource"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"io"
-	"os"
 	"sigs.k8s.io/yaml"
-	"strings"
-	"time"
 )
 
 // Different types of validation results
@@ -375,7 +376,7 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 			c := jsonschema.NewCompiler()
 			c.RegisterFormat(&jsonschema.Format{"duration", validateDuration})
 			c.UseLoader(l)
-			c.DefaultDraft(jsonschema.Draft4)
+			c.DefaultDraft(jsonschema.Draft2020)
 			if err := c.AddResource(path, s); err != nil {
 				continue
 			}

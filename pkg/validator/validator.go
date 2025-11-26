@@ -377,6 +377,7 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 			c.RegisterFormat(&jsonschema.Format{"duration", validateDuration})
 			c.UseLoader(l)
 			c.DefaultDraft(jsonschema.Draft2020)
+			c.AssertFormat()
 			if err := c.AddResource(path, s); err != nil {
 				continue
 			}

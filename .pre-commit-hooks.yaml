@@ -1,0 +1,11 @@
+- id: kubeconform
+  name: kubeconform
+  description: Kubernetes manifest validation
+  entry: kubeconform
+  language: golang
+  pass_filenames: true
+  require_serial: true
+  minimum_pre_commit_version: "2.9.0"
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
+  exclude: ^\.  # paths starting with .
+  types: ["yaml"]

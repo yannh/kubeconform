@@ -292,16 +292,63 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 // https://github.com/kubernetes/apiextensions-apiserver/blob/1ecd29f74da0639e2e6e3b8fac0c9bfd217e05eb/pkg/apis/apiextensions/v1/types_jsonschema.go#L71
 func validateDuration(v any) error {
 	// Try validation with the Go duration format
-	if _, err := time.ParseDuration(v.(string)); err == nil {
-		return nil
-	}
-
 	s, ok := v.(string)
 	if !ok {
 		return nil
 	}
 
-	// must start with 'P'
+	// Try Go duration format (e.g., "1h30m", "30s")
+	if _, err := time.ParseDuration(s); err == nil {
+		return nil
+	}
+
+	// Kubernetes API machinery also accepts Scala duration format without P prefix
+	// specifically for weeks (e.g., "2w") and days (e.g., "3d")
+	// https://github.com/kubernetes/apiextensions-apiserver/blob/1ecd29f74da0639e2e6e3b8fac0c9bfd217e05eb/pkg/apis/apiextensions/v1/types_jsonschema.go#L71
+	// Check for weeks (e.g., "2w", "3W")
+	if s, ok := strings.CutSuffix(s, "w"); ok {
+		if s != "" {
+			for _, ch := range s {
+				if ch < '0' || ch > '9' {
+					return fmt.Errorf("invalid duration: weeks must be a number")
+				}
+			}
+			return nil
+		}
+	}
+	if s, ok := strings.CutSuffix(s, "W"); ok {
+		if s != "" {
+			for _, ch := range s {
+				if ch < '0' || ch > '9' {
+					return fmt.Errorf("invalid duration: weeks must be a number")
+				}
+			}
+			return nil
+		}
+	}
+	// Check for days (e.g., "3d", "5D")
+	if s, ok := strings.CutSuffix(s, "d"); ok {
+		if s != "" {
+			for _, ch := range s {
+				if ch < '0' || ch > '9' {
+					return fmt.Errorf("invalid duration: days must be a number")
+				}
+			}
+			return nil
+		}
+	}
+	if s, ok := strings.CutSuffix(s, "D"); ok {
+		if s != "" {
+			for _, ch := range s {
+				if ch < '0' || ch > '9' {
+					return fmt.Errorf("invalid duration: days must be a number")
+				}
+			}
+			return nil
+		}
+	}
+
+	// Must start with 'P' for ISO 8601 format
 	s, ok = strings.CutPrefix(s, "P")
 	if !ok {
 		return fmt.Errorf("must start with P")

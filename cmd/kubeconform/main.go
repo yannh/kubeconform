@@ -102,7 +102,7 @@ func kubeconform(cfg config.Config) int {
 	if useStdin {
 		resourcesChan, errors = resource.FromStream(ctx, "stdin", os.Stdin)
 	} else {
-		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns)
+		resourcesChan, errors = resource.FromFiles(ctx, cfg.Files, cfg.IgnoreFilenamePatterns, cfg.NumberOfWorkers)
 	}
 
 	// Process discovered resources across multiple workers

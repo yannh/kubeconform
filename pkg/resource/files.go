@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 func isYAMLFile(info os.FileInfo) bool {
@@ -124,19 +125,33 @@ func findResourcesInFile(p string, resources chan<- Resource, errors chan<- erro
 	findResourcesInReader(p, f, resources, errors, buf)
 }
 
-func FromFiles(ctx context.Context, paths []string, ignoreFilePatterns []string) (<-chan Resource, <-chan error) {
+func FromFiles(ctx context.Context, paths []string, ignoreFilePatterns []string, nReaders int) (<-chan Resource, <-chan error) {
 	resources := make(chan Resource)
 
 	files, errors := findFilesInFolders(ctx, paths, ignoreFilePatterns)
 
+	// Read and split files in parallel: file I/O + YAML scanning is the bottleneck
+	// when validating large trees of small manifests.
+	if nReaders < 1 {
+		nReaders = 1
+	}
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < nReaders; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			initialBufSize := 4 * 1024 * 1024
+			buf := make([]byte, initialBufSize) // per-reader buffer, reused across files
+
+			for p := range files {
+				findResourcesInFile(p, resources, errors, buf)
+			}
+		}()
+	}
+
 	go func() {
-		initialBufSize := 4 * 1024 * 1024   // This is the initial size - scanner will resize if needed
-		buf := make([]byte, initialBufSize) // We reuse the same buffer to avoid multiple large memory allocations
-
-		for p := range files {
-			findResourcesInFile(p, resources, errors, buf)
-		}
-
+		wg.Wait()
 		close(errors)
 		close(resources)
 	}()

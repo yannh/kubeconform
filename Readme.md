@@ -17,10 +17,10 @@ It is inspired by, contains code from and is designed to stay close to
  * uses by default a [self-updating fork](https://github.com/yannh/kubernetes-json-schema) of the schemas registry maintained
    by the kubernetes-json-schema project - which guarantees
    up-to-date **schemas for all recent versions of Kubernetes**.
-   
+
 <details><summary><h4>Speed comparison with Kubeval</h4></summary><p>
 Running on a pretty large kubeconfigs setup, on a laptop with 4 cores:
-   
+
 ```bash
 $ time kubeconform -ignore-missing-schemas -n 8 -summary  preview staging production
 Summary: 50714 resources found in 35139 files - Valid: 27334, Invalid: 0, Errors: 0 Skipped: 23380
@@ -122,7 +122,7 @@ Usage: kubeconform [OPTION]... [FILE OR FOLDER]...
   -n int
     	number of goroutines to run concurrently (default 4)
   -output string
-    	output format - json, junit, pretty, tap, text (default "text")
+    	output format - json, junit, pretty, tap, sarif, text (default "text")
   -reject string
     	comma-separated list of kinds or GVKs to reject
   -schema-location value
@@ -234,9 +234,9 @@ Here are the variables you can use in -schema-location:
 
 ### CustomResourceDefinition (CRD) Support
 
-Because Custom Resources (CR) are not native Kubernetes objects, they are not included in the default schema.  
+Because Custom Resources (CR) are not native Kubernetes objects, they are not included in the default schema.
 If your CRs are present in [Datree's CRDs-catalog](https://github.com/datreeio/CRDs-catalog), you can specify this project as an additional registry to lookup:
-  
+
 ```bash
 # Look in the CRDs-catalog for the desired schema/s
 $ kubeconform -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' [MANIFEST]

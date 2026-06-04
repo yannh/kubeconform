@@ -103,7 +103,7 @@ func New(schemaLocations []string, opts Opts) (Validator, error) {
 			return nil, fmt.Errorf("failed opening cache folder %s: %s", opts.Cache, err)
 		}
 		if !fi.IsDir() {
-			return nil, fmt.Errorf("cache folder %s is not a directory", err)
+			return nil, fmt.Errorf("cache folder %s is not a directory", opts.Cache)
 		}
 
 		filecache = cache.NewOnDiskCache(opts.Cache)
@@ -292,13 +292,13 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 // which is commonly used in Kubernetes operators for specifying intervals.
 // https://github.com/kubernetes/apiextensions-apiserver/blob/1ecd29f74da0639e2e6e3b8fac0c9bfd217e05eb/pkg/apis/apiextensions/v1/types_jsonschema.go#L71
 func validateDuration(v any) error {
-	// Try validation with the Go duration format
-	if _, err := strfmt.ParseDuration(v.(string)); err == nil {
+	s, ok := v.(string)
+	if !ok {
 		return nil
 	}
 
-	s, ok := v.(string)
-	if !ok {
+	// Try validation with the Go duration format
+	if _, err := strfmt.ParseDuration(s); err == nil {
 		return nil
 	}
 

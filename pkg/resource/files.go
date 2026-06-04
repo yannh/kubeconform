@@ -115,12 +115,11 @@ func findResourcesInReader(p string, f io.Reader, resources chan<- Resource, err
 
 func findResourcesInFile(p string, resources chan<- Resource, errors chan<- error, buf []byte) {
 	f, err := os.Open(p)
-	defer f.Close()
-
 	if err != nil {
 		errors <- DiscoveryError{p, err}
 		return
 	}
+	defer f.Close()
 
 	findResourcesInReader(p, f, resources, errors, buf)
 }

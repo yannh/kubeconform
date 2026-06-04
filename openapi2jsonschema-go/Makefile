@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-GO_VERSION ?= 1.24.3
+GO_VERSION ?= 1.26.0
 
 .PHONY: test local-test local-build local-build-static docker-test docker-build docker-build-static build-bats docker-acceptance update-deps clean
 
@@ -10,10 +10,10 @@ local-test:
 	go test -race ./... -count=1
 
 local-build:
-	go build -o bin/openapi2jsonschema .
+	go build -mod=vendor -o bin/openapi2jsonschema .
 
 local-build-static:
-	CGO_ENABLED=0 GOOS=$(shell go env GOOS) GOARCH=$(shell go env GOARCH) GO111MODULE=on go build -trimpath -buildvcs=false -tags=netgo -ldflags "-extldflags=\"-static\""  -a -o bin/openapi2jsonschema .
+	CGO_ENABLED=0 GOFLAGS=-mod=vendor GOOS=$(shell go env GOOS) GOARCH=$(shell go env GOARCH) GO111MODULE=on go build -trimpath -buildvcs=false -tags=netgo -ldflags "-extldflags=\"-static\""  -a -o bin/openapi2jsonschema .
 
 # Mount the repo root so scripts/fixtures/ is reachable from the container.
 docker-test:

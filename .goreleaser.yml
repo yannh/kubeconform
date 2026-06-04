@@ -29,6 +29,7 @@ builds:
     main: .
     env:
       - CGO_ENABLED=0
+      - GOFLAGS = -mod=vendor
       - GO111MODULE = on
       - GIT_OWNER = yannh
     goos:

@@ -11,4 +11,5 @@ LABEL org.opencontainers.image.authors="Yann Hamon <yann@mandragor.org>" \
       org.opencontainers.image.url="https://github.com/yannh/kubeconform/"
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY kubeconform /
+COPY openapi2jsonschema /
 ENTRYPOINT ["/kubeconform"]

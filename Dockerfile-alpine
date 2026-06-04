@@ -9,4 +9,5 @@ LABEL org.opencontainers.image.authors="Yann Hamon <yann@mandragor.org>" \
       org.opencontainers.image.url="https://github.com/yannh/kubeconform/"
 RUN apk add ca-certificates
 COPY kubeconform /
+COPY openapi2jsonschema /
 ENTRYPOINT ["/kubeconform"]

@@ -13,7 +13,7 @@ local-build:
 	go build -o bin/openapi2jsonschema .
 
 local-build-static:
-	CGO_ENABLED=0 GOOS=$(shell go env GOOS) GOARCH=$(shell go env GOARCH) GO111MODULE=on go build -trimpath -tags=netgo -ldflags "-extldflags=\"-static\""  -a -o bin/openapi2jsonschema .
+	CGO_ENABLED=0 GOOS=$(shell go env GOOS) GOARCH=$(shell go env GOARCH) GO111MODULE=on go build -trimpath -buildvcs=false -tags=netgo -ldflags "-extldflags=\"-static\""  -a -o bin/openapi2jsonschema .
 
 # Mount the repo root so scripts/fixtures/ is reachable from the container.
 docker-test:

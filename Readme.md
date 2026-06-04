@@ -248,11 +248,12 @@ If your CRs are not present in the CRDs-catalog, you will need to manually pull 
 <p>
 
 `Kubeconform` uses JSON schemas to validate Kubernetes resources. For Custom Resource, the CustomResourceDefinition
-first needs to be converted to JSON Schema. A script is provided to convert these CustomResourceDefinitions
-to JSON schema. Here is an example how to use it:
+first needs to be converted to JSON Schema. A Go tool is provided to convert these CustomResourceDefinitions
+to JSON schema. Build it from the [openapi2jsonschema-go/](openapi2jsonschema-go/) directory and use it as follows:
 
 ```bash
-$ python ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+$ cd openapi2jsonschema-go && make local-build
+$ ./bin/openapi2jsonschema https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
 JSON schema written to trainingjob_v1.json
 ```
 
@@ -260,11 +261,11 @@ By default, the file name output format is `{kind}_{version}`. The `FILENAME_FOR
 
 ```
 $ export FILENAME_FORMAT='{kind}-{group}-{version}'
-$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+$ ./bin/openapi2jsonschema https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
 JSON schema written to trainingjob-sagemaker-v1.json
 
 $ export FILENAME_FORMAT='{kind}-{fullgroup}-{version}'
-$ ./scripts/openapi2jsonschema.py https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+$ ./bin/openapi2jsonschema https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
 JSON schema written to trainingjob-sagemaker.aws.amazon.com-v1.json
 ```
 

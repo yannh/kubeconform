@@ -1,6 +1,8 @@
 project_name: kubeconform
 builds:
-  - main: ./cmd/kubeconform
+  - id: kubeconform
+    binary: kubeconform
+    main: ./cmd/kubeconform
     env:
       - CGO_ENABLED=0
       - GOFLAGS = -mod=vendor
@@ -11,7 +13,6 @@ builds:
       - linux
       - darwin
     goarch:
-      - 386
       - amd64
       - arm
       - arm64
@@ -22,9 +23,33 @@ builds:
     ldflags:
       - -extldflags "-static"
       - -X main.version={{.Tag}}
+  - id: openapi2jsonschema
+    binary: openapi2jsonschema
+    dir: ./openapi2jsonschema-go
+    main: .
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE = on
+      - GIT_OWNER = yannh
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    flags:
+      - -trimpath
+      - -tags=netgo
+      - -a
+    ldflags:
+      - -extldflags "-static"
 
 archives:
   - format: tar.gz
+    builds:
+      - kubeconform
     format_overrides:
       - goos: windows
         format: zip

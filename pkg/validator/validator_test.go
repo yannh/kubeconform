@@ -460,6 +460,40 @@ interval: test
 			Invalid,
 			[]ValidationError{{Path: "/interval", Msg: "'test' is not valid duration: must start with P"}},
 		},
+		{
+			// A schema file whose entire content is the literal "null" decodes to
+			// a nil document. It used to reach jsonschema's Compile and panic with
+			// a nil pointer dereference (issue #337); it must now be treated as a
+			// missing schema instead.
+			"schema document is null",
+			[]byte(`
+kind: name
+apiVersion: v1
+firstName: foo
+`),
+			[]byte(`null`),
+			nil,
+			true,
+			false,
+			Skipped,
+			[]ValidationError{},
+		},
+		{
+			// Same as above but with IgnoreMissingSchemas disabled: a null schema
+			// document must surface as a graceful Error, not a panic (issue #337).
+			"schema document is null, do not ignore missing",
+			[]byte(`
+kind: name
+apiVersion: v1
+firstName: foo
+`),
+			[]byte(`null`),
+			nil,
+			false,
+			false,
+			Error,
+			[]ValidationError{},
+		},
 	} {
 		val := v{
 			opts: Opts{

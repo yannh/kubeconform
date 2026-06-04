@@ -372,6 +372,13 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 	for _, reg := range registries {
 		path, s, err = reg.DownloadSchema(kind, version, k8sVersion)
 		if err == nil {
+			// A schema document that decodes to nil (for example a file whose
+			// entire content is the literal "null") is accepted by AddResource
+			// but makes Compile dereference a nil root and panic. Treat it as a
+			// non-parseable response and try the next registry instead.
+			if s == nil {
+				continue
+			}
 			c := jsonschema.NewCompiler()
 			c.RegisterFormat(&jsonschema.Format{"duration", validateDuration})
 			c.UseLoader(l)

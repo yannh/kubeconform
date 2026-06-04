@@ -5,6 +5,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+
 	jsonschema "github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/yannh/kubeconform/pkg/cache"
 	"github.com/yannh/kubeconform/pkg/loader"
@@ -12,11 +16,8 @@ import (
 	"github.com/yannh/kubeconform/pkg/resource"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"io"
-	"os"
+	"k8s.io/kube-openapi/pkg/validation/strfmt"
 	"sigs.k8s.io/yaml"
-	"strings"
-	"time"
 )
 
 // Different types of validation results
@@ -292,7 +293,7 @@ func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 // https://github.com/kubernetes/apiextensions-apiserver/blob/1ecd29f74da0639e2e6e3b8fac0c9bfd217e05eb/pkg/apis/apiextensions/v1/types_jsonschema.go#L71
 func validateDuration(v any) error {
 	// Try validation with the Go duration format
-	if _, err := time.ParseDuration(v.(string)); err == nil {
+	if _, err := strfmt.ParseDuration(v.(string)); err == nil {
 		return nil
 	}
 

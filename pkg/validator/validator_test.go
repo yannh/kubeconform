@@ -2,11 +2,12 @@ package validator
 
 import (
 	"bytes"
-	"github.com/santhosh-tekuri/jsonschema/v6"
-	"github.com/yannh/kubeconform/pkg/loader"
 	"io"
 	"reflect"
 	"testing"
+
+	"github.com/santhosh-tekuri/jsonschema/v6"
+	"github.com/yannh/kubeconform/pkg/loader"
 
 	"github.com/yannh/kubeconform/pkg/registry"
 
@@ -385,6 +386,33 @@ lastName: bar
 kind: name
 apiVersion: v1
 interval: 5s
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string"
+    },
+	"interval": {
+      "type": "string",
+	  "format": "duration"
+    }
+  },
+  "required": ["interval"]
+}`),
+			nil,
+			false,
+			false,
+			Valid,
+			[]ValidationError{},
+		},
+		{
+			"valid resource duration - scala duration format",
+			[]byte(`
+kind: name
+apiVersion: v1
+interval: 2w
 `),
 			[]byte(`{
   "title": "Example Schema",

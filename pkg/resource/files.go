@@ -41,6 +41,24 @@ func isIgnored(path string, ignoreFilePatterns []string) (bool, error) {
 	return false, nil
 }
 
+func checkFile(path string, info os.FileInfo, files chan<- string, ignoreFilePatterns []string) error {
+	if !isYAMLFile(info) && !isJSONFile(info) {
+		return nil
+	}
+
+	ignored, err := isIgnored(path, ignoreFilePatterns)
+	if err != nil {
+		return err
+	}
+	if ignored {
+		return nil
+	}
+
+	files <- path
+
+	return nil
+}
+
 func findFilesInFolders(ctx context.Context, paths []string, ignoreFilePatterns []string) (chan string, chan error) {
 	files := make(chan string)
 	errors := make(chan error)
@@ -60,21 +78,30 @@ func findFilesInFolders(ctx context.Context, paths []string, ignoreFilePatterns 
 					return err
 				}
 
-				if !isYAMLFile(i) && !isJSONFile(i) {
-					return nil
+				// follow top-level directory symlinks
+				if i.Mode()&os.ModeSymlink != 0 {
+					linkInfo, err := os.Stat(path)
+					if err != nil {
+						return err
+					}
+
+					if linkInfo.IsDir() {
+						evalPath, err := filepath.EvalSymlinks(path)
+						if err != nil {
+							return err
+						}
+
+						filepath.Walk(evalPath, func(p string, i os.FileInfo, err error) error {
+							if err != nil {
+								return err
+							}
+
+							return checkFile(p, i, files, ignoreFilePatterns)
+						})
+					}
 				}
 
-				ignored, err := isIgnored(p, ignoreFilePatterns)
-				if err != nil {
-					return err
-				}
-				if ignored {
-					return nil
-				}
-
-				files <- p
-
-				return nil
+				return checkFile(p, i, files, ignoreFilePatterns)
 			})
 
 			if err != nil && err != io.EOF {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -75,7 +76,7 @@ func splitCSV(csvStr string) map[string]struct{} {
 // FromFlags retrieves kubeconform's runtime configuration from the command-line parameters
 func FromFlags(progName string, args []string) (Config, string, error) {
 	var schemaLocationsParam, ignoreFilenamePatterns arrayParam
-	var skipKindsCSV, rejectKindsCSV string
+	var skipKindsCSV, rejectKindsCSV, envSchemaLocation string
 	flags := flag.NewFlagSet(progName, flag.ContinueOnError)
 	var buf bytes.Buffer
 	flags.SetOutput(&buf)
@@ -112,6 +113,21 @@ func FromFlags(progName string, args []string) (Config, string, error) {
 	c.IgnoreFilenamePatterns = ignoreFilenamePatterns
 	c.SchemaLocations = schemaLocationsParam
 	c.Files = flags.Args()
+
+	envSchemaLocation, _ = os.LookupEnv("KUBECONFORM_SCHEMA_LOCATION")
+	if envSchemaLocation != "" {
+		var kubeconformSchemaLocation []string
+		kubeconformSchemaLocation = strings.Split(envSchemaLocation, ",")
+		for _, s := range kubeconformSchemaLocation {
+			c.SchemaLocations = append(c.SchemaLocations, s)
+		}
+	}
+
+	if c.Verbose == true {
+		for i, s := range c.SchemaLocations {
+			fmt.Printf("Schema location %d: %s\n", i, s)
+		}
+	}
 
 	if c.Help {
 		flags.Usage()

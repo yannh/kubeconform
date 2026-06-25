@@ -62,7 +62,13 @@ func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource,
 				break SCAN
 			default:
 			}
-			res := Resource{Path: path, Bytes: scanner.Bytes()}
+			// scanner.Bytes() aliases the scanner's internal buffer, which is
+			// overwritten when the scanner refills for later documents. Resources are
+			// sent on the channel below and retained/parsed by the consumer (e.g.
+			// ValidateWithContext) concurrently with this producer goroutine, so
+			// without a copy the consumer reads corrupted bytes once the buffer is
+			// reused. Clone so each Resource owns its bytes.
+			res := Resource{Path: path, Bytes: bytes.Clone(scanner.Bytes())}
 			for _, subres := range res.Resources() {
 				resources <- subres
 			}

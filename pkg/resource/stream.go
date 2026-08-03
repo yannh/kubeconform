@@ -68,6 +68,10 @@ func FromStream(ctx context.Context, path string, r io.Reader) (<-chan Resource,
 			}
 		}
 
+		if err := scanner.Err(); err != nil {
+			errors <- DiscoveryError{path, err}
+		}
+
 		close(resources)
 		close(errors)
 	}()

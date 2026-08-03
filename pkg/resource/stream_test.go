@@ -3,6 +3,7 @@ package resource_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"reflect"
 	"strings"
@@ -171,5 +172,49 @@ kind: Deployment
 		}()
 
 		wg.Wait()
+	}
+}
+
+// failingReader serves a first chunk and then fails, the way a broken pipe on
+// stdin does.
+type failingReader struct {
+	head string
+	sent bool
+}
+
+func (r *failingReader) Read(p []byte) (int, error) {
+	if r.sent {
+		return 0, errors.New("read failed")
+	}
+	r.sent = true
+	return copy(p, r.head), nil
+}
+
+func TestFromStreamReadError(t *testing.T) {
+	r := &failingReader{head: "apiVersion: v1\nkind: ReplicationController\n"}
+	resChan, errChan := resource.FromStream(context.Background(), "stdin", r)
+
+	var wg sync.WaitGroup
+	var errs []error
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		for range resChan {
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for e := range errChan {
+			errs = append(errs, e)
+		}
+	}()
+	wg.Wait()
+
+	if len(errs) != 1 {
+		t.Fatalf("expected the read failure to be reported, got %d errors", len(errs))
+	}
+	if _, ok := errs[0].(resource.DiscoveryError); !ok {
+		t.Errorf("expected a DiscoveryError, got %T", errs[0])
 	}
 }

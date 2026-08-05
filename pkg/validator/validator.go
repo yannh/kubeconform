@@ -250,6 +250,22 @@ func (val *v) ValidateResource(res resource.Resource) Result {
 		}
 	}
 
+	if metadata, ok := r["metadata"].(map[string]interface{}); ok {
+		if name, ok := metadata["name"].(string); ok && name != "" {
+			if err := validateResourceName(sig.Kind, name); err != nil {
+				return Result{
+					Resource: res,
+					Status:   Invalid,
+					Err:      fmt.Errorf("resource name is invalid: %s", err),
+					ValidationErrors: []ValidationError{{
+						Path: "/metadata/name",
+						Msg:  err.Error(),
+					}},
+				}
+			}
+		}
+	}
+
 	return Result{Resource: res, Status: Valid}
 }
 
@@ -284,6 +300,48 @@ func (val *v) ValidateWithContext(ctx context.Context, filename string, r io.Rea
 // filename should be a name for the stream, such as a filename or stdin
 func (val *v) Validate(filename string, r io.ReadCloser) []Result {
 	return val.ValidateWithContext(context.Background(), filename, r)
+}
+
+// nameMaxLen returns the maximum length allowed for a resource name.
+// Namespace and Service use DNS label rules (max 63); everything else,
+// including CRDs, uses DNS subdomain rules (max 253).
+func nameMaxLen(kind string) int {
+	switch kind {
+	case "Namespace", "Service":
+		return 63
+	default:
+		return 253
+	}
+}
+
+// validateResourceName checks that a Kubernetes resource name conforms to the
+// naming rule the API server enforces for that kind.
+// https://kubernetes.io/docs/concepts/overview/working-with-objects/names/
+func validateResourceName(kind, name string) error {
+	if len(name) == 0 {
+		return nil // absence is validated by the schema (required field)
+	}
+	maxLen := nameMaxLen(kind)
+	if len(name) > maxLen {
+		return fmt.Errorf("must be no more than %d characters", maxLen)
+	}
+	for i, ch := range name {
+		switch {
+		case ch >= 'a' && ch <= 'z':
+		case ch >= '0' && ch <= '9':
+			// Services (DNS 1035) must start with a letter, not a digit.
+			if i == 0 && kind == "Service" {
+				return fmt.Errorf("must start with a letter (a-z)")
+			}
+		case ch == '-' || ch == '.':
+			if i == 0 || i == len(name)-1 {
+				return fmt.Errorf("must start and end with an alphanumeric character")
+			}
+		default:
+			return fmt.Errorf("must consist of lower case alphanumeric characters, '-' or '.', (e.g. 'my-name', or '123-abc')")
+		}
+	}
+	return nil
 }
 
 // validateDuration is a custom validator for the duration format

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -487,6 +488,148 @@ interval: test
 			false,
 			Invalid,
 			[]ValidationError{{Path: "/interval", Msg: "'test' is not valid duration: must start with P"}},
+		},
+		{
+			"invalid metadata.name - uppercase",
+			[]byte(`
+kind: name
+apiVersion: v1
+metadata:
+  name: NameSpaceName
+firstName: foo
+lastName: bar
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string" },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" }
+  },
+  "required": ["firstName", "lastName"]
+}`),
+			nil,
+			false,
+			false,
+			Invalid,
+			[]ValidationError{{Path: "/metadata/name", Msg: "must consist of lower case alphanumeric characters, '-' or '.', (e.g. 'my-name', or '123-abc')"}},
+		},
+		{
+			"invalid metadata.name - too long (subdomain limit)",
+			[]byte("kind: name\napiVersion: v1\nmetadata:\n  name: " + strings.Repeat("a", 254) + "\nfirstName: foo\nlastName: bar\n"),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string" },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" }
+  },
+  "required": ["firstName", "lastName"]
+}`),
+			nil,
+			false,
+			false,
+			Invalid,
+			[]ValidationError{{Path: "/metadata/name", Msg: "must be no more than 253 characters"}},
+		},
+		{
+			"invalid metadata.name - starts with dash",
+			[]byte(`
+kind: name
+apiVersion: v1
+metadata:
+  name: "-invalid"
+firstName: foo
+lastName: bar
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string" },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" }
+  },
+  "required": ["firstName", "lastName"]
+}`),
+			nil,
+			false,
+			false,
+			Invalid,
+			[]ValidationError{{Path: "/metadata/name", Msg: "must start and end with an alphanumeric character"}},
+		},
+		{
+			"invalid metadata.name - Namespace too long (label limit)",
+			[]byte("kind: Namespace\napiVersion: v1\nmetadata:\n  name: " + strings.Repeat("a", 64) + "\nfirstName: foo\nlastName: bar\n"),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string" },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" }
+  },
+  "required": ["firstName", "lastName"]
+}`),
+			nil,
+			false,
+			false,
+			Invalid,
+			[]ValidationError{{Path: "/metadata/name", Msg: "must be no more than 63 characters"}},
+		},
+		{
+			"invalid metadata.name - Service starts with digit",
+			[]byte(`
+kind: Service
+apiVersion: v1
+metadata:
+  name: 1invalid
+firstName: foo
+lastName: bar
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string" },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" }
+  },
+  "required": ["firstName", "lastName"]
+}`),
+			nil,
+			false,
+			false,
+			Invalid,
+			[]ValidationError{{Path: "/metadata/name", Msg: "must start with a letter (a-z)"}},
+		},
+		{
+			"valid metadata.name",
+			[]byte(`
+kind: name
+apiVersion: v1
+metadata:
+  name: my-valid-name
+firstName: foo
+lastName: bar
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": { "type": "string" },
+    "firstName": { "type": "string" },
+    "lastName": { "type": "string" }
+  },
+  "required": ["firstName", "lastName"]
+}`),
+			nil,
+			false,
+			false,
+			Valid,
+			[]ValidationError{},
 		},
 		{
 			// A schema file whose entire content is the literal "null" decodes to

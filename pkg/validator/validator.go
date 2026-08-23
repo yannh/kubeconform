@@ -369,6 +369,9 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 	var err error
 	var path string
 	var s any
+	// Why a schema we did receive could not be used. Kept separate from err,
+	// which tracks registry lookup failures.
+	var unusableErr error
 
 	for _, reg := range registries {
 		path, s, err = reg.DownloadSchema(kind, version, k8sVersion)
@@ -385,11 +388,17 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 			c.UseLoader(l)
 			c.DefaultDraft(jsonschema.Draft4)
 			if err := c.AddResource(path, s); err != nil {
+				if unusableErr == nil {
+					unusableErr = fmt.Errorf("schema %s could not be loaded: %w", path, err)
+				}
 				continue
 			}
 			schema, err := c.Compile(path)
 			// If we got a non-parseable response, we try the next registry
 			if err != nil {
+				if unusableErr == nil {
+					unusableErr = fmt.Errorf("schema %s could not be compiled: %w", path, err)
+				}
 				continue
 			}
 			return schema, nil
@@ -403,6 +412,13 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 		}
 
 		return nil, err
+	}
+
+	// A schema that was served but could not be used is not a missing schema:
+	// reporting it as missing hides the real cause and, with
+	// -ignore-missing-schemas, silently skips the resource.
+	if unusableErr != nil {
+		return nil, unusableErr
 	}
 
 	return nil, nil // No schema found - we don't consider it an error, resource will be skipped

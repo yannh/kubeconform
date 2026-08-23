@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -691,5 +692,109 @@ firstName: foo
 	}
 	if !reflect.DeepEqual(expectedValidationErrors, gotValidationErrors) {
 		t.Errorf("Expected %+v, got %+v", expectedValidationErrors, gotValidationErrors)
+	}
+}
+
+// --- issue #296 / #305: a schema that is served but cannot be compiled ---
+// Refs https://github.com/yannh/kubeconform/issues/296
+// Refs https://github.com/yannh/kubeconform/issues/305
+
+// unusableSchemaRegistry serves a document that parses as JSON but is not a
+// valid JSON schema: draft-04 requires "type" to be a string or an array.
+func unusableSchemaRegistry() registry.Registry {
+	return newMockRegistry(func() (string, any, error) {
+		s, err := jsonschema.UnmarshalJSON(bytes.NewReader([]byte(`{"type": 123}`)))
+		return "unusable.json", s, err
+	})
+}
+
+func notFoundRegistry() registry.Registry {
+	return newMockRegistry(func() (string, any, error) {
+		return "", nil, loader.NewNotFoundError(nil)
+	})
+}
+
+// RED: downloadSchema must not report "no schema anywhere" when a registry did
+// serve a schema and compiling it failed.
+func TestDownloadSchemaReportsUnusableSchema(t *testing.T) {
+	schema, err := downloadSchema(
+		[]registry.Registry{unusableSchemaRegistry()},
+		jsonschema.SchemeURLLoader{}, "name", "v1", "1.30.0")
+
+	if schema != nil {
+		t.Fatalf("expected no schema, got %v", schema)
+	}
+	if err == nil {
+		t.Fatalf("expected the compile error to be returned, got nil - the reason the schema could not be used is lost")
+	}
+	if !strings.Contains(err.Error(), "metaschema") {
+		t.Errorf("expected the underlying compile error, got %q", err.Error())
+	}
+}
+
+// RED: the user-facing message must name the real cause, not "could not find schema".
+func TestValidateReportsUnusableSchemaCause(t *testing.T) {
+	val := v{
+		opts:           Opts{SkipKinds: map[string]struct{}{}, RejectKinds: map[string]struct{}{}},
+		schemaDownload: downloadSchema,
+		regs:           []registry.Registry{unusableSchemaRegistry()},
+	}
+
+	got := val.ValidateResource(resource.Resource{Bytes: []byte("kind: name\napiVersion: v1\n")})
+
+	if got.Status != Error {
+		t.Fatalf("expected Error, got %d", got.Status)
+	}
+	if got.Err == nil {
+		t.Fatalf("expected an error")
+	}
+	if strings.Contains(got.Err.Error(), "could not find schema") {
+		t.Errorf("schema was found but could not be compiled; message misreports it as missing: %q", got.Err.Error())
+	}
+}
+
+// GUARD (green on base too): a genuinely missing schema must stay a missing
+// schema - (nil, nil) - so that -ignore-missing-schemas keeps working.
+func TestDownloadSchemaMissingSchemaStaysNil(t *testing.T) {
+	schema, err := downloadSchema(
+		[]registry.Registry{notFoundRegistry(), notFoundRegistry()},
+		jsonschema.SchemeURLLoader{}, "name", "v1", "1.30.0")
+
+	if schema != nil || err != nil {
+		t.Fatalf("expected (nil, nil) for a missing schema, got (%v, %v)", schema, err)
+	}
+}
+
+// GUARD (green on base too): -ignore-missing-schemas still skips.
+func TestValidateIgnoreMissingSchemasStillSkips(t *testing.T) {
+	val := v{
+		opts:           Opts{SkipKinds: map[string]struct{}{}, RejectKinds: map[string]struct{}{}, IgnoreMissingSchemas: true},
+		schemaDownload: downloadSchema,
+		regs:           []registry.Registry{notFoundRegistry()},
+	}
+
+	got := val.ValidateResource(resource.Resource{Bytes: []byte("kind: name\napiVersion: v1\n")})
+	if got.Status != Skipped {
+		t.Fatalf("expected Skipped, got %d (err=%v)", got.Status, got.Err)
+	}
+}
+
+// GUARD (green on base too): the first usable schema still wins when an earlier
+// registry served an unusable one.
+func TestDownloadSchemaFallsBackToNextRegistry(t *testing.T) {
+	good := newMockRegistry(func() (string, any, error) {
+		s, err := jsonschema.UnmarshalJSON(bytes.NewReader([]byte(`{"type": "object"}`)))
+		return "good.json", s, err
+	})
+
+	schema, err := downloadSchema(
+		[]registry.Registry{unusableSchemaRegistry(), good},
+		jsonschema.SchemeURLLoader{}, "name", "v1", "1.30.0")
+
+	if err != nil {
+		t.Fatalf("expected the good schema to win, got error %v", err)
+	}
+	if schema == nil {
+		t.Fatalf("expected a schema from the second registry")
 	}
 }

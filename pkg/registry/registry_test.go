@@ -56,3 +56,49 @@ func TestSchemaPath(t *testing.T) {
 		}
 	}
 }
+
+func TestNewSchemaLocationTemplate(t *testing.T) {
+	defaultTpl := "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
+	defaultSuffix := "/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json"
+
+	for i, testCase := range []struct {
+		name     string
+		location string
+		want     string
+	}{
+		{
+			name:     "default keyword",
+			location: "default",
+			want:     defaultTpl,
+		},
+		{
+			name:     "bare directory gets default path appended",
+			location: "https://example.com/schemas",
+			want:     "https://example.com/schemas" + defaultSuffix,
+		},
+		{
+			name:     "full templated path ending in json is unchanged",
+			location: "https://example.com/{{ .ResourceKind }}.json",
+			want:     "https://example.com/{{ .ResourceKind }}.json",
+		},
+		{
+			// GitLab raw API puts /raw?... after the filename, so the template
+			// does not end in "json" even though it already specifies the path.
+			name:     "full templated path not ending in json is unchanged",
+			location: "https://gitlab.example.com/api/v4/projects/123/repository/files/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}%2F{{ .ResourceKind }}{{ .KindSuffix }}.json/raw?ref=master",
+			want:     "https://gitlab.example.com/api/v4/projects/123/repository/files/{{ .NormalizedKubernetesVersion }}-standalone{{ .StrictSuffix }}%2F{{ .ResourceKind }}{{ .KindSuffix }}.json/raw?ref=master",
+		},
+	} {
+		reg, err := New(testCase.location, "", false, false, false)
+		if err != nil {
+			t.Fatalf("%d %s: New() error: %v", i+1, testCase.name, err)
+		}
+		got, ok := reg.(*SchemaRegistry)
+		if !ok {
+			t.Fatalf("%d %s: expected *SchemaRegistry, got %T", i+1, testCase.name, reg)
+		}
+		if got.schemaPathTemplate != testCase.want {
+			t.Errorf("%d %s: schemaPathTemplate = %q, want %q", i+1, testCase.name, got.schemaPathTemplate, testCase.want)
+		}
+	}
+}

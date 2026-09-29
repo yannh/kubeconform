@@ -20,14 +20,57 @@ def test_additional_properties():
     }]):
         assert additional_properties(test["input"]) == test["expect"]
 
+def test_additional_properties_field_named_properties():
+    schema = {
+        "type": "object",
+        "properties": {
+            "properties": {
+                "type": "object",
+                "properties": {"name": {"type": "string"}},
+            },
+            "type": {"type": "string"},
+        },
+    }
+    assert additional_properties(schema) == {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "properties": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {"name": {"type": "string"}},
+            },
+            "type": {"type": "string"},
+        },
+    }
+
+def test_additional_properties_field_map_preserves_explicit_schema():
+    schema = {
+        "type": "object",
+        "properties": {
+            "properties": {
+                "type": "object",
+                "additionalProperties": {"type": "string"},
+            },
+        },
+    }
+    # Skipping the root must not insert a schema keyword into its field map.
+    import copy
+    assert additional_properties(copy.deepcopy(schema), skip=True) == schema
+
 def additional_properties(data, skip=False):
     "This recreates the behaviour of kubectl at https://github.com/kubernetes/kubernetes/blob/225b9119d6a8f03fcbe3cc3d590c261965d928d0/pkg/kubectl/validation/schema.go#L312"
     if isinstance(data, dict):
         if "properties" in data and not skip:
             if "additionalProperties" not in data:
                 data["additionalProperties"] = False
-        for _, v in data.items():
-            additional_properties(v)
+        for key, value in data.items():
+            if key == "properties" and isinstance(value, dict):
+                # This is a map of field names to schemas, not a schema itself.
+                for field_schema in value.values():
+                    additional_properties(field_schema)
+            else:
+                additional_properties(value)
     return data
 
 def test_replace_int_or_string():

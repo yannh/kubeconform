@@ -1,4 +1,4 @@
-module github.com/yannh/kubeconform/scripts/go
+module github.com/yannh/kubeconform/openapi2jsonschema-go
 
 go 1.26
 

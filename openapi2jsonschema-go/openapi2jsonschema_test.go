@@ -46,6 +46,111 @@ func TestAdditionalProperties(t *testing.T) {
 			input:  mapOf("something", mapOf("somethingelse", NewOrderedMap())),
 			expect: `{"something":{"somethingelse":{}}}`,
 		},
+		{
+			name: "existing additionalProperties true is preserved",
+			input: mapOf(
+				"properties", mapOf("name", mapOf("type", "string")),
+				"additionalProperties", true,
+			),
+			expect: `{"properties":{"name":{"type":"string"}},"additionalProperties":true}`,
+		},
+		{
+			name: "anyOf member with properties stays open",
+			input: mapOf(
+				"anyOf", []any{
+					mapOf(
+						"properties", mapOf("ingress", NewOrderedMap()),
+						"required", []any{"ingress"},
+					),
+				},
+			),
+			expect: `{"anyOf":[{"properties":{"ingress":{}},"required":["ingress"]}]}`,
+		},
+		{
+			name: "oneOf member with properties stays open",
+			input: mapOf(
+				"oneOf", []any{
+					mapOf(
+						"properties", mapOf("endpointSelector", NewOrderedMap()),
+						"required", []any{"endpointSelector"},
+					),
+				},
+			),
+			expect: `{"oneOf":[{"properties":{"endpointSelector":{}},"required":["endpointSelector"]}]}`,
+		},
+		{
+			name: "allOf member with properties stays open",
+			input: mapOf(
+				"allOf", []any{
+					mapOf(
+						"properties", mapOf("description", NewOrderedMap()),
+						"required", []any{"description"},
+					),
+				},
+			),
+			expect: `{"allOf":[{"properties":{"description":{}},"required":["description"]}]}`,
+		},
+		{
+			name: "not schema with properties stays open",
+			input: mapOf(
+				"not", mapOf(
+					"properties", mapOf("forbidden", NewOrderedMap()),
+					"required", []any{"forbidden"},
+				),
+			),
+			expect: `{"not":{"properties":{"forbidden":{}},"required":["forbidden"]}}`,
+		},
+		{
+			name: "explicit additionalProperties on a junctor member is preserved",
+			input: mapOf(
+				"oneOf", []any{
+					mapOf(
+						"properties", mapOf("mode", mapOf("type", "string")),
+						"additionalProperties", true,
+					),
+				},
+			),
+			expect: `{"oneOf":[{"properties":{"mode":{"type":"string"}},"additionalProperties":true}]}`,
+		},
+		{
+			name: "nested object inside an anyOf member is closed",
+			input: mapOf(
+				"anyOf", []any{
+					mapOf(
+						"properties", mapOf(
+							"rule", mapOf(
+								"type", "object",
+								"properties", mapOf("port", mapOf("type", "integer")),
+							),
+						),
+					),
+				},
+			),
+			expect: `{"anyOf":[{"properties":{"rule":{"type":"object","properties":{"port":{"type":"integer"}},"additionalProperties":false}}}]}`,
+		},
+		{
+			name: "parent object is closed while composition members stay open",
+			input: mapOf(
+				"properties", mapOf(
+					"description", mapOf("type", "string"),
+					"endpointSelector", mapOf("type", "object", "properties", NewOrderedMap()),
+					"ingress", mapOf("type", "array"),
+				),
+				"anyOf", []any{
+					mapOf(
+						"properties", mapOf("ingress", NewOrderedMap()),
+						"required", []any{"ingress"},
+					),
+				},
+				"oneOf", []any{
+					mapOf(
+						"properties", mapOf("endpointSelector", NewOrderedMap()),
+						"required", []any{"endpointSelector"},
+					),
+				},
+			),
+			expect: `{"properties":{"description":{"type":"string"},"endpointSelector":{"type":"object","properties":{},"additionalProperties":false},"ingress":{"type":"array"}},"anyOf":[{"properties":{"ingress":{}},"required":["ingress"]}],"oneOf":[{"properties":{"endpointSelector":{}},"required":["endpointSelector"]}],"additionalProperties":false}`,
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -123,5 +228,32 @@ func TestAdditionalProperties_PreservesUnrelatedKeys(t *testing.T) {
 	}
 	if !reflect.DeepEqual(parsed, want) {
 		t.Fatalf("got %v want %v", parsed, want)
+	}
+}
+
+// TestAdditionalProperties_RootSkipLeavesJunctorsOpen covers the default
+// writeSchemaFile call, which skips only the document root.
+func TestAdditionalProperties_RootSkipLeavesJunctorsOpen(t *testing.T) {
+	input := mapOf(
+		"properties", mapOf(
+			"spec", mapOf(
+				"properties", mapOf("name", mapOf("type", "string")),
+				"anyOf", []any{
+					mapOf(
+						"properties", mapOf("name", NewOrderedMap()),
+						"required", []any{"name"},
+					),
+				},
+			),
+		),
+	)
+	got := additionalProperties(input, true)
+	b, err := json.Marshal(got)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	want := `{"properties":{"spec":{"properties":{"name":{"type":"string"}},"anyOf":[{"properties":{"name":{}},"required":["name"]}],"additionalProperties":false}}}`
+	if string(b) != want {
+		t.Fatalf("got %s want %s", b, want)
 	}
 }

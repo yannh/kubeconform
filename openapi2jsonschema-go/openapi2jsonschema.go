@@ -136,15 +136,34 @@ func yamlToData(n *yaml.Node) (any, error) {
 	return nil, nil
 }
 
+// schemaJunctor reports JSON Schema composition keywords. Kubernetes
+// structural schemas forbid additionalProperties inside these members:
+// they are value checks, and an omitted additionalProperties means other
+// fields stay allowed.
+func schemaJunctor(key string) bool {
+	switch key {
+	case "allOf", "anyOf", "oneOf", "not":
+		return true
+	default:
+		return false
+	}
+}
+
 // additionalProperties recreates the kubectl behaviour: any object with a
-// "properties" key gets `additionalProperties: false` set (unless the caller
-// asks to skip it for the root).
+// "properties" key gets `additionalProperties: false` set, unless that key
+// is already present or skip is set. skip is set for the document root
+// (unless DENY_ROOT_ADDITIONAL_PROPERTIES is set) and for schemas directly
+// under allOf, anyOf, oneOf, and not. Nested object schemas inside a
+// skipped member are still closed. An existing additionalProperties value,
+// including true, is left unchanged.
 func additionalProperties(data any, skip bool) any {
 	m, ok := data.(*OrderedMap)
 	if !ok {
 		if list, ok := data.([]any); ok {
 			for i := range list {
-				list[i] = additionalProperties(list[i], false)
+				// Honor skip so each allOf/anyOf/oneOf member is skipped
+				// as a whole. Descendants are visited with skip cleared.
+				list[i] = additionalProperties(list[i], skip)
 			}
 		}
 		return data
@@ -156,7 +175,7 @@ func additionalProperties(data any, skip bool) any {
 	}
 	for _, k := range m.Keys() {
 		v, _ := m.Get(k)
-		m.Set(k, additionalProperties(v, false))
+		m.Set(k, additionalProperties(v, schemaJunctor(k)))
 	}
 	return m
 }

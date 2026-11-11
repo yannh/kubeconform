@@ -32,11 +32,11 @@ docker-acceptance: build-bats
 	docker run --network none -t bats -p acceptance-nonetwork.bats
 
 goreleaser-build-static:
-	docker run -t -e GOOS=linux -e GOARCH=amd64 -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v2.16.0 build --clean --single-target --snapshot
+	docker run -t -e GOOS=linux -e GOARCH=amd64 -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v2.20.1 build --clean --single-target --snapshot
 	cp dist/kubeconform_linux_amd64_v1/kubeconform bin/
 
 release:
-	docker run -e GITHUB_TOKEN -e GIT_OWNER -t -v /var/run/docker.sock:/var/run/docker.sock -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v2.16.0 release --clean
+	docker run -e GITHUB_TOKEN -e GIT_OWNER -t -v /var/run/docker.sock:/var/run/docker.sock -v $$PWD:/go/src/github.com/yannh/kubeconform -w /go/src/github.com/yannh/kubeconform goreleaser/goreleaser:v2.20.1 release --clean
 
 update-deps:
 	go get -u ./...

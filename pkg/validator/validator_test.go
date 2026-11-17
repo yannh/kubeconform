@@ -522,6 +522,33 @@ firstName: foo
 			Error,
 			[]ValidationError{},
 		},
+		{
+			"semver with a v prefix",
+			[]byte(`
+kind: name
+apiVersion: v1
+version: v1.33.1
+`),
+			[]byte(`{
+  "title": "Example Schema",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "format": "semver"
+    }
+  },
+  "required": ["version"]
+}`),
+			nil,
+			false,
+			false,
+			Valid,
+			[]ValidationError{},
+		},
 	} {
 		val := v{
 			opts: Opts{

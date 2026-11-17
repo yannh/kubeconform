@@ -365,6 +365,15 @@ func validateDuration(v any) error {
 	return nil
 }
 
+// validateSemver accepts any value for the semver format. The jsonschema
+// library checks it strictly (so "v1.33.1" fails), but semver is not one of
+// the formats Kubernetes knows, and the API server ignores formats it does not
+// know ("Unknown formats are ignored"), so the cluster accepts such a value.
+// https://github.com/kubernetes/apiextensions-apiserver/blob/1ecd29f74da0639e2e6e3b8fac0c9bfd217e05eb/pkg/apis/apiextensions/v1/types_jsonschema.go#L47
+func validateSemver(v any) error {
+	return nil
+}
+
 func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader, kind, version, k8sVersion string) (*jsonschema.Schema, error) {
 	var err error
 	var path string
@@ -382,6 +391,7 @@ func downloadSchema(registries []registry.Registry, l jsonschema.SchemeURLLoader
 			}
 			c := jsonschema.NewCompiler()
 			c.RegisterFormat(&jsonschema.Format{"duration", validateDuration})
+			c.RegisterFormat(&jsonschema.Format{"semver", validateSemver})
 			c.UseLoader(l)
 			c.DefaultDraft(jsonschema.Draft4)
 			if err := c.AddResource(path, s); err != nil {

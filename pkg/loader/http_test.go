@@ -214,3 +214,36 @@ func TestHTTPURLLoader_Load_Retries(t *testing.T) {
 		})
 	}
 }
+
+// A cache entry that is not valid JSON (for example truncated by a process
+// killed mid-write) must be treated as a cache miss: the schema is downloaded
+// again and the entry is repaired, instead of failing on every later run.
+func TestHTTPURLLoader_Load_CorruptCacheEntry(t *testing.T) {
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"type": "object"}`))
+	}))
+	defer server.Close()
+
+	for _, corrupt := range []string{``, `{"type": "objec`} {
+		calls = 0
+		c := &mockCache{data: map[string]any{server.URL: []byte(corrupt)}}
+		loader := &HTTPURLLoader{client: *server.Client(), cache: c}
+
+		res, err := loader.Load(server.URL)
+		if err != nil {
+			t.Fatalf("cached %q: unexpected error: %v", corrupt, err)
+		}
+		if res == nil {
+			t.Fatalf("cached %q: expected non-nil result", corrupt)
+		}
+		if calls != 1 {
+			t.Errorf("cached %q: expected 1 download, got %d", corrupt, calls)
+		}
+		if got := string(c.data[server.URL].([]byte)); got != `{"type": "object"}` {
+			t.Errorf("cached %q: cache entry not repaired, got %q", corrupt, got)
+		}
+	}
+}

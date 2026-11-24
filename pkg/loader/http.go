@@ -21,7 +21,12 @@ type HTTPURLLoader struct {
 func (l *HTTPURLLoader) Load(url string) (any, error) {
 	if l.cache != nil {
 		if cached, err := l.cache.Get(url); err == nil {
-			return jsonschema.UnmarshalJSON(bytes.NewReader(cached.([]byte)))
+			if s, err := jsonschema.UnmarshalJSON(bytes.NewReader(cached.([]byte))); err == nil {
+				return s, nil
+			}
+			// The cached entry is not valid JSON, for example because an
+			// earlier run was killed while writing it. Download the schema
+			// again; Set below replaces the bad entry.
 		}
 	}
 

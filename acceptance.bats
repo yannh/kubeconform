@@ -276,6 +276,36 @@ resetCacheFolder() {
   [ "$output" = "failed opening cache folder cache_does_not_exist: stat cache_does_not_exist: no such file or directory" ]
 }
 
+@test "Pass and repair the cache when a cached schema is truncated" {
+  resetCacheFolder
+  run bin/kubeconform -cache cache -summary fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "`ls cache/ | wc -l`" -eq 1 ]
+  entry="cache/`ls cache/`"
+  size="`wc -c < $entry`"
+  # Simulate an entry left behind by a process killed while writing it
+  head -c 100 "$entry" > truncated && mv truncated "$entry"
+  run bin/kubeconform -cache cache -summary fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
+  [ "`ls cache/ | wc -l`" -eq 1 ]
+  [ "`wc -c < $entry`" -eq "$size" ]
+}
+
+@test "Pass and repair the cache when a cached schema is empty" {
+  resetCacheFolder
+  run bin/kubeconform -cache cache -summary fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  entry="cache/`ls cache/`"
+  size="`wc -c < $entry`"
+  : > "$entry"
+  run bin/kubeconform -cache cache -summary fixtures/valid.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "Summary: 1 resource found in 1 file - Valid: 1, Invalid: 0, Errors: 0, Skipped: 0" ]
+  [ "`ls cache/ | wc -l`" -eq 1 ]
+  [ "`wc -c < $entry`" -eq "$size" ]
+}
+
 @test "HTTP references should be cached" {
   resetCacheFolder
   run bin/kubeconform -cache cache -summary -schema-location 'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{ .NormalizedKubernetesVersion }}{{ .StrictSuffix }}/{{ .ResourceKind }}{{ .KindSuffix }}.json' fixtures/valid.yaml

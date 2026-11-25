@@ -83,6 +83,29 @@ def allow_null_optional_fields(data, parent=None, grand_parent=None, key=None):
         return data
 
 
+def defaults_optional(data):
+    """
+    Drop from each object's "required" list every property whose schema has a "default".
+    The API server applies structural-schema defaults before it validates, so a manifest
+    that omits such a property is accepted by the cluster. An emptied "required" is removed,
+    as draft-04 forbids an empty one. Applied by default; DEFAULTS_REQUIRED turns it off.
+    """
+    if isinstance(data, list):
+        return [defaults_optional(x) for x in data]
+    if not isinstance(data, dict):
+        return data
+    new = {k: defaults_optional(v) for k, v in data.items()}
+    props = new.get("properties")
+    req = new.get("required")
+    if isinstance(props, dict) and isinstance(req, list):
+        kept = [n for n in req if not (isinstance(props.get(n), dict) and "default" in props[n])]
+        if kept:
+            new["required"] = kept
+        else:
+            del new["required"]
+    return new
+
+
 def append_no_duplicates(obj, key, value):
     """
     Given a dictionary, lookup the given key, if it doesn't exist create a new array.
@@ -97,6 +120,8 @@ def append_no_duplicates(obj, key, value):
 def write_schema_file(schema, filename):
     schemaJSON = ""
 
+    if not os.getenv("DEFAULTS_REQUIRED"):
+        schema = defaults_optional(schema)
     schema = additional_properties(schema, skip=not os.getenv("DENY_ROOT_ADDITIONAL_PROPERTIES"))
     schema = replace_int_or_string(schema)
     schemaJSON = json.dumps(schema, indent=2)

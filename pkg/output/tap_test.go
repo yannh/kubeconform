@@ -18,6 +18,14 @@ func TestTapWrite(t *testing.T) {
 		expect      string
 	}{
 		{
+			"no results",
+			false,
+			false,
+			false,
+			nil,
+			"TAP version 13\n1..0 # SKIP no resources to validate\n",
+		},
+		{
 			"a single deployment, summary, no verbose",
 			true,
 			false,

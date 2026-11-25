@@ -60,8 +60,13 @@ func (o *tapo) Write(res validator.Result) error {
 	return nil
 }
 
-// Flush outputs the results as JSON
+// Flush writes the TAP plan after any test results.
 func (o *tapo) Flush() error {
+	if o.index == 0 {
+		fmt.Fprint(o.w, "TAP version 13\n1..0 # SKIP no resources to validate\n")
+		return nil
+	}
+
 	fmt.Fprintf(o.w, "1..%d\n", o.index)
 
 	return nil

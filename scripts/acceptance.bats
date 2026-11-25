@@ -2,6 +2,7 @@
 
 setup() {
   rm -f prometheus_v1.json
+  rm -f password_v1alpha1.json
   rm -f prometheus-monitoring-v1.json
 }
 
@@ -78,4 +79,20 @@ setup() {
   [ "$status" -eq 1 ]
   [ "${lines[0]}" == 'Missing FILE parameter.' ]
   [ "${lines[1]}" == 'Usage: ./openapi2jsonschema.py [FILE]' ]
+}
+
+@test "Should drop defaulted properties from required by default" {
+  run ./openapi2jsonschema.py fixtures/defaults-CustomResourceDefinition.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "JSON schema written to password_v1alpha1.json" ]
+  run diff password_v1alpha1.json ./fixtures/password_v1alpha1-expected.json
+  [ "$status" -eq 0 ]
+}
+
+@test "Should keep defaulted properties required when DEFAULTS_REQUIRED is set" {
+  DEFAULTS_REQUIRED='true' run ./openapi2jsonschema.py fixtures/defaults-CustomResourceDefinition.yaml
+  [ "$status" -eq 0 ]
+  [ "$output" = "JSON schema written to password_v1alpha1.json" ]
+  run diff password_v1alpha1.json ./fixtures/password_v1alpha1-defaultsRequired.json
+  [ "$status" -eq 0 ]
 }

@@ -269,6 +269,15 @@ $ ./bin/openapi2jsonschema https://raw.githubusercontent.com/aws/amazon-sagemake
 JSON schema written to trainingjob-sagemaker.aws.amazon.com-v1.json
 ```
 
+The API server applies a CRD's structural-schema defaults before it validates, so it accepts a manifest that omits a
+property listed in `required` when that property has a `default`. The generated schema matches this: every defaulted
+property is dropped from its object's `required` list. Set `DEFAULTS_REQUIRED` to keep such properties required, as
+in earlier versions.
+
+```
+$ DEFAULTS_REQUIRED=true ./bin/openapi2jsonschema https://raw.githubusercontent.com/aws/amazon-sagemaker-operator-for-k8s/master/config/crd/bases/sagemaker.aws.amazon.com_trainingjobs.yaml
+```
+
 After converting your CRDs to JSON schema files, you can use `kubeconform` to validate your CRs against them:
 
 ```

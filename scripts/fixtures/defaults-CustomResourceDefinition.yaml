@@ -1,0 +1,47 @@
+# Minimal CRD whose spec lists defaulted properties as required, the way controller-gen emits a field
+# with +kubebuilder:default but without omitempty. Modelled on the issue's example (#379).
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: passwords.example.com
+spec:
+  group: example.com
+  names:
+    kind: Password
+    plural: passwords
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                allowRepeat:
+                  type: boolean
+                  default: false
+                digits:
+                  type: integer
+                length:
+                  type: integer
+                  default: 24
+                noUpper:
+                  type: boolean
+                  default: false
+              required:
+                - allowRepeat
+                - digits
+                - length
+                - noUpper
+            status:
+              type: object
+              properties:
+                ready:
+                  type: boolean
+                  default: false
+              required:
+                - ready

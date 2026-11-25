@@ -46,6 +46,20 @@ func (m *OrderedMap) Set(k string, v any) {
 
 func (m *OrderedMap) Keys() []string { return m.keys }
 
+// Delete removes k, keeping the order of the remaining keys.
+func (m *OrderedMap) Delete(k string) {
+	if _, ok := m.values[k]; !ok {
+		return
+	}
+	delete(m.values, k)
+	for i, key := range m.keys {
+		if key == k {
+			m.keys = append(m.keys[:i], m.keys[i+1:]...)
+			break
+		}
+	}
+}
+
 func (m *OrderedMap) Len() int { return len(m.keys) }
 
 // MarshalJSON emits keys in insertion order with no HTML escaping, matching
@@ -136,6 +150,47 @@ func yamlToData(n *yaml.Node) (any, error) {
 	return nil, nil
 }
 
+// defaultsOptional drops from each object's "required" list every property whose schema
+// has a "default". The API server applies structural-schema defaults before it validates,
+// so a manifest that omits such a property is accepted by the cluster; without this,
+// kubeconform rejects it. An emptied "required" is removed, as draft-04 forbids an empty one.
+// It runs by default; DEFAULTS_REQUIRED turns it off.
+func defaultsOptional(data any) any {
+	switch v := data.(type) {
+	case []any:
+		for i := range v {
+			v[i] = defaultsOptional(v[i])
+		}
+		return v
+	case *OrderedMap:
+		for _, k := range v.Keys() {
+			val, _ := v.Get(k)
+			v.Set(k, defaultsOptional(val))
+		}
+		req, hasReq := v.Get("required")
+		props, hasProps := getMap(v, "properties")
+		names, isList := req.([]any)
+		if !hasReq || !hasProps || !isList {
+			return v
+		}
+		kept := make([]any, 0, len(names))
+		for _, n := range names {
+			name, _ := n.(string)
+			if p, ok := getMap(props, name); ok && p.Has("default") {
+				continue
+			}
+			kept = append(kept, n)
+		}
+		if len(kept) == 0 {
+			v.Delete("required")
+		} else {
+			v.Set("required", kept)
+		}
+		return v
+	}
+	return data
+}
+
 // additionalProperties recreates the kubectl behaviour: any object with a
 // "properties" key gets `additionalProperties: false` set (unless the caller
 // asks to skip it for the root).
@@ -206,7 +261,10 @@ func replaceIntOrString(data any) any {
 	return out
 }
 
-func writeSchemaFile(schema any, filename string, denyRootAdditionalProperties bool) error {
+func writeSchemaFile(schema any, filename string, denyRootAdditionalProperties, defaultsRequired bool) error {
+	if !defaultsRequired {
+		schema = defaultsOptional(schema)
+	}
 	schema = additionalProperties(schema, !denyRootAdditionalProperties)
 	schema = replaceIntOrString(schema)
 
@@ -263,7 +321,7 @@ func openInput(path string) (io.ReadCloser, error) {
 
 // process consumes one CRD source (file or URL) and writes one JSON schema per
 // version found, mirroring the original Python control flow.
-func process(path string, filenameFormat string, denyRoot bool) error {
+func process(path string, filenameFormat string, denyRoot, defaultsRequired bool) error {
 	r, err := openInput(path)
 	if err != nil {
 		return err
@@ -331,7 +389,7 @@ func process(path string, filenameFormat string, denyRoot bool) error {
 				if hasSchema {
 					if root, ok := schemaMap.Get("openAPIV3Schema"); ok {
 						filename := formatFilename(filenameFormat, kind, group, fullgroup, vName)
-						if err := writeSchemaFile(root, filename, denyRoot); err != nil {
+						if err := writeSchemaFile(root, filename, denyRoot, defaultsRequired); err != nil {
 							return err
 						}
 						continue
@@ -341,7 +399,7 @@ func process(path string, filenameFormat string, denyRoot bool) error {
 				if hasValidation {
 					if root, ok := validation.Get("openAPIV3Schema"); ok {
 						filename := formatFilename(filenameFormat, kind, group, fullgroup, vName)
-						if err := writeSchemaFile(root, filename, denyRoot); err != nil {
+						if err := writeSchemaFile(root, filename, denyRoot, defaultsRequired); err != nil {
 							return err
 						}
 					}
@@ -351,7 +409,7 @@ func process(path string, filenameFormat string, denyRoot bool) error {
 			if root, ok := validation.Get("openAPIV3Schema"); ok {
 				vName, _ := getString(spec, "version")
 				filename := formatFilename(filenameFormat, kind, group, fullgroup, vName)
-				if err := writeSchemaFile(root, filename, denyRoot); err != nil {
+				if err := writeSchemaFile(root, filename, denyRoot, defaultsRequired); err != nil {
 					return err
 				}
 			}
@@ -394,9 +452,10 @@ func main() {
 		filenameFormat = "{kind}_{version}"
 	}
 	denyRoot := os.Getenv("DENY_ROOT_ADDITIONAL_PROPERTIES") != ""
+	defaultsRequired := os.Getenv("DEFAULTS_REQUIRED") != ""
 
 	for _, arg := range os.Args[1:] {
-		if err := process(arg, filenameFormat, denyRoot); err != nil {
+		if err := process(arg, filenameFormat, denyRoot, defaultsRequired); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
